@@ -1,0 +1,6 @@
+{
+  "extends": "@student-management-system/config/tsconfig.base.json",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@student-management-system/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@student-management-system/db": "workspace:*",
+    "@student-management-system/env": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "dotenv": "catalog:",
+    "next": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@student-management-system/config": "workspace:*",
+    "typescript": "^5"
+  }
+}
