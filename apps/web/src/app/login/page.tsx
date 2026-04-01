@@ -16,21 +16,18 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-460px flex items-center justify-center">
-      <div>
-        <div className="flex items-center justify-center mb-8">
+    <div className="flex items-center justify-center my-0 mx-auto min-h-screen">
+      <div className="flex-col justify-center">
+        <div className="relative w-52 h-10 mx-auto mb-20 ">
           <Image
             src="/logo.svg"
-            width={212}
-            height={40}
-            alt="Otomatics"
-            priority
+            alt="Otomatics Logo"
+            fill
+            className="object-cover"
           />
         </div>
 
-        <h1 className="text-3xl font-extrabold text-foreground">
-          Log in
-        </h1>
+        <h1 className="text-3xl font-extrabold text-foreground">Log in</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Use your account to continue.
         </p>

@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@student-management-system/ui/components/button";
+import { useRouter } from "next/dist/client/components/navigation";
 import Image from "next/image";
-import Link from "next/link";
 
 export default function Hero() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-linear-to-br from-background to-muted px-[56] py-[40]">
       {/* Header with Logo */}
@@ -18,7 +19,7 @@ export default function Hero() {
       </div>
 
       {/* Main Content */}
-      <div className="px-12 md:px-12 py-12">
+      <div className="px-12 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Section */}
           <div className="space-y-8">
@@ -43,10 +44,18 @@ export default function Hero() {
                 Select Your Role to Continue
               </p>
               <div className="flex gap-4">
-                <Button variant="blue" size={"md"}>
+                <Button
+                  onClick={() => router.push("/login")}
+                  variant="blue"
+                  size={"md"}
+                >
                   Parent
                 </Button>
-                <Button variant="white" size={"md"}>
+                <Button
+                  onClick={() => router.push("/login")}
+                  variant="white"
+                  size={"md"}
+                >
                   Teacher
                 </Button>
               </div>
