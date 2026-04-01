@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted px-[56] py-[40]">
+    <div className="min-h-screen bg-linear-to-br from-background to-muted px-[56] py-[40]">
       {/* Header with Logo */}
       <div className="w-93 h-17.75 relative pt-[40]">
         <Image
