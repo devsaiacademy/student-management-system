@@ -16,8 +16,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-2xl rounded-2xl border border-primary/80 bg-white/95 p-8 shadow-xl backdrop-blur-md">
+    <div className="max-w-460px flex items-center justify-center">
+      <div>
         <div className="flex items-center justify-center mb-8">
           <Image
             src="/logo.svg"
@@ -28,10 +28,10 @@ export default function Login() {
           />
         </div>
 
-        <h1 className="text-3xl font-extrabold text-foreground text-center">
+        <h1 className="text-3xl font-extrabold text-foreground">
           Log in
         </h1>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           Use your account to continue.
         </p>
 
@@ -51,6 +51,7 @@ export default function Login() {
           <Button
             type="submit"
             variant="blue"
+            size="lg"
             className="w-full py-3 text-base font-semibold"
           >
             Continue with Email
@@ -66,6 +67,7 @@ export default function Login() {
           <Button
             type="button"
             variant="white"
+            size="lg"
             className="w-full py-3 text-base font-semibold"
             onClick={() => {
               /* TODO: implement social signin */
