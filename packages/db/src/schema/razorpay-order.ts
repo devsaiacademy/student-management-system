@@ -1,0 +1,66 @@
+import { sql } from "drizzle-orm";
+import {
+  pgTable,
+  serial,
+  integer,
+  varchar,
+  timestamp,
+  json,
+  foreignKey,
+  pgPolicy,
+} from "drizzle-orm/pg-core";
+
+import { students } from "./student";
+
+export const razorpayOrders = pgTable(
+  "razorpay_orders",
+  {
+    id: serial("id").primaryKey(),
+
+    studentId: integer("student_id").notNull(),
+
+    razorpayOrderId: varchar("razorpay_order_id", { length: 255 })
+      .notNull()
+      .unique(),
+    amount: integer("amount").notNull(),
+    currency: varchar("currency", { length: 3 }).default("INR").notNull(),
+    receipt: varchar("receipt", { length: 255 }),
+
+    status: varchar("status", { length: 50 }).default("created").notNull(),
+
+    razorpayPaymentId: varchar("razorpay_payment_id", { length: 255 }),
+    razorpaySignature: varchar("razorpay_signature", { length: 255 }),
+
+    notes: json("notes"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.studentId],
+      foreignColumns: [students.id],
+      name: "razorpay_orders_student_id_fk",
+    }),
+    pgPolicy("razorpay_orders_insert_policy", {
+      for: "insert",
+      to: "public",
+      withCheck: sql`true`,
+    }),
+    pgPolicy("razorpay_orders_select_policy", {
+      for: "select",
+      to: "public",
+      using: sql`true`,
+    }),
+    pgPolicy("razorpay_orders_update_policy", {
+      for: "update",
+      to: "public",
+      using: sql`true`,
+    }),
+    pgPolicy("razorpay_orders_delete_policy", {
+      for: "delete",
+      to: "public",
+      using: sql`true`,
+    }),
+  ]
+).enableRLS();

@@ -3,11 +3,12 @@ import {
   serial,
   varchar,
   integer,
-  boolean,
   timestamp,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
 
-import { paymentTypeEnum, studentStatusEnum } from "./enums";
+import { sql } from "drizzle-orm";
+import { studentStatusEnum } from "./enums";
 
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
@@ -24,22 +25,36 @@ export const students = pgTable("students", {
   standard: varchar("standard", { length: 20 }).notNull(),
   academicYear: varchar("academic_year", { length: 20 }).notNull(),
 
+  enrolledMedium: varchar("enrolled_medium", { length: 50 }),
+
   motherOccupation: varchar("mother_occupation", { length: 100 }),
   fatherOccupation: varchar("father_occupation", { length: 100 }),
-
-  totalFees: integer("total_fees").notNull(),
-  paymentType: paymentTypeEnum("payment_type").notNull(),
-  emiMonths: integer("emi_months"),
-  level: varchar("level", { length: 50 }),
 
   studentStatus: studentStatusEnum("student_status")
     .default("active")
     .notNull(),
 
-  kitProvided: boolean("kit_provided").default(false),
-
-  tutorName: varchar("tutor_name", { length: 100 }),
-
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, () => [
+  pgPolicy("students_insert_policy", {
+    for: "insert",
+    to: "public",
+    withCheck: sql`true`,
+  }),
+  pgPolicy("students_select_policy", {
+    for: "select",
+    to: "public",
+    using: sql`true`,
+  }),
+  pgPolicy("students_update_policy", {
+    for: "update",
+    to: "public",
+    using: sql`true`,
+  }),
+  pgPolicy("students_delete_policy", {
+    for: "delete",
+    to: "public",
+    using: sql`true`,
+  }),
+]).enableRLS();
