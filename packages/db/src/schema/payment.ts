@@ -57,30 +57,30 @@ export const payments = pgTable(
       foreignColumns: [razorpayOrders.id],
       name: "payments_razorpay_order_id_fk",
     }).onDelete("set null"),
-    pgPolicy("payments_select_policy", {
+    pgPolicy("payments_select_policy_student", {
       for: "select",
-      to: "student",
-      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid())`,
+      to: "authenticated",
+      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'`,
     }),
     pgPolicy("payments_select_policy_admin", {
       for: "select",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("payments_insert_policy", {
       for: "insert",
-      to: "admin",
-      withCheck: sql`true`,
+      to: "authenticated",
+      withCheck: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("payments_update_policy", {
       for: "update",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("payments_delete_policy", {
       for: "delete",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
   ]
 ).enableRLS();

@@ -45,30 +45,30 @@ export const students = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   },
   () => [
-    pgPolicy("students_select_policy", {
+    pgPolicy("students_select_policy_student", {
       for: "select",
-      to: "student",
-      using: sql`auth.uid() = auth_user_id`,
+      to: "authenticated",
+      using: sql`auth.uid() = auth_user_id AND public.current_user_role() = 'student'`,
     }),
     pgPolicy("students_select_policy_admin", {
       for: "select",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("students_insert_policy", {
       for: "insert",
-      to: "admin",
-      withCheck: sql`true`,
+      to: "authenticated",
+      withCheck: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("students_update_policy", {
       for: "update",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("students_delete_policy", {
       for: "delete",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
   ]
 ).enableRLS();

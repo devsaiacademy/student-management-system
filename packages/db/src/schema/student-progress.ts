@@ -52,30 +52,30 @@ export const studentProgress = pgTable(
       foreignColumns: [enrollments.id],
       name: "student_progress_enrollment_id_fk",
     }).onDelete("cascade"),
-    pgPolicy("student_progress_select_policy", {
+    pgPolicy("student_progress_select_policy_student", {
       for: "select",
-      to: "student",
-      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid())`,
+      to: "authenticated",
+      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'`,
     }),
     pgPolicy("student_progress_select_policy_admin", {
       for: "select",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("student_progress_insert_policy", {
       for: "insert",
-      to: "admin",
-      withCheck: sql`true`,
+      to: "authenticated",
+      withCheck: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("student_progress_update_policy", {
       for: "update",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("student_progress_delete_policy", {
       for: "delete",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
   ]
 ).enableRLS();

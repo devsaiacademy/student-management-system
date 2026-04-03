@@ -42,30 +42,30 @@ export const razorpayOrders = pgTable(
       foreignColumns: [students.id],
       name: "razorpay_orders_student_id_fk",
     }).onDelete("cascade"),
-    pgPolicy("razorpay_orders_select_policy", {
+    pgPolicy("razorpay_orders_select_policy_student", {
       for: "select",
-      to: "student",
-      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid())`,
+      to: "authenticated",
+      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'`,
     }),
     pgPolicy("razorpay_orders_select_policy_admin", {
       for: "select",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("razorpay_orders_insert_policy", {
       for: "insert",
-      to: "admin",
-      withCheck: sql`true`,
+      to: "authenticated",
+      withCheck: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("razorpay_orders_update_policy", {
       for: "update",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
     pgPolicy("razorpay_orders_delete_policy", {
       for: "delete",
-      to: "admin",
-      using: sql`true`,
+      to: "authenticated",
+      using: sql`public.current_user_role() = 'admin'`,
     }),
   ]
 ).enableRLS();
