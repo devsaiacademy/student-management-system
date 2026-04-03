@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const paymentTypeEnum = pgEnum("payment_type", ["single", "flexible"]);
+export const paymentPlanEnum = pgEnum("payment_plan", ["single", "flexible"]);
 
 export const studentStatusEnum = pgEnum("student_status", [
   "active",
@@ -8,24 +8,15 @@ export const studentStatusEnum = pgEnum("student_status", [
   "discontinue",
 ]);
 
-export const paymentStatusEnum = pgEnum("payment_status", [
-  "pending",
-  "authorized",
-  "paid",
-  "failed",
-  "refunded",
-  "partially_refunded",
-]);
+export const paymentStatusEnum = pgEnum("payment_status", ["paid", "unpaid"]);
 
 export const paymentMethodEnum = pgEnum("payment_method", [
-  "razorpay",
   "cash",
-  "bank_transfer",
+  "razorpay",
+  "others",
 ]);
 
 export const studentProgressStatusEnum = pgEnum("student_progress_status", [
   "in_progress",
   "completed",
-  "dropped",
-  "paused",
 ]);

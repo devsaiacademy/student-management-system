@@ -10,7 +10,7 @@ import {
   pgPolicy,
 } from "drizzle-orm/pg-core";
 
-import { students } from "./student";
+import { students } from "./students";
 
 export const razorpayOrders = pgTable(
   "razorpay_orders",

@@ -9,8 +9,8 @@ import {
   pgPolicy,
 } from "drizzle-orm/pg-core";
 
-import { paymentTypeEnum } from "./enums";
-import { students } from "./student";
+import { paymentPlanEnum } from "./enums";
+import { students } from "./students";
 
 export const enrollments = pgTable(
   "enrollments",
@@ -25,7 +25,7 @@ export const enrollments = pgTable(
     tutorName: varchar("tutor_name", { length: 100 }).notNull(),
 
     totalFees: integer("total_fees").notNull(),
-    paymentType: paymentTypeEnum("payment_type").notNull(),
+    paymentPlan: paymentPlanEnum("payment_plan").notNull(),
     emiMonths: integer("emi_months"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),

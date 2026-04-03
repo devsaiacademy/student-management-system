@@ -10,10 +10,10 @@ import {
   pgPolicy,
 } from "drizzle-orm/pg-core";
 
-import { students } from "./student";
 import { enrollments } from "./enrollment";
 import { paymentStatusEnum, paymentMethodEnum } from "./enums";
 import { razorpayOrders } from "./razorpay-order";
+import { students } from "./students";
 
 export const payments = pgTable(
   "payments",
@@ -30,7 +30,7 @@ export const payments = pgTable(
 
     paymentMethod: paymentMethodEnum("payment_method").notNull(),
     paymentStatus: paymentStatusEnum("payment_status")
-      .default("pending")
+      .default("unpaid")
       .notNull(),
 
     emiNumber: integer("emi_number"),

@@ -11,9 +11,9 @@ import {
   pgPolicy,
 } from "drizzle-orm/pg-core";
 
-import { students } from "./student";
 import { enrollments } from "./enrollment";
 import { studentProgressStatusEnum } from "./enums";
+import { students } from "./students";
 
 export const studentProgress = pgTable(
   "student_progress",
