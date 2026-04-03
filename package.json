@@ -13,8 +13,9 @@
     "dev:web": "turbo -F web dev",
     "db:push": "turbo -F @student-management-system/db db:push",
     "db:studio": "turbo -F @student-management-system/db db:studio",
-    "db:generate": "turbo -F @student-management-system/db db:generate",
+    "db:generate": "turbo -F @student-management-system/db db:generate -- --name",
     "db:migrate": "turbo -F @student-management-system/db db:migrate",
+    "db:seed": "turbo -F @student-management-system/db db:seed",
     "check": "ultracite check",
     "fix": "ultracite fix"
   },
