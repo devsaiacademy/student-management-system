@@ -39,37 +39,42 @@ export const studentProgress = pgTable(
     endDate: date("end_date"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   },
   (table) => [
     foreignKey({
       columns: [table.studentId],
       foreignColumns: [students.id],
       name: "student_progress_student_id_fk",
-    }),
+    }).onDelete("cascade"),
     foreignKey({
       columns: [table.enrollmentId],
       foreignColumns: [enrollments.id],
       name: "student_progress_enrollment_id_fk",
+    }).onDelete("cascade"),
+    pgPolicy("student_progress_select_policy", {
+      for: "select",
+      to: "student",
+      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid())`,
+    }),
+    pgPolicy("student_progress_select_policy_admin", {
+      for: "select",
+      to: "admin",
+      using: sql`true`,
     }),
     pgPolicy("student_progress_insert_policy", {
       for: "insert",
-      to: "public",
+      to: "admin",
       withCheck: sql`true`,
-    }),
-    pgPolicy("student_progress_select_policy", {
-      for: "select",
-      to: "public",
-      using: sql`true`,
     }),
     pgPolicy("student_progress_update_policy", {
       for: "update",
-      to: "public",
+      to: "admin",
       using: sql`true`,
     }),
     pgPolicy("student_progress_delete_policy", {
       for: "delete",
-      to: "public",
+      to: "admin",
       using: sql`true`,
     }),
   ]

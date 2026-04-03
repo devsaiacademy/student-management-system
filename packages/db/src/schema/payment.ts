@@ -39,42 +39,47 @@ export const payments = pgTable(
     paidDate: date("paid_date"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   },
   (table) => [
     foreignKey({
       columns: [table.studentId],
       foreignColumns: [students.id],
       name: "payments_student_id_fk",
-    }),
+    }).onDelete("cascade"),
     foreignKey({
       columns: [table.enrollmentId],
       foreignColumns: [enrollments.id],
       name: "payments_enrollment_id_fk",
-    }),
+    }).onDelete("cascade"),
     foreignKey({
       columns: [table.razorpayOrderId],
       foreignColumns: [razorpayOrders.id],
       name: "payments_razorpay_order_id_fk",
+    }).onDelete("set null"),
+    pgPolicy("payments_select_policy", {
+      for: "select",
+      to: "student",
+      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid())`,
+    }),
+    pgPolicy("payments_select_policy_admin", {
+      for: "select",
+      to: "admin",
+      using: sql`true`,
     }),
     pgPolicy("payments_insert_policy", {
       for: "insert",
-      to: "public",
+      to: "admin",
       withCheck: sql`true`,
-    }),
-    pgPolicy("payments_select_policy", {
-      for: "select",
-      to: "public",
-      using: sql`true`,
     }),
     pgPolicy("payments_update_policy", {
       for: "update",
-      to: "public",
+      to: "admin",
       using: sql`true`,
     }),
     pgPolicy("payments_delete_policy", {
       for: "delete",
-      to: "public",
+      to: "admin",
       using: sql`true`,
     }),
   ]

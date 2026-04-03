@@ -6,6 +6,7 @@ import {
   integer,
   timestamp,
   pgPolicy,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 import { studentStatusEnum } from "./enums";
@@ -14,6 +15,8 @@ export const students = pgTable(
   "students",
   {
     id: serial("id").primaryKey(),
+
+    authUserId: uuid("auth_user_id").unique(),
 
     name: varchar("name", { length: 100 }).notNull(),
     rollNumber: varchar("roll_number", { length: 50 }).notNull().unique(),
@@ -39,27 +42,32 @@ export const students = pgTable(
       .notNull(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   },
   () => [
-    pgPolicy("students_insert_policy", {
-      for: "insert",
-      to: "public",
-      withCheck: sql`true`,
-    }),
     pgPolicy("students_select_policy", {
       for: "select",
-      to: "public",
+      to: "student",
+      using: sql`auth.uid() = auth_user_id`,
+    }),
+    pgPolicy("students_select_policy_admin", {
+      for: "select",
+      to: "admin",
       using: sql`true`,
+    }),
+    pgPolicy("students_insert_policy", {
+      for: "insert",
+      to: "admin",
+      withCheck: sql`true`,
     }),
     pgPolicy("students_update_policy", {
       for: "update",
-      to: "public",
+      to: "admin",
       using: sql`true`,
     }),
     pgPolicy("students_delete_policy", {
       for: "delete",
-      to: "public",
+      to: "admin",
       using: sql`true`,
     }),
   ]
