@@ -1,15 +1,11 @@
-import dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
-
-dotenv.config({
-  path: "../../apps/web/.env",
-});
+import { env } from "@student-management-system/env/server";
 
 export default defineConfig({
   schema: "./src/schema/",
   out: "./src/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL || "",
+    url: env.DATABASE_URL,
   },
 });
