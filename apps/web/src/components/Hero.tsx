@@ -1,60 +1,61 @@
 "use client";
 
 import { Button } from "@student-management-system/ui/components/button";
-import { useRouter } from "next/dist/client/components/navigation";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Hero() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-linear-to-br from-background to-muted px-[56] py-[40]">
-      {/* Header with Logo */}
-      <div className="w-93 h-17.75 relative pt-[40]">
-        <Image
-          src="/logo.svg"
-          alt="Otomatics Logo"
-          fill
-          className="object-cover"
-        />
-      </div>
+    <div className="flex min-h-screen flex-col bg-linear-to-br from-background sm:px-4 sm:pb-8 sm:pt-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col">
+        {/* Header with Logo */}
+        <header className="flex h-[71px] w-full shrink-0 items-center justify-center md:justify-start">
+          <Image
+            src="/logo.svg"
+            alt="Otomatics Logo"
+            width={372}
+            height={71}
+            priority
+          />
+        </header>
 
-      {/* Main Content */}
-      <div className="px-12 md:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        {/* Main Content */}
+        <div className="grid flex-1 grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-10">
           {/* Left Section */}
-          <div className="space-y-8">
+          <div className="flex flex-col space-y-6 text-center lg:space-y-8 lg:text-left">
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="max-w-md text-5xl md:text-6xl font-bold text-foreground leading-tight">
+              <h1 className="mx-auto max-w-xl text-balance text-4xl font-bold leading-tight text-foreground sm:text-5xl lg:mx-0 lg:max-w-md lg:text-6xl">
                 Shape Your Child's Future
               </h1>
-              <div className="h-1.5 w-24 rounded-full bg-primary" />
+              <div className="mx-auto h-1.5 w-24 rounded-full bg-primary lg:mx-0" />
             </div>
 
             {/* Description */}
-            <p className="text-lg text-muted-foreground max-w-lg">
+            <p className="mx-auto max-w-xl text-pretty text-base text-muted-foreground sm:text-lg lg:mx-0 lg:max-w-lg">
               Our robotics classes are designed to help you discover the
               potential of this exciting field with the guidance of our
-              experienced instructors..
+              experienced instructors.
             </p>
 
             {/* Role Selection */}
-            <div className="space-y-4 pt-4">
+            <div className="space-y-3 pt-1 lg:pt-2">
               <p className="text-sm font-semibold text-foreground">
                 Select Your Role to Continue
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4 lg:items-start lg:justify-start">
                 <Button
                   onClick={() => router.push("/login")}
                   variant="blue"
-                  size={"md"}
+                  size="md"
                 >
                   Parent
                 </Button>
                 <Button
                   onClick={() => router.push("/login")}
                   variant="white"
-                  size={"md"}
+                  size="md"
                 >
                   Teacher
                 </Button>
@@ -62,14 +63,15 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Right Section - Image Placeholder */}
-          <div className="hidden lg:block">
+          {/* Right Section - Hero visual */}
+          <div className="flex justify-center lg:justify-end">
             <Image
               src="/hero-image.png"
-              alt="Hero Image"
+              alt="Students learning robotics"
               width={634}
               height={569}
-              className="rounded-lg"
+              className="h-auto w-full max-w-md rounded-lg sm:max-w-lg lg:max-w-none"
+              sizes="(max-width: 1024px) 100vw, 50vw"
             />
             {/* <div className="grid grid-cols-2 gap-4 h-full"> */}
             {/* Large Image Placeholder */}
