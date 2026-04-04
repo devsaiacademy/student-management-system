@@ -27,6 +27,7 @@
     "@student-management-system/config": "workspace:*",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
