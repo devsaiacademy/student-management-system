@@ -3,6 +3,7 @@
 import { Button } from "@student-management-system/ui/components/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { SiteLogo } from "@/components/site-logo";
 
 export default function Hero() {
   const router = useRouter();
@@ -10,15 +11,7 @@ export default function Hero() {
     <div className="flex min-h-screen flex-col bg-linear-to-br from-background sm:px-4 sm:pb-8 sm:pt-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col">
         {/* Header with Logo */}
-        <header className="flex h-[71px] w-full shrink-0 items-center justify-center md:justify-start">
-          <Image
-            src="/logo.svg"
-            alt="Otomatics Logo"
-            width={372}
-            height={71}
-            priority
-          />
-        </header>
+        <SiteLogo priority />
 
         {/* Main Content */}
         <div className="grid flex-1 grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-10">
