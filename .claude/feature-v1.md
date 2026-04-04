@@ -10,13 +10,15 @@ A web-based student management system enabling administrators to manage student 
 
 ### 1. Admin
 - Full access to manage student records
+- Add payment 
+- Mark as paid when paid via cash  
 - Record and track payments
 - View all payment history
 
+
 ### 2. Parent
-- View own children's information
-- Make payments through the website
 - View payment history
+- Make payments through the website
 
 ---
 
@@ -32,25 +34,17 @@ A web-based student management system enabling administrators to manage student 
 - Edit existing student information
 - Delete students
 - View student list with search/filter
-- Student fields:
-  - Full name
-  - Email address
-  - Phone number
-  - Grade/Class
-  - Enrollment date
-  - Status (active/inactive)
 
 ### Parent Portal
 - View linked children profiles
-- Access student details
 - View payment history
+- pay fees
 
 ### Payment System
 - Online payment via Razorpay integration
-- Payment categories:
-  - Tuition fees
-  - School fees
-  - Events
+- Payment Plan:
+  - Single
+  - Flexible (with Emi upto 12 months)
 - Payment status tracking (pending, paid, failed)
 - Payment history with receipts
 - Admin can record manual payments
@@ -61,45 +55,21 @@ A web-based student management system enabling administrators to manage student 
 
 ---
 
-## Database Schema (Planned)
+## Database Schema (Planned) better explanation in db-v1
 
 ### Tables
-- `users` - Extended auth.users with role
-- `students` - Student records
-- `parents` - Parent records linked to students
-- `payments` - Payment transactions
-- `payment_items` - Individual payment line items
+  - user_profiles (Stores app role mapping for authenticated users (admin or student).)
+  - students (Main student profile data, including contact details, school info, and auth_user_id link.)
+  - enrollments (Course enrollment records per student, including fee plan (single/flexible).)
+  - student_progress (Tracks learning/progress status for each enrollment (start/end, tutor, kit, status).)
+  - payments (Payment ledger entries per enrollment (amount, method, status, due/paid dates).)
+  - razorpay_orders (Razorpay order metadata and gateway references linked to students/payments.)
 
 ---
 
-## Tech Stack
-
-- **Frontend**: Next.js 14 (App Router)
-- **Backend**: tRPC API routes
-- **Database**: PostgreSQL (Supabase)
-- **ORM**: Drizzle
-- **Auth**: Supabase Auth
-- **Payments**: Razorpay
-- **UI**: shadcn/ui components
-
----
-
-## Out of Scope v1.0
-
-- Multi-school/tenant support
-- Student attendance tracking
-- Grade management
-- Teacher management
-- Email notifications
-- SMS notifications
-
----
-
-## Future Considerations (v1.1+)
-
-- Attendance tracking
-- Gradebook integration
-- Parent-teacher messaging
-- Document upload (assignments, results)
-- Mobile app
-- Fee structure management
+## Future Considerations Admin(v1.1+)
+  - Improve admin control
+    - add course
+    - add duraion
+    - add levels
+  - Get more Tutor details
