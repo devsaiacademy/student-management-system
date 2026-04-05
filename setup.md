@@ -55,6 +55,35 @@ On the platform that runs the Next.js app (`apps/web`), set at least:
 
 Optional: **`CORS_ORIGIN`** — your live site URL, if you use it.
 
-## 7. Auth behavior (after migrations)
+## 7. Configure Supabase Authentication
+
+In the Supabase Dashboard, open your project:
+
+**Authentication → URL Configuration**
+
+1. Set **Site URL** to `http://localhost:3000` (or your production URL).
+2. Add `http://localhost:3000/auth/callback` to **Redirect URLs**.
+
+**Authentication → Email Templates**
+
+Update the following templates to use `token_hash` verification:
+
+**Confirm signup:**
+
+```html
+<h2>Confirm your signup</h2>
+<p>Follow this link to confirm your user:</p>
+<p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Confirm your mail</a></p>
+```
+
+**Magic Link:**
+
+```html
+<h2>Magic Link</h2>
+<p>Follow this link to login:</p>
+<p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink">Log In</a></p>
+```
+
+## 8. Auth behavior (after migrations)
 
 New sign-ups are handled by a database trigger on **`auth.users`**: users with email **`%@otomatiks.in`** become **admin**; others must match a **`students`** row by email or sign-up is denied. Add students (or change the trigger in your fork) to match your org.

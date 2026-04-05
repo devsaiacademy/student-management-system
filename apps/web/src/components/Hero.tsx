@@ -11,7 +11,7 @@ export default function Hero() {
     <div className="flex min-h-screen flex-col bg-linear-to-br from-background sm:px-4 sm:pb-8 sm:pt-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col">
         {/* Header with Logo */}
-        <SiteLogo priority />
+        <SiteLogo className="h-8 sm:h-10 md:h-12" priority />
 
         {/* Main Content */}
         <div className="grid flex-1 grid-cols-1 items-center gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-10">
@@ -39,14 +39,14 @@ export default function Hero() {
               </p>
               <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4 lg:items-start lg:justify-start">
                 <Button
-                  onClick={() => router.push("/login")}
+                  onClick={() => router.push("/login?role=parent")}
                   variant="blue"
                   size="md"
                 >
                   Parent
                 </Button>
                 <Button
-                  onClick={() => router.push("/login")}
+                  onClick={() => router.push("/login?role=teacher")}
                   variant="white"
                   size="md"
                 >

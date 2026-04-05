@@ -13,9 +13,11 @@
   "dependencies": {
     "@student-management-system/db": "workspace:*",
     "@student-management-system/env": "workspace:*",
+    "@supabase/supabase-js": "^2.101.1",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.2",
     "next": "catalog:",
     "zod": "catalog:"
   },

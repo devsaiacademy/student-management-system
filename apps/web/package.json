@@ -11,6 +11,8 @@
     "@student-management-system/api": "workspace:*",
     "@student-management-system/env": "workspace:*",
     "@student-management-system/ui": "workspace:*",
+    "@supabase/ssr": "^0.10.0",
+    "@supabase/supabase-js": "^2.101.1",
     "@tanstack/react-query": "^5.90.12",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
