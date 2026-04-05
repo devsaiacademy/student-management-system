@@ -13,6 +13,7 @@ export default function Login() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [error, setError] = useState("");
   const role = searchParams.get("role");
   const sendMagicLink = useMutation({
   mutationFn: async () =>
@@ -25,6 +26,7 @@ export default function Login() {
 async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
   
   event.preventDefault()
+  setError("");
 
   switch (role) {
     case "parent": {
@@ -32,14 +34,14 @@ async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
         email,
       });
       if (!isStudentEmail) {
-        alert("You are not allowed to login with this email.");
+        setError("You're email is not registered, contact admin for access.");
         return;
       }
       break;
     }
     default: {
       if (!email.includes("@otomatiks.in")) {
-        alert("You are not allowed to login with this email, use your otomatiks.in email.");
+        setError("You are not allowed to login with this email, use your otomatiks.in email.");
         return;
       }
       break;
@@ -49,10 +51,10 @@ async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
   try {
     await sendMagicLink.mutateAsync();
     setMagicLinkSent(true);
-  } catch (error) {
+  } catch (err) {
     const message =
-      error instanceof Error ? error.message : "Unable to send magic link.";
-    alert(message);
+      err instanceof Error ? err.message : "Unable to send magic link.";
+    setError(message);
   }
 }
 
@@ -88,6 +90,12 @@ async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
               <p className="mt-2 text-sm text-muted-foreground">
                 Use your account to continue.
               </p>
+
+              {error && (
+                <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {error}
+                </p>
+              )}
 
               <form className="mt-8 space-y-5" onSubmit={handleLogin}>
                 <label className="block text-sm font-medium text-foreground">
