@@ -12,31 +12,27 @@ export default function Login() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
+
   const sendMagicLink = useMutation({
-    mutationFn: async (redirectTo: string) =>
-      trpcClient.auth.sendMagicLink.mutate({
-        email,
-        redirectTo,
-      }),
-  });
+  mutationFn: async () =>
+    trpcClient.auth.sendMagicLink.mutate({
+      email,
+      redirectTo: `${window.location.origin}/auth/callback`,
+    }),
+});
 
-  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
 
-    const nextPath = searchParams.get("redirect") ?? "/welcome";
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("next", nextPath);
-
-    try {
-      await sendMagicLink.mutateAsync(callbackUrl.toString());
-      alert("Magic link sent. Open your email to continue.");
-      router.refresh();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unable to send magic link.";
-      alert(message);
-    }
+  try {
+    await sendMagicLink.mutateAsync();
+    alert("Magic link sent. Open your email to continue.");
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to send magic link.";
+    alert(message);
   }
+}
 
   return (
     <div className="flex min-h-screen flex-col">

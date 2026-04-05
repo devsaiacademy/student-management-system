@@ -172,6 +172,9 @@ importers:
       '@student-management-system/env':
         specifier: workspace:*
         version: link:../env
+      '@supabase/supabase-js':
+        specifier: ^2.101.1
+        version: 2.101.1
       '@trpc/client':
         specifier: 'catalog:'
         version: 11.16.0(@trpc/server@11.16.0(typescript@5.9.3))(typescript@5.9.3)

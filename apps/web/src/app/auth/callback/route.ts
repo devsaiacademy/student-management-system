@@ -1,13 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const nextPath = requestUrl.searchParams.get("next") ?? "/welcome";
-  const safeNextPath = nextPath.startsWith("/") ? nextPath : "/welcome";
+  const tokenHash = requestUrl.searchParams.get("token_hash");
+  const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
+
+  if (!code && !tokenHash) {
+    return NextResponse.redirect(
+      new URL("/login?error=missing_code", requestUrl.origin)
+    );
+  }
+
   const response = NextResponse.redirect(
-    new URL(safeNextPath, requestUrl.origin)
+    new URL("/welcome", requestUrl.origin)
   );
 
   const supabase = createServerClient(
@@ -21,10 +29,7 @@ export async function GET(request: Request) {
             .filter(Boolean)
             .map((cookie) => {
               const [name, ...value] = cookie.split("=");
-              return {
-                name,
-                value: value.join("="),
-              };
+              return { name, value: value.join("=") };
             }) ?? [];
         },
         setAll(cookiesToSet) {
@@ -36,11 +41,15 @@ export async function GET(request: Request) {
     }
   );
 
-  if (!code) {
-    return NextResponse.redirect(new URL("/login?error=missing_code", requestUrl.origin));
-  }
+  let error: Error | null = null;
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (tokenHash && type) {
+    const result = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+    error = result.error;
+  } else if (code) {
+    const result = await supabase.auth.exchangeCodeForSession(code);
+    error = result.error;
+  }
 
   if (error) {
     return NextResponse.redirect(
