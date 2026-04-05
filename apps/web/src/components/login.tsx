@@ -122,24 +122,23 @@ async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
                     : "Continue with Email"}
                 </Button>
 
-                <div className="relative py-1">
+                {/* <div className="relative py-1">
                   <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
                   <p className="relative mx-auto w-fit bg-background px-3 text-xs text-muted-foreground uppercase">
                     or
                   </p>
-                </div>
+                </div> */}
 
-                <Button
+                {/* <Button
                   className="w-full py-3 text-base font-semibold"
                   size="lg"
                   type="button"
                   variant="white"
                   onClick={() => {
-                    /* TODO: implement social signin */
                   }}
                 >
                   Continue with Google
-                </Button>
+                </Button> */}
               </form>
 
               <p className="mt-6 text-center text-xs text-muted-foreground">
