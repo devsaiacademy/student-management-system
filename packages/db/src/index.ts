@@ -18,7 +18,15 @@ const schema = {
 };
 
 export function createDb() {
+  if (!env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is required");
+  }
   return drizzle(env.DATABASE_URL, { schema });
 }
 
-export const db = createDb();
+export const db = new Proxy({} as ReturnType<typeof createDb>, {
+  get(_, prop) {
+    const instance = createDb();
+    return Reflect.get(instance, prop);
+  },
+});
