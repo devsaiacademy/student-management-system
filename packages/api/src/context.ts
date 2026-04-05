@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-export async function createContext(req: NextRequest) {
+export async function createContext(_req: NextRequest) {
   return {
     auth: null,
     session: null,

@@ -1,19 +1,42 @@
 "use client";
 
 import { Button } from "@student-management-system/ui/components/button";
-import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+
 import { SiteLogo } from "@/components/site-logo";
+import { trpcClient } from "@/utils/trpc";
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
+  const sendMagicLink = useMutation({
+    mutationFn: async (redirectTo: string) =>
+      trpcClient.auth.sendMagicLink.mutate({
+        email,
+        redirectTo,
+      }),
+  });
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // TODO: wire auth logic (trpc / next-auth / OAuth)
-    router.push("/");
-  };
+
+    const nextPath = searchParams.get("redirect") ?? "/welcome";
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", nextPath);
+
+    try {
+      await sendMagicLink.mutateAsync(callbackUrl.toString());
+      alert("Magic link sent. Open your email to continue.");
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to send magic link.";
+      alert(message);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -30,7 +53,7 @@ export default function Login() {
             Use your account to continue.
           </p>
 
-          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-5" onSubmit={handleLogin}>
             <label className="block text-sm font-medium text-foreground">
               Email address
             </label>
@@ -45,11 +68,14 @@ export default function Login() {
 
             <Button
               className="w-full py-3 text-base font-semibold"
+              disabled={sendMagicLink.isPending}
               size="lg"
               type="submit"
               variant="blue"
             >
-              Continue with Email
+              {sendMagicLink.isPending
+                ? "Sending magic link..."
+                : "Continue with Email"}
             </Button>
 
             <div className="relative py-1">
