@@ -1,18 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import dotenv from 'dotenv';
 import { Pool } from 'pg';
+import { env } from '@student-management-system/env/server';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-dotenv.config({
-  path: join(__dirname, '..', '..', '..', 'apps', 'web', '.env'),
-});
 
 async function seed() {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = env.DATABASE_URL;
   if (!databaseUrl) {
     console.error('DATABASE_URL is not set');
     process.exit(1);
