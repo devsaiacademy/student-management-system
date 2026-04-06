@@ -39,7 +39,10 @@ export const studentProgress = pgTable(
     endDate: date("end_date"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
     foreignKey({

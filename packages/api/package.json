@@ -13,6 +13,7 @@
   "dependencies": {
     "@student-management-system/db": "workspace:*",
     "@student-management-system/env": "workspace:*",
+    "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",

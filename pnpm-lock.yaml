@@ -172,6 +172,9 @@ importers:
       '@student-management-system/env':
         specifier: workspace:*
         version: link:../env
+      '@supabase/ssr':
+        specifier: ^0.10.0
+        version: 0.10.0(@supabase/supabase-js@2.101.1)
       '@supabase/supabase-js':
         specifier: ^2.101.1
         version: 2.101.1

@@ -12,12 +12,12 @@ PostgreSQL database managed via Drizzle ORM with Supabase. 6 tables, 5 enums, 7 
 
 Maps authenticated users to roles. Created automatically on signup via trigger.
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | uuid | PK, references `auth.users(id)` |
-| role | varchar(20) | NOT NULL — `admin` or `student` |
-| created_at | timestamp | NOT NULL, default `now()` |
-| updated_at | timestamp | NOT NULL, auto-updated |
+| Column     | Type        | Constraints                     |
+| ---------- | ----------- | ------------------------------- |
+| id         | uuid        | PK, references `auth.users(id)` |
+| role       | varchar(20) | NOT NULL — `admin` or `student` |
+| created_at | timestamp   | NOT NULL, default `now()`       |
+| updated_at | timestamp   | NOT NULL, auto-updated          |
 
 **Purpose:** Single source of truth for user roles. All RLS policies check this table.
 
@@ -27,26 +27,26 @@ Maps authenticated users to roles. Created automatically on signup via trigger.
 
 Primary student records. Each student has one row with personal, academic, and parent information.
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | serial | PK |
-| auth_user_id | uuid | Unique, nullable — links to `auth.users` |
-| name | varchar(100) | NOT NULL |
-| roll_number | varchar(50) | NOT NULL, unique |
-| age | integer | NOT NULL |
-| phone_number | varchar(15) | NOT NULL |
-| email | varchar(100) | NOT NULL, unique — used for login |
-| school_name | varchar(255) | NOT NULL |
-| standard | varchar(20) | NOT NULL |
-| academic_year | varchar(20) | NOT NULL |
-| enrolled_medium | varchar(50) | NOT NULL |
-| mother_name | varchar(100) | Nullable |
-| mother_occupation | varchar(100) | Nullable |
-| father_name | varchar(100) | Nullable |
-| father_occupation | varchar(100) | Nullable |
-| student_status | enum | NOT NULL, default `active` |
-| created_at | timestamp | NOT NULL, default `now()` |
-| updated_at | timestamp | NOT NULL, auto-updated |
+| Column            | Type         | Constraints                              |
+| ----------------- | ------------ | ---------------------------------------- |
+| id                | serial       | PK                                       |
+| auth_user_id      | uuid         | Unique, nullable — links to `auth.users` |
+| name              | varchar(100) | NOT NULL                                 |
+| roll_number       | varchar(50)  | NOT NULL, unique                         |
+| age               | integer      | NOT NULL                                 |
+| phone_number      | varchar(15)  | NOT NULL                                 |
+| email             | varchar(100) | NOT NULL, unique — used for login        |
+| school_name       | varchar(255) | NOT NULL                                 |
+| standard          | varchar(20)  | NOT NULL                                 |
+| academic_year     | varchar(20)  | NOT NULL                                 |
+| enrolled_medium   | varchar(50)  | NOT NULL                                 |
+| mother_name       | varchar(100) | Nullable                                 |
+| mother_occupation | varchar(100) | Nullable                                 |
+| father_name       | varchar(100) | Nullable                                 |
+| father_occupation | varchar(100) | Nullable                                 |
+| student_status    | enum         | NOT NULL, default `active`               |
+| created_at        | timestamp    | NOT NULL, default `now()`                |
+| updated_at        | timestamp    | NOT NULL, auto-updated                   |
 
 **Purpose:** Student profiles. The `auth_user_id` column is auto-populated when a student first logs in.
 
@@ -56,19 +56,19 @@ Primary student records. Each student has one row with personal, academic, and p
 
 Course enrollments for students. One student can have multiple enrollments.
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | serial | PK |
-| student_id | integer | NOT NULL, FK → `students.id` (cascade delete) |
-| course | varchar(100) | NOT NULL |
-| level | varchar(50) | NOT NULL |
-| duration | varchar(50) | NOT NULL |
-| tutor_name | varchar(100) | NOT NULL |
-| total_fees | integer | NOT NULL |
-| payment_plan | enum | NOT NULL — `single` or `flexible` |
-| emi_months | integer | Nullable |
-| created_at | timestamp | NOT NULL, default `now()` |
-| updated_at | timestamp | NOT NULL, auto-updated |
+| Column       | Type         | Constraints                                   |
+| ------------ | ------------ | --------------------------------------------- |
+| id           | serial       | PK                                            |
+| student_id   | integer      | NOT NULL, FK → `students.id` (cascade delete) |
+| course       | varchar(100) | NOT NULL                                      |
+| level        | varchar(50)  | NOT NULL                                      |
+| duration     | varchar(50)  | NOT NULL                                      |
+| tutor_name   | varchar(100) | NOT NULL                                      |
+| total_fees   | integer      | NOT NULL                                      |
+| payment_plan | enum         | NOT NULL — `single` or `flexible`             |
+| emi_months   | integer      | Nullable                                      |
+| created_at   | timestamp    | NOT NULL, default `now()`                     |
+| updated_at   | timestamp    | NOT NULL, auto-updated                        |
 
 **Purpose:** Tracks which courses a student is enrolled in, fees, and payment plan type.
 
@@ -78,21 +78,21 @@ Course enrollments for students. One student can have multiple enrollments.
 
 Progress tracking for each enrollment.
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | serial | PK |
-| student_id | integer | NOT NULL, FK → `students.id` (cascade delete) |
-| enrollment_id | integer | NOT NULL, FK → `enrollments.id` (cascade delete) |
-| course | varchar(100) | NOT NULL |
-| level | varchar(50) | NOT NULL |
-| duration | varchar(50) | NOT NULL |
-| kit_provided | boolean | NOT NULL, default `false` |
-| tutor_name | varchar(100) | NOT NULL |
-| status | enum | NOT NULL, default `in_progress` |
-| start_date | date | NOT NULL |
-| end_date | date | Nullable |
-| created_at | timestamp | NOT NULL, default `now()` |
-| updated_at | timestamp | NOT NULL, auto-updated |
+| Column        | Type         | Constraints                                      |
+| ------------- | ------------ | ------------------------------------------------ |
+| id            | serial       | PK                                               |
+| student_id    | integer      | NOT NULL, FK → `students.id` (cascade delete)    |
+| enrollment_id | integer      | NOT NULL, FK → `enrollments.id` (cascade delete) |
+| course        | varchar(100) | NOT NULL                                         |
+| level         | varchar(50)  | NOT NULL                                         |
+| duration      | varchar(50)  | NOT NULL                                         |
+| kit_provided  | boolean      | NOT NULL, default `false`                        |
+| tutor_name    | varchar(100) | NOT NULL                                         |
+| status        | enum         | NOT NULL, default `in_progress`                  |
+| start_date    | date         | NOT NULL                                         |
+| end_date      | date         | Nullable                                         |
+| created_at    | timestamp    | NOT NULL, default `now()`                        |
+| updated_at    | timestamp    | NOT NULL, auto-updated                           |
 
 **Purpose:** Tracks course delivery progress, kit provision, and completion status per enrollment.
 
@@ -102,22 +102,22 @@ Progress tracking for each enrollment.
 
 Payment ledger entries. One enrollment can have multiple payment records (for EMI plans).
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | serial | PK |
-| student_id | integer | NOT NULL, FK → `students.id` (cascade delete) |
-| enrollment_id | integer | NOT NULL, FK → `enrollments.id` (cascade delete) |
-| razorpay_order_id | integer | Nullable, FK → `razorpay_orders.id` (set null) |
-| amount | integer | NOT NULL |
-| description | varchar(255) | Nullable |
-| currency | varchar(3) | NOT NULL, default `INR` |
-| payment_method | enum | NOT NULL — `cash`, `razorpay`, or `others` |
-| payment_status | enum | NOT NULL, default `unpaid` |
-| emi_number | integer | Nullable |
-| due_date | date | NOT NULL |
-| paid_date | date | Nullable |
-| created_at | timestamp | NOT NULL, default `now()` |
-| updated_at | timestamp | NOT NULL, auto-updated |
+| Column            | Type         | Constraints                                      |
+| ----------------- | ------------ | ------------------------------------------------ |
+| id                | serial       | PK                                               |
+| student_id        | integer      | NOT NULL, FK → `students.id` (cascade delete)    |
+| enrollment_id     | integer      | NOT NULL, FK → `enrollments.id` (cascade delete) |
+| razorpay_order_id | integer      | Nullable, FK → `razorpay_orders.id` (set null)   |
+| amount            | integer      | NOT NULL                                         |
+| description       | varchar(255) | Nullable                                         |
+| currency          | varchar(3)   | NOT NULL, default `INR`                          |
+| payment_method    | enum         | NOT NULL — `cash`, `razorpay`, or `others`       |
+| payment_status    | enum         | NOT NULL, default `unpaid`                       |
+| emi_number        | integer      | Nullable                                         |
+| due_date          | date         | NOT NULL                                         |
+| paid_date         | date         | Nullable                                         |
+| created_at        | timestamp    | NOT NULL, default `now()`                        |
+| updated_at        | timestamp    | NOT NULL, auto-updated                           |
 
 **Purpose:** Tracks all payment transactions — both online (Razorpay) and manual (cash, bank transfer).
 
@@ -127,20 +127,20 @@ Payment ledger entries. One enrollment can have multiple payment records (for EM
 
 Razorpay order records for online payment processing.
 
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | serial | PK |
-| student_id | integer | NOT NULL, FK → `students.id` (cascade delete) |
-| razorpay_order_id | varchar(255) | NOT NULL, unique |
-| amount | integer | NOT NULL |
-| currency | varchar(3) | NOT NULL, default `INR` |
-| receipt | varchar(255) | Nullable |
-| status | varchar(50) | NOT NULL, default `created` |
-| razorpay_payment_id | varchar(255) | Nullable |
-| razorpay_signature | varchar(255) | Nullable |
-| notes | json | Nullable |
-| created_at | timestamp | NOT NULL, default `now()` |
-| updated_at | timestamp | NOT NULL, auto-updated |
+| Column              | Type         | Constraints                                   |
+| ------------------- | ------------ | --------------------------------------------- |
+| id                  | serial       | PK                                            |
+| student_id          | integer      | NOT NULL, FK → `students.id` (cascade delete) |
+| razorpay_order_id   | varchar(255) | NOT NULL, unique                              |
+| amount              | integer      | NOT NULL                                      |
+| currency            | varchar(3)   | NOT NULL, default `INR`                       |
+| receipt             | varchar(255) | Nullable                                      |
+| status              | varchar(50)  | NOT NULL, default `created`                   |
+| razorpay_payment_id | varchar(255) | Nullable                                      |
+| razorpay_signature  | varchar(255) | Nullable                                      |
+| notes               | json         | Nullable                                      |
+| created_at          | timestamp    | NOT NULL, default `now()`                     |
+| updated_at          | timestamp    | NOT NULL, auto-updated                        |
 
 **Purpose:** Stores Razorpay order data including payment ID and signature for verification.
 
@@ -148,27 +148,27 @@ Razorpay order records for online payment processing.
 
 ## Enums
 
-| Enum | Values |
-|------|--------|
-| `payment_plan` | `single`, `flexible` |
-| `student_status` | `active`, `in_active`, `discontinue` |
-| `payment_status` | `paid`, `unpaid` |
-| `payment_method` | `cash`, `razorpay`, `others` |
-| `student_progress_status` | `in_progress`, `completed` |
+| Enum                      | Values                               |
+| ------------------------- | ------------------------------------ |
+| `payment_plan`            | `single`, `flexible`                 |
+| `student_status`          | `active`, `in_active`, `discontinue` |
+| `payment_status`          | `paid`, `unpaid`                     |
+| `payment_method`          | `cash`, `razorpay`, `others`         |
+| `student_progress_status` | `in_progress`, `completed`           |
 
 ---
 
 ## Foreign Keys
 
-| Table | Column | References | On Delete |
-|-------|--------|-----------|-----------|
-| `enrollments` | `student_id` | `students.id` | cascade |
-| `payments` | `student_id` | `students.id` | cascade |
-| `payments` | `enrollment_id` | `enrollments.id` | cascade |
-| `payments` | `razorpay_order_id` | `razorpay_orders.id` | set null |
-| `razorpay_orders` | `student_id` | `students.id` | cascade |
-| `student_progress` | `student_id` | `students.id` | cascade |
-| `student_progress` | `enrollment_id` | `enrollments.id` | cascade |
+| Table              | Column              | References           | On Delete |
+| ------------------ | ------------------- | -------------------- | --------- |
+| `enrollments`      | `student_id`        | `students.id`        | cascade   |
+| `payments`         | `student_id`        | `students.id`        | cascade   |
+| `payments`         | `enrollment_id`     | `enrollments.id`     | cascade   |
+| `payments`         | `razorpay_order_id` | `razorpay_orders.id` | set null  |
+| `razorpay_orders`  | `student_id`        | `students.id`        | cascade   |
+| `student_progress` | `student_id`        | `students.id`        | cascade   |
+| `student_progress` | `enrollment_id`     | `enrollments.id`     | cascade   |
 
 ---
 
@@ -187,6 +187,7 @@ $$;
 ```
 
 This function:
+
 - Reads the role from `user_profiles` for the current authenticated user
 - Uses `SECURITY DEFINER` to bypass RLS on `user_profiles` (prevents recursion)
 - Uses `SET search_path = public` to prevent schema injection attacks
@@ -219,21 +220,21 @@ SELECT: student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid())
 
 ### `user_profiles` Table Policies
 
-| Policy | Condition |
-|--------|-----------|
-| `user_profiles_select_own` | `auth.uid() = id` — users can see their own profile |
+| Policy                       | Condition                                                     |
+| ---------------------------- | ------------------------------------------------------------- |
+| `user_profiles_select_own`   | `auth.uid() = id` — users can see their own profile           |
 | `user_profiles_select_admin` | `current_user_role() = 'admin'` — admins can see all profiles |
 
 ### RLS Summary by Table
 
-| Table | Admin | Student |
-|-------|-------|---------|
-| `user_profiles` | Read all | Read own |
-| `students` | Full CRUD | Read own |
-| `enrollments` | Full CRUD | Read own |
+| Table              | Admin     | Student  |
+| ------------------ | --------- | -------- |
+| `user_profiles`    | Read all  | Read own |
+| `students`         | Full CRUD | Read own |
+| `enrollments`      | Full CRUD | Read own |
 | `student_progress` | Full CRUD | Read own |
-| `payments` | Full CRUD | Read own |
-| `razorpay_orders` | Full CRUD | Read own |
+| `payments`         | Full CRUD | Read own |
+| `razorpay_orders`  | Full CRUD | Read own |
 
 ---
 
@@ -381,6 +382,7 @@ CREATE TRIGGER check_payment_student_match
 ```
 
 **Why it exists:** Prevents data corruption where a payment record links a student to an enrollment they don't own. This can happen due to:
+
 - Frontend bugs sending wrong `studentId`
 - API bugs that don't derive `studentId` from the enrollment
 - Manual SQL mistakes in the database editor
@@ -444,18 +446,18 @@ CREATE TRIGGER check_progress_student_match
 
 ## Trigger Summary
 
-| Trigger | Table | When | Purpose |
-|---------|-------|------|---------|
-| `on_auth_user_created` | `auth.users` | AFTER INSERT | Auto-assign role + link student |
-| `check_payment_student_match` | `payments` | BEFORE INSERT/UPDATE | Validate student-enrollment match |
+| Trigger                        | Table              | When                 | Purpose                           |
+| ------------------------------ | ------------------ | -------------------- | --------------------------------- |
+| `on_auth_user_created`         | `auth.users`       | AFTER INSERT         | Auto-assign role + link student   |
+| `check_payment_student_match`  | `payments`         | BEFORE INSERT/UPDATE | Validate student-enrollment match |
 | `check_progress_student_match` | `student_progress` | BEFORE INSERT/UPDATE | Validate student-enrollment match |
 
-| Function | Type | Purpose |
-|----------|------|---------|
-| `current_user_role()` | SQL function | Returns user's role (bypasses RLS recursion) |
-| `handle_new_user()` | Trigger function | Role assignment on signup |
-| `validate_payment_student_match()` | Trigger function | Payment data integrity |
-| `validate_progress_student_match()` | Trigger function | Progress data integrity |
+| Function                            | Type             | Purpose                                      |
+| ----------------------------------- | ---------------- | -------------------------------------------- |
+| `current_user_role()`               | SQL function     | Returns user's role (bypasses RLS recursion) |
+| `handle_new_user()`                 | Trigger function | Role assignment on signup                    |
+| `validate_payment_student_match()`  | Trigger function | Payment data integrity                       |
+| `validate_progress_student_match()` | Trigger function | Progress data integrity                      |
 
 ---
 

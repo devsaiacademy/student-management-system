@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
-  const PROTECTED_ROUTES = ["/welcome"];
+  const PROTECTED_ROUTES = ["/welcome", "/admin", "/student"];
 
   const isProtected = PROTECTED_ROUTES.some((path) =>
     pathname.startsWith(path)

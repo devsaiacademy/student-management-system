@@ -1,5 +1,11 @@
 import { sql } from "drizzle-orm";
-import { pgTable, uuid, varchar, timestamp, pgPolicy } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  varchar,
+  timestamp,
+  pgPolicy,
+} from "drizzle-orm/pg-core";
 
 export const userProfiles = pgTable(
   "user_profiles",
@@ -7,7 +13,10 @@ export const userProfiles = pgTable(
     id: uuid("id").primaryKey(),
     role: varchar("role", { length: 20 }).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   () => [
     pgPolicy("user_profiles_select_own", {
