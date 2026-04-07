@@ -64,7 +64,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
         "transition-all duration-200 hover:border-primary/30 hover:shadow-sm",
         "animate-in fade-in slide-in-from-bottom-2"
       )}
-      href={`/admin/students/${student.id}` as Route}
+      href={`/admin/all-students/student/${student.id}` as Route}
       style={{
         animationDelay: `${index * 60}ms`,
         animationFillMode: "backwards",
