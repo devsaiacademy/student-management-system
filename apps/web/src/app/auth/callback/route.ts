@@ -66,5 +66,12 @@ export async function GET(request: Request) {
     );
   }
 
+  response.cookies.set("welcome-toast", "1", {
+    path: "/",
+    maxAge: 60,
+    httpOnly: false,
+    sameSite: "lax",
+  });
+
   return response;
 }
