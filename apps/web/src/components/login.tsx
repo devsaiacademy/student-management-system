@@ -59,19 +59,17 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="w-full shrink-0 px-3 pt-4 sm:px-4 sm:pt-5 md:px-6 md:pt-6 lg:px-8 lg:pt-8">
-        <div className="mx-auto flex justify-center w-full max-w-7xl">
+    <div className="flex min-h-screen items-center justify-center px-3 py-8">
+
+      <div className="flex w-full max-w-md flex-col items-center justify-cente">
+        <div className="mx-auto flex w-full justify-center">
           <SiteLogo
             variant="center"
             className="mb-6 h-8 sm:h-10 md:h-12"
             priority
           />
         </div>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center px-3 pb-8">
-        <div className="flex w-full max-w-md flex-col justify-center">
+        <div className="flex w-full flex-col justify-center">
           {magicLinkSent ? (
             <div className="text-center">
               <h1 className="text-3xl font-extrabold text-foreground">
