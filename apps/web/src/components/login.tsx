@@ -2,6 +2,7 @@
 
 import { Button } from "@student-management-system/ui/components/button";
 import { useMutation } from "@tanstack/react-query";
+import { gooeyToast } from "goey-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -12,7 +13,6 @@ export default function Login() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-  const [error, setError] = useState("");
   const role = searchParams.get("role");
   const sendMagicLink = useMutation({
     mutationFn: async () =>
@@ -24,7 +24,6 @@ export default function Login() {
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
 
     switch (role) {
       case "parent": {
@@ -32,16 +31,32 @@ export default function Login() {
           email,
         });
         if (isStudentEmail.length === 0) {
-          setError("You're email is not registered, contact admin for access.");
+          gooeyToast.error("Invalid email", {
+            showTimestamp: false,
+            borderColor: "#E0E0E0",
+            borderWidth: 1.5,
+            description:
+              "You're email is not registered, contact admin for access.",
+            timing: {
+              displayDuration: 5000,
+            },
+          });
           return;
         }
         break;
       }
       default: {
         if (!email.includes("@otomatiks.in")) {
-          setError(
-            "You are not allowed to login with this email, use your otomatiks.in email."
-          );
+          gooeyToast.error("Invalid email", {
+            showTimestamp: false,
+            borderColor: "#E0E0E0",
+            borderWidth: 1.5,
+            description:
+              "You are not allowed to login with this email, use your otomatiks.in email.",
+            timing: {
+              displayDuration: 5000,
+            },
+          });
           return;
         }
         break;
@@ -54,13 +69,14 @@ export default function Login() {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unable to send magic link.";
-      setError(message);
+      gooeyToast.error("Sign-in failed", {
+        description: message,
+      });
     }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-3 py-8">
-
       <div className="flex w-full max-w-md flex-col items-center justify-cente">
         <div className="mx-auto flex w-full justify-center">
           <SiteLogo
@@ -98,12 +114,6 @@ export default function Login() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Use your account to continue.
               </p>
-
-              {error && (
-                <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {error}
-                </p>
-              )}
 
               <form className="mt-8 space-y-5" onSubmit={handleLogin}>
                 <label className="block text-sm font-medium text-foreground">
