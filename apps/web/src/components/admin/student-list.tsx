@@ -15,6 +15,7 @@ type Student = {
   rollNumber: string;
   email: string;
   studentStatus: string;
+  studentSource: string;
 };
 
 const ITEMS_PER_PAGE = 5;
@@ -43,6 +44,10 @@ export function StudentList({ students }: StudentListProps) {
 
     if (statusFilter !== "all") {
       result = result.filter((s) => s.studentStatus === statusFilter);
+    }
+
+    if (sourceFilter !== "all") {
+      result = result.filter((s) => s.studentSource === sourceFilter);
     }
 
     return result;
@@ -102,7 +107,7 @@ export function StudentList({ students }: StudentListProps) {
       />
 
       <ScrollArea className="flex-1">
-        <div className="divide-y divide-border">
+        <div className="flex flex-col gap-3 px-6 py-6">
           {paginatedStudents.length > 0 ? (
             paginatedStudents.map((student, index) => (
               <StudentCard key={student.id} index={index} student={student} />

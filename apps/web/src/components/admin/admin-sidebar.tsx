@@ -20,7 +20,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { label: "Students", href: "/admin", icon: Users },
+  { label: "Students", href: "/admin/all-students", icon: Users },
   { label: "Add Student", href: "/admin/add-student", icon: UserPlus },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
   { label: "Courses", href: "/admin/courses", icon: BookOpen },
@@ -75,7 +75,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         })}
       </nav>
 
-      <Separator />
+      <Separator /> 
 
       <div className="flex items-center gap-3 px-4 py-4">
         <Avatar className="size-9">

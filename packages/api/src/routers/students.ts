@@ -1,6 +1,6 @@
 import { db } from "@student-management-system/db";
 import { students } from "@student-management-system/db/schema/students";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { protectedProcedure, router } from "../index";
 
@@ -13,8 +13,9 @@ export const studentsRouter = router({
         rollNumber: students.rollNumber,
         email: students.email,
         studentStatus: students.studentStatus,
+        studentSource: students.studentSource,
       })
       .from(students)
-      .orderBy(desc(students.createdAt));
+      .orderBy(desc(students.createdAt))  
   }),
 });

@@ -55,5 +55,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "explicit"
   },
-  "cSpell.words": ["supabase"]
+  "cSpell.words": [
+    "Otomatiks",
+    "supabase"
+  ]
 }

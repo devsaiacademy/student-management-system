@@ -9,7 +9,6 @@ import { SiteLogo } from "@/components/site-logo";
 import { trpcClient } from "@/utils/trpc";
 
 export default function Login() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -32,7 +31,7 @@ export default function Login() {
         const isStudentEmail = await trpcClient.auth.isStudentEmail.query({
           email,
         });
-        if (!isStudentEmail) {
+        if (isStudentEmail.length === 0) {
           setError("You're email is not registered, contact admin for access.");
           return;
         }

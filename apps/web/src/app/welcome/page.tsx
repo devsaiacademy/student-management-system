@@ -13,10 +13,11 @@ export default async function WelcomePage() {
   const isAdmin = await trpc.auth.isAdmin();
 
   if (isAdmin) {
-    redirect("/admin" as any);
+    redirect("/admin/all-students" as any);
   }
 
   const student = await trpc.auth.isStudentEmail({ email: user.email });
+
   if (student && student.length > 0) {
     redirect(`/student/${student[0]?.id}` as any);
   }

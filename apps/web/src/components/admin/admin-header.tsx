@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  STUDENT_SOURCES,
+  STUDENT_STATUSES,
+} from "@student-management-system/db/schema/constants";
 import { Input } from "@student-management-system/ui/components/input";
 import {
   Select,
@@ -9,6 +13,13 @@ import {
   SelectValue,
 } from "@student-management-system/ui/components/select";
 import { Search } from "lucide-react";
+
+const STATUS_LABELS: Record<(typeof STUDENT_STATUSES)[number], string> = {
+  active: "Active",
+  in_active: "Inactive",
+  discontinue: "Discontinued",
+};
+
 
 type AdminHeaderProps = {
   searchQuery: string;
@@ -28,11 +39,13 @@ export function AdminHeader({
   onSourceChange,
 }: AdminHeaderProps) {
   return (
-    <header className="flex items-center gap-4 border-b border-border bg-background px-6 py-4">
-      <div className="relative flex-1 max-w-md">
+    <header className="grid h-[73px] grid-cols-3 items-center gap-4 border-b border-border bg-background px-6 py-4">
+      <div />
+
+      <div className="relative mx-auto w-full max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          className="pl-9"
+          className="h-10 rounded-[8px] pl-9"
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search by name or roll number"
           type="search"
@@ -40,27 +53,50 @@ export function AdminHeader({
         />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-3">
         <Select onValueChange={onStatusChange} value={statusFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Select Status" />
+          <SelectTrigger className="h-10 w-[150px] justify-between rounded-[8px] px-3 text-sm">
+            <SelectValue>
+              {(value) =>
+                !value || value === "all"
+                  ? "All Status"
+                  : (STATUS_LABELS[
+                      value as (typeof STUDENT_STATUSES)[number]
+                    ] ?? "All Status")
+              }
+            </SelectValue>
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="in_active">Inactive</SelectItem>
-            <SelectItem value="discontinue">Discontinued</SelectItem>
+          <SelectContent
+            alignItemWithTrigger={false}
+            className="rounded-[6px]"
+            sideOffset={6}
+          >
+            {STUDENT_STATUSES.map((status) => (
+              <SelectItem key={status} value={status}>
+                {STATUS_LABELS[status]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
         <Select onValueChange={onSourceChange} value={sourceFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Select Source" />
+          <SelectTrigger className="h-10 w-[150px] justify-between rounded-[8px] px-3 text-sm">
+            <SelectValue>
+              {(value) =>
+                !value || value === "all" ? "All Sources" : String(value)
+              }
+            </SelectValue>
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Sources</SelectItem>
-            <SelectItem value="banner">Banner</SelectItem>
-            <SelectItem value="referral">Referral</SelectItem>
+          <SelectContent
+            alignItemWithTrigger={false}
+            className="rounded-[6px]"
+            sideOffset={6}
+          >
+            {STUDENT_SOURCES.map((source) => (
+              <SelectItem key={source} value={source}>
+                {source}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

@@ -22,7 +22,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@student-management-system/ui/*": ["../../packages/ui/src/*"]
+      "@student-management-system/ui/*": ["../../packages/ui/src/*"],
+      "@student-management-system/db/*": ["../../packages/db/src/*"]
     }
   },
   "include": [
