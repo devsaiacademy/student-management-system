@@ -9,14 +9,17 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const trpc = await createTRPCServerCaller();
-  const user = await trpc.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
+  let user: Awaited<ReturnType<typeof trpc.auth.getUser>> | null = null;
+  let isAdmin = false;
+  try {
+    user = await trpc.auth.getUser();
+    isAdmin = await trpc.auth.isAdmin();
+  } catch {
+    // tRPC UNAUTHORIZED or transient failure → treat as signed out
   }
 
-  const isAdmin = await trpc.auth.isAdmin();
-  if (!isAdmin) {
+  if (!user || !isAdmin) {
     redirect("/login");
   }
 

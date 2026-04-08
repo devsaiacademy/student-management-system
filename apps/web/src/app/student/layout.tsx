@@ -9,13 +9,20 @@ export default async function StudentLayout({
   children: React.ReactNode;
 }) {
   const trpc = await createTRPCServerCaller();
-  const user = await trpc.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
+  let user: Awaited<ReturnType<typeof trpc.auth.getUser>> | null = null;
+  let isStudent = false;
+  try {
+    user = await trpc.auth.getUser();
+    if (user?.email) {
+      const match = await trpc.auth.isStudentEmail({ email: user.email });
+      isStudent = Array.isArray(match) ? match.length > 0 : Boolean(match);
+    }
+  } catch {
+    // tRPC UNAUTHORIZED or transient failure → treat as signed out
   }
-  const isStudent = await trpc.auth.isStudentEmail({ email: user.email });
-  if (!isStudent) {
+
+  if (!user || !isStudent) {
     redirect("/login");
   }
 
