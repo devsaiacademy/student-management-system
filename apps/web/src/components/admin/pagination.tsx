@@ -1,113 +1,171 @@
 "use client";
 
-import { Button } from "@student-management-system/ui/components/button";
-import { cn } from "@student-management-system/ui/lib/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@student-management-system/ui/components/pagination";
+import { useQuery } from "@tanstack/react-query";
+import type { Route } from "next";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type MouseEvent, useCallback, useMemo } from "react";
 
-type PaginationProps = {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-};
+import { LIMIT } from "@/utils/constant";
+import { trpc } from "@/utils/trpc";
 
-function getPageNumbers(currentPage: number, totalPages: number) {
-  const pages: (number | "...")[] = [];
+// How many numbered items to show at most (excluding prev/next/ellipsis)
+const VISIBLE_SIBLINGS = 3;
 
-  if (totalPages <= 7) {
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(i);
+type PageToken = number | "ellipsis-start" | "ellipsis-end";
+
+function buildPageList(current: number, total: number): PageToken[] {
+  if (total <= 1) {
+    return [1];
+  }
+
+  const pages = new Set<number>([1, total, current]);
+  for (let offset = 1; offset <= VISIBLE_SIBLINGS; offset++) {
+    if (current - offset >= 1) {
+      pages.add(current - offset);
     }
-    return pages;
-  }
-
-  pages.push(1, 2, 3);
-  if (currentPage > 4) {
-    pages.push("...");
-  }
-
-  const start = Math.max(4, currentPage - 1);
-  const end = Math.min(totalPages - 2, currentPage + 1);
-
-  for (let i = start; i <= end; i++) {
-    if (!pages.includes(i)) {
-      pages.push(i);
+    if (current + offset <= total) {
+      pages.add(current + offset);
     }
   }
 
-  if (currentPage < totalPages - 3) {
-    pages.push("...");
-  }
-  if (!pages.includes(totalPages - 1)) {
-    pages.push(totalPages - 1);
-  }
-  if (!pages.includes(totalPages)) {
-    pages.push(totalPages);
+  const ordered = Array.from(pages).sort((a, b) => a - b);
+  const result: PageToken[] = [];
+
+  for (let i = 0; i < ordered.length; i++) {
+    const pageNumber = ordered[i];
+    if (pageNumber === undefined) {
+      continue;
+    }
+    const previous = ordered[i - 1];
+    if (previous !== undefined && pageNumber - previous > 1) {
+      result.push(previous === 1 ? "ellipsis-start" : "ellipsis-end");
+    }
+    result.push(pageNumber);
   }
 
-  return pages;
+  return result;
 }
 
-export function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: PaginationProps) {
-  const safeTotalPages = Math.max(1, totalPages);
-  const safeCurrentPage = Math.min(Math.max(1, currentPage), safeTotalPages);
-  const pageNumbers = getPageNumbers(safeCurrentPage, safeTotalPages);
+export function AdminPagination() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const currentPage = useMemo(() => {
+    const raw = Number(searchParams.get("page"));
+    return Number.isFinite(raw) && raw > 0 ? raw : 1;
+  }, [searchParams]);
+
+  const { data } = useQuery(trpc.students.getCount.queryOptions());
+  const totalCount = data?.totalCount ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+
+  const buildHref = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", String(page));
+      return `${pathname}?${params.toString()}`;
+    },
+    [pathname, searchParams]
+  );
+
+  const goTo = useCallback(
+    (page: number) => (event: MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      if (page < 1 || page > totalPages || page === currentPage) {
+        return;
+      }
+      router.push(buildHref(page) as Route);
+    },
+    [buildHref, currentPage, router, totalPages]
+  );
+
+  const pageTokens = useMemo(
+    () => buildPageList(currentPage, totalPages),
+    [currentPage, totalPages]
+  );
+
+  const rangeStart = totalCount === 0 ? 0 : (currentPage - 1) * LIMIT + 1;
+  const rangeEnd = Math.min(currentPage * LIMIT, totalCount);
+
+  const isFirst = currentPage <= 1;
+  const isLast = currentPage >= totalPages;
 
   return (
-    <div className="flex items-center justify-center gap-1 px-6 py-4">
-      <Button
-        className="gap-1"
-        disabled={safeCurrentPage === 1}
-        onClick={() => onPageChange(Math.max(1, safeCurrentPage - 1))}
-        size="sm"
-        variant="ghost"
-      >
-        <ChevronLeft className="size-4" />
-        Previous
-      </Button>
+    <footer className="flex items-center bg-background px-6 py-4">
+      {/* Left spacer */}
+      <div className="flex-1" />
 
-      <div className="flex items-center gap-1 px-2">
-        {pageNumbers.map((page, i) =>
-          page === "..." ? (
-            <span
-              className="px-2 text-sm text-muted-foreground"
-              key={`ellipsis-${i}`}
-            >
-              ...
-            </span>
-          ) : (
-            <button
-              className={cn(
-                "flex size-8 items-center justify-center rounded-md text-sm font-medium transition-all duration-200",
-                safeCurrentPage === page
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-              key={page}
-              onClick={() => onPageChange(page)}
-              type="button"
-            >
-              {page}
-            </button>
-          )
-        )}
+      {/* Center pagination */}
+      <div className="flex justify-center">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                aria-disabled={isFirst}
+                className={
+                  isFirst ? "pointer-events-none opacity-50" : undefined
+                }
+                href={buildHref(Math.max(1, currentPage - 1))}
+                onClick={goTo(currentPage - 1)}
+              />
+            </PaginationItem>
+
+            {pageTokens.map((token) => {
+              if (token === "ellipsis-start" || token === "ellipsis-end") {
+                return (
+                  <PaginationItem key={token}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+
+              return (
+                <PaginationItem key={token}>
+                  <PaginationLink
+                    href={buildHref(token)}
+                    isActive={token === currentPage}
+                    onClick={goTo(token)}
+                  >
+                    {token}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
+
+            <PaginationItem>
+              <PaginationNext
+                aria-disabled={isLast}
+                className={
+                  isLast ? "pointer-events-none opacity-50" : undefined
+                }
+                href={buildHref(Math.min(totalPages, currentPage + 1))}
+                onClick={goTo(currentPage + 1)}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
 
-      <Button
-        className="gap-1"
-        disabled={safeCurrentPage === safeTotalPages}
-        onClick={() =>
-          onPageChange(Math.min(safeTotalPages, safeCurrentPage + 1))
-        }
-        size="sm"
-        variant="ghost"
-      >
-        Next
-        <ChevronRight className="size-4" />
-      </Button>
-    </div>
+      {/* Right "Showing" caption */}
+      <div className="flex flex-1 justify-end">
+        <p className="hidden text-sm text-muted-foreground sm:block">
+          Showing{" "}
+          <span className="font-medium text-foreground">
+            {rangeStart}-{rangeEnd}
+          </span>{" "}
+          of <span className="font-medium text-foreground">{totalCount}</span>
+        </p>
+      </div>
+    </footer>
   );
 }

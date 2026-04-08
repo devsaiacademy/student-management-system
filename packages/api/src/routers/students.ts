@@ -1,20 +1,24 @@
 import { db } from "@student-management-system/db";
 import { students } from "@student-management-system/db/schema/students";
-import { desc, } from "drizzle-orm";
+import { count, desc } from "drizzle-orm";
 
 import { protectedProcedure, router } from "../index";
 import z from "zod";
 
+
+const LIMIT = 10;
+
 export const studentsRouter = router({
-  list: protectedProcedure
+  getAllStudents: protectedProcedure
     .input(
       z.object({
-        limit: z.number(),
-        offset: z.number(),
-      })
+        page: z.number().min(1),
+      }),
     )
     .query(async ({ input }) => {
-      const { limit, offset } = input;
+      const { page } = input;
+
+      const offset = (page - 1) * LIMIT;
 
       return db
         .select({
@@ -27,7 +31,20 @@ export const studentsRouter = router({
         })
         .from(students)
         .orderBy(desc(students.createdAt))
-        .limit(limit)
+        .limit(LIMIT)
         .offset(offset);
+    }),
+
+  //used in  pagination component to get the total count and total pages
+  getCount: protectedProcedure
+    .query(async () => {
+      const result = await db.select({ value: count() }).from(students);
+
+      const totalCount = result[0]?.value ?? 0;
+
+      return {
+        totalCount,
+        totalPages: Math.ceil(totalCount / LIMIT),
+      };
     }),
 });

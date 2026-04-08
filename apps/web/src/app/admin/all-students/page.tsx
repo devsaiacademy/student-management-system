@@ -1,37 +1,24 @@
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-
-import { Pagination } from "@/components/admin/pagination";
+import { AdminPagination } from "@/components/admin/pagination";
 import { StudentList } from "@/components/admin/student-list";
-import { trpc } from "@/utils/trpc";
+import { createTRPCServerCaller } from "@/utils/trpc-server";
 
-const PAGE_SIZE = 10;
+type AdminPageProps = {
+  searchParams: Promise<{ page?: string }>;
+};
 
-export default function AdminPage() {
-  const [currentPage, setCurrentPage] = useState(1);
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const { page: pageParam } = await searchParams;
+  const parsedPage = Number(pageParam);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  const { data, isPending } = useQuery(
-    trpc.students.list.queryOptions({
-      limit: PAGE_SIZE,
-      offset: (currentPage - 1) * PAGE_SIZE,
-    })
-  );
+  const trpc = await createTRPCServerCaller();
 
-  // TODO: replace with a real total count from the server
-  // (students.list currently returns rows only — add a count query or
-  // change the procedure to return { rows, total } when you're ready).
-  const totalPages = 1;
+  const students = await trpc.students.getAllStudents({ page });
 
   return (
     <>
-      <StudentList isLoading={isPending} students={data ?? []} />
-      <Pagination
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-        totalPages={totalPages}
-      />
+      <StudentList students={students} />
+      <AdminPagination />
     </>
   );
 }

@@ -81,11 +81,7 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
 
       <ScrollArea className="max-h-[85vh] flex-1">
         <div className="flex flex-col gap-3 px-6 py-6">
-          {isLoading ? (
-            Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-              <StudentCardSkeleton key={`skeleton-${i}`} />
-            ))
-          ) : filteredStudents.length > 0 ? (
+          {filteredStudents.length > 0 ? (
             filteredStudents.map((student, index) => (
               <StudentCard index={index} key={student.id} student={student} />
             ))
