@@ -1,4 +1,3 @@
-import { AdminPagination } from "@/components/admin/pagination";
 import { StudentList } from "@/components/admin/student-list";
 import { createTRPCServerCaller } from "@/utils/trpc-server";
 
@@ -15,10 +14,5 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   const students = await trpc.students.getAllStudents({ page });
 
-  return (
-    <>
-      <StudentList students={students} />
-      <AdminPagination />
-    </>
-  );
+  return <StudentList students={students} />;
 }

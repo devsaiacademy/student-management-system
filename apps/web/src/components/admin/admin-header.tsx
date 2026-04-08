@@ -71,6 +71,7 @@ export function AdminHeader({
             className="rounded-[6px]"
             sideOffset={6}
           >
+            <SelectItem value="all">All Status</SelectItem>
             {STUDENT_STATUSES.map((status) => (
               <SelectItem key={status} value={status}>
                 {STATUS_LABELS[status]}
@@ -92,6 +93,7 @@ export function AdminHeader({
             className="rounded-[6px]"
             sideOffset={6}
           >
+            <SelectItem value="all">All Sources</SelectItem>
             {STUDENT_SOURCES.map((source) => (
               <SelectItem key={source} value={source}>
                 {source}
