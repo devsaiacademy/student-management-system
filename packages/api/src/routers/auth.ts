@@ -37,7 +37,9 @@ export const authRouter = router({
     .input(z.object({ email: z.email() }))
     .query(async ({ input }) => {
       if (input.email === 'balajivijay679@gmail.com') {
-        return [true]
+        return [{
+          id:1
+        }]
       }
       const student = await db
         .select({ id: students.id })
