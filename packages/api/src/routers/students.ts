@@ -96,7 +96,7 @@ export const studentsRouter = router({
         search: z.string().nullable(),
         status: z.enum(STUDENT_STATUSES).nullable(),
         source: z.enum(STUDENT_SOURCES).nullable(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { search, status, source } = input;
@@ -108,18 +108,36 @@ export const studentsRouter = router({
           and(
             search
               ? or(
-                ilike(students.name, `%${search}%`),
-                ilike(students.email, `%${search}%`),
-                ilike(students.rollNumber, `%${search}%`)
-              )
+                  ilike(students.name, `%${search}%`),
+                  ilike(students.email, `%${search}%`),
+                  ilike(students.rollNumber, `%${search}%`),
+                )
               : undefined,
 
             // filter by status
             status ? eq(students.studentStatus, status) : undefined,
 
             //  filter by source
-            source ? eq(students.studentSource, source) : undefined
-          )
+            source ? eq(students.studentSource, source) : undefined,
+          ),
         );
-    })
+    }),
+
+  // get student detail by id.
+  getStudentDetailById: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      const student = await db
+        .select()
+        .from(students)
+        .where(eq(students.id, id));
+
+      return student;
+    }),
 });

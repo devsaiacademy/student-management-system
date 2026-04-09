@@ -13,7 +13,10 @@ export default function Login() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+
+  
   const role = searchParams.get("role");
+
   const sendMagicLink = useMutation({
     mutationFn: async () =>
       trpcClient.auth.sendMagicLink.mutate({
