@@ -3,6 +3,7 @@
 import { Button } from "@student-management-system/ui/components/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+
 import { SiteLogo } from "@/components/site-logo";
 
 function Hexagon({ className }: { className?: string }) {

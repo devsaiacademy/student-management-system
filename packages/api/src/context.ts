@@ -1,10 +1,6 @@
-import type { NextRequest } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-export async function createContext(_req: NextRequest) {
-  return {
-    auth: null,
-    session: null,
-  };
-}
-
-export type Context = Awaited<ReturnType<typeof createContext>>;
+export type Context = {
+  supabase: SupabaseClient;
+  user: { id: string; email: string } | null;
+};

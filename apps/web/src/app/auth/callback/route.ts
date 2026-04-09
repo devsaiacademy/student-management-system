@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -24,13 +24,16 @@ export async function GET(request: Request) {
     {
       cookies: {
         getAll() {
-          return request.headers.get("cookie")
-            ?.split(/; */)
-            .filter(Boolean)
-            .map((cookie) => {
-              const [name, ...value] = cookie.split("=");
-              return { name, value: value.join("=") };
-            }) ?? [];
+          return (
+            request.headers
+              .get("cookie")
+              ?.split(/; */)
+              .filter(Boolean)
+              .map((cookie) => {
+                const [name, ...value] = cookie.split("=");
+                return { name, value: value.join("=") };
+              }) ?? []
+          );
         },
         setAll(cookiesToSet) {
           for (const { name, value, options } of cookiesToSet) {
@@ -44,7 +47,10 @@ export async function GET(request: Request) {
   let error: Error | null = null;
 
   if (tokenHash && type) {
-    const result = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+    const result = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type,
+    });
     error = result.error;
   } else if (code) {
     const result = await supabase.auth.exchangeCodeForSession(code);
@@ -53,9 +59,19 @@ export async function GET(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(error.message)}`, requestUrl.origin)
+      new URL(
+        `/login?error=${encodeURIComponent(error.message)}`,
+        requestUrl.origin
+      )
     );
   }
+
+  response.cookies.set("welcome-toast", "1", {
+    path: "/",
+    maxAge: 60,
+    httpOnly: false,
+    sameSite: "lax",
+  });
 
   return response;
 }

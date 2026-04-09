@@ -1,22 +1,25 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const paymentPlanEnum = pgEnum("payment_plan", ["single", "flexible"]);
+import {
+  PAYMENT_METHODS,
+  PAYMENT_PLANS,
+  PAYMENT_STATUSES,
+  STUDENT_PROGRESS_STATUSES,
+  STUDENT_SOURCES,
+  STUDENT_STATUSES,
+} from "./constants";
 
-export const studentStatusEnum = pgEnum("student_status", [
-  "active",
-  "in_active",
-  "discontinue",
-]);
+export const paymentPlanEnum = pgEnum("payment_plan", PAYMENT_PLANS);
 
-export const paymentStatusEnum = pgEnum("payment_status", ["paid", "unpaid"]);
+export const studentStatusEnum = pgEnum("student_status", STUDENT_STATUSES);
 
-export const paymentMethodEnum = pgEnum("payment_method", [
-  "cash",
-  "razorpay",
-  "others",
-]);
+export const studentSourceEnum = pgEnum("student_source", STUDENT_SOURCES);
 
-export const studentProgressStatusEnum = pgEnum("student_progress_status", [
-  "in_progress",
-  "completed",
-]);
+export const paymentStatusEnum = pgEnum("payment_status", PAYMENT_STATUSES);
+
+export const paymentMethodEnum = pgEnum("payment_method", PAYMENT_METHODS);
+
+export const studentProgressStatusEnum = pgEnum(
+  "student_progress_status",
+  STUDENT_PROGRESS_STATUSES
+);

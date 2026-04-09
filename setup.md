@@ -46,12 +46,12 @@ The workflow `.github/workflows/migrate.yml` runs `pnpm db:migrate` on pushes to
 
 On the platform that runs the Next.js app (`apps/web`), set at least:
 
-| Variable | Source |
-|----------|--------|
-| `DATABASE_URL` | Same as step 4 (or your approved runtime connection string). |
-| `NEXT_PUBLIC_SUPABASE_URL` | Step 2 |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Step 3 |
-| `NODE_ENV` | `production` |
+| Variable                        | Source                                                       |
+| ------------------------------- | ------------------------------------------------------------ |
+| `DATABASE_URL`                  | Same as step 4 (or your approved runtime connection string). |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Step 2                                                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Step 3                                                       |
+| `NODE_ENV`                      | `production`                                                 |
 
 Optional: **`CORS_ORIGIN`** — your live site URL, if you use it.
 
@@ -73,7 +73,11 @@ Update the following templates to use `token_hash` verification:
 ```html
 <h2>Confirm your signup</h2>
 <p>Follow this link to confirm your user:</p>
-<p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email">Confirm your mail</a></p>
+<p>
+  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email"
+    >Confirm your mail</a
+  >
+</p>
 ```
 
 **Magic Link:**
@@ -81,7 +85,12 @@ Update the following templates to use `token_hash` verification:
 ```html
 <h2>Magic Link</h2>
 <p>Follow this link to login:</p>
-<p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink">Log In</a></p>
+<p>
+  <a
+    href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink"
+    >Log In</a
+  >
+</p>
 ```
 
 ## 8. Auth behavior (after migrations)
