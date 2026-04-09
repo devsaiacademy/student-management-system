@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { isOtomatiksAdminEmail } from "../lib/admin-email";
 import { protectedProcedure, publicProcedure, router } from "../index";
 
 export const authRouter = router({
@@ -42,8 +43,8 @@ export const authRouter = router({
       return student;
     }),
 
-  isAdmin: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.user?.email?.includes("@otomatiks.in") ?? false;
+  isAdmin: protectedProcedure.query(({ ctx }) => {
+    return isOtomatiksAdminEmail(ctx.user.email);
   }),
 
   getUser: protectedProcedure.query(({ ctx }) => {

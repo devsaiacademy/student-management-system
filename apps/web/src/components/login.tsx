@@ -1,5 +1,6 @@
 "use client";
 
+import { isOtomatiksAdminEmail } from "@student-management-system/api/lib/admin-email";
 import { Button } from "@student-management-system/ui/components/button";
 import { useMutation } from "@tanstack/react-query";
 import { gooeyToast } from "goey-toast";
@@ -49,7 +50,7 @@ export default function Login() {
         break;
       }
       default: {
-        if (!email.includes("@otomatiks.in")) {
+        if (!isOtomatiksAdminEmail(email)) {
           gooeyToast.error("Invalid email", {
             showTimestamp: false,
             borderColor: "#E0E0E0",
