@@ -49,4 +49,24 @@ export const authRouter = router({
   getUser: protectedProcedure.query(({ ctx }) => {
     return ctx.user;
   }),
+
+  // Public so callers can check "is anyone logged in?" without tripping
+  // the UNAUTHORIZED throw from `protectedProcedure`. Returns the user
+  // object when authenticated, or null when there's no session.
+  getSession: publicProcedure.query(({ ctx }) => {
+    return ctx.user;
+  }),
+
+  // Public because a stale/expired session should still be able to log out
+  // without first needing to prove it's valid.
+  logout: publicProcedure.mutation(async ({ ctx }) => {
+    const { error } = await ctx.supabase.auth.signOut();
+    if (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: error.message,
+      });
+    }
+    return { success: true };
+  }),
 });
