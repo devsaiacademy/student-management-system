@@ -187,11 +187,148 @@ No. There are only two roles and the current shape works. This is a **"must reme
 
 ### Related: the sidebar query params
 
-`admin-sidebar.tsx:48` redirects to `/login?role=teacher` on logout and `student-sidebar.tsx:33` redirects to `/login?role=parent`. The admin one is already wrong by the logic above — `?role=teacher` falls into `default` (admin domain check) despite the name. Probably meant to be `?role=admin`. Low priority, but fix it at the same time you harden the switch.
+See item 3 below. That issue was promoted out of this subsection because it's live today, not a future concern.
+
+---
+
+## 3. Sidebar logout redirects use fake role values
+
+### The issue in one sentence
+
+`admin-sidebar.tsx:48` redirects to `/login?role=teacher` and `student-sidebar.tsx:33` redirects to `/login?role=parent`, but the `login.tsx` switch only has `case "parent"` and a `default` fallback — so `?role=teacher` lands in `default`, which happens to be the admin domain check. The URL claims "teacher" but the code does "admin", purely by accident.
+
+### The two files, exact lines
+
+- `apps/web/src/components/admin/admin-sidebar.tsx:48` → `router.push("/login?role=teacher");`
+  - **Lies.** There is no teacher role anywhere in this codebase. The string could be `?role=banana` and the behavior would be identical.
+- `apps/web/src/components/student/student-sidebar.tsx:33` → `router.push("/login?role=parent");`
+  - Correct. `"parent"` matches the explicit `case "parent"` at `apps/web/src/components/login.tsx:32`.
+
+### Why it's a live bug, not a future concern
+
+It's not producing wrong behavior *right now* — admins logging out do end up going through the admin domain check, which is what you want. But it's wrong in a way that will bite the moment someone trusts the URL:
+
+- A future `case "teacher":` added to handle real teachers would silently remove the domain check from the admin logout path. Admins would stop being forced to use an `@otomatiks.in` email on relogin.
+- A reviewer reading the sidebar assumes teachers are a role in this app. They aren't.
+- Anyone who searches the codebase for `"teacher"` gets a misleading hit.
+
+The bug is *semantic*, not *behavioral*. Semantic bugs are the ones you don't notice until the day you have to trust the symbol.
+
+### The fix
+
+Two equally valid options, pick one:
+
+**Option A — drop the param entirely.** The logout flow doesn't need to communicate a role to the login page; the login page already defaults to the admin check when no role is present.
+
+```ts
+// admin-sidebar.tsx:48
+router.push("/login");
+
+// student-sidebar.tsx:33
+router.push("/login?role=parent");  // keep — parent is legit
+```
+
+**Option B — use a truthful role string and make the switch exhaustive (ties into item 2).**
+
+```ts
+// admin-sidebar.tsx:48
+router.push("/login?role=admin");
+
+// login.tsx switch — add explicit case
+case "admin": {
+  if (!isOtomatiksAdminEmail(email)) { /* toast */ return; }
+  break;
+}
+```
+
+Option A is a one-character edit and doesn't touch `login.tsx`. Option B pairs naturally with item 2 (exhaustive switch when adding a third role). Do A now, do B when you do item 2.
+
+---
+
+## 4. Typed routes are enabled but bypassed with `as Route` casts
+
+### The issue
+
+`apps/web/next.config.ts` has `typedRoutes: true`. That flag makes Next.js generate a TypeScript `Route` union containing every valid URL in the app — any `<Link href="/typo">` becomes a compile error.
+
+Four call sites opt *out* of that safety net with `as Route`:
+
+| File | Line | Cast |
+|---|---|---|
+| `apps/web/src/components/admin/admin-sidebar.tsx` | 91 | `href={item.href as Route}` |
+| `apps/web/src/components/student/student-sidebar.tsx` | 74 | `href={item.href as Route}` |
+| `apps/web/src/components/admin/student-card.tsx` | 67 | ``href={`/admin/all-students/student/${student.id}` as Route}`` |
+| `apps/web/src/components/admin/pagination.tsx` | 87 | `router.push(buildHref(page) as Route)` |
+
+### Why each cast exists, and how to remove it
+
+**Sidebars — `navItems.map(item => <Link href={item.href as Route}>)`**
+
+The `navItems` array is inferred as `{ label: string; href: string; icon: ... }[]`, so `item.href` is `string`, which isn't assignable to `Route`. The fix is to narrow at the array declaration, not at the use site:
+
+```ts
+import type { Route } from "next";
+
+const navItems = [
+  { label: "Students", href: "/admin/all-students", icon: Users },
+  { label: "Add Student", href: "/admin/add-student", icon: UserPlus },
+  // ...
+] as const satisfies ReadonlyArray<{ label: string; href: Route; icon: LucideIcon }>;
+```
+
+`as const` narrows each `href` to its literal string type (e.g., `"/admin/all-students"`), and `satisfies` verifies each literal against the generated `Route` union at compile time. Rename a route, the `navItems` array fails to compile, you find out before the browser does. The `as Route` at the JSX site goes away.
+
+**`student-card.tsx:67` — dynamic student detail URL**
+
+```tsx
+href={`/admin/all-students/student/${student.id}` as Route}
+```
+
+The generated `Route` type has `` `/admin/all-students/student/${string}` `` as one of its variants. The template literal here produces `` `/admin/all-students/student/${number}` `` (because `student.id` is `number`), which doesn't match `${string}` exactly. Two fixes:
+
+```tsx
+// Option 1 — coerce to string
+href={`/admin/all-students/student/${String(student.id)}`}
+
+// Option 2 — use Link's object form (preferred)
+<Link href={{
+  pathname: "/admin/all-students/student/[student_id]",
+  query: { student_id: student.id },
+}}>
+```
+
+Option 2 is cleaner and is what typed routes was designed for: `pathname` validates against the generated dynamic-route literal, `query` validates against its dynamic segment names.
+
+**`pagination.tsx:87` — `router.push(buildHref(page) as Route)`**
+
+`buildHref` concatenates `pathname` (string) with query params: `${pathname}?${params.toString()}`. The result is `string`, which can't satisfy `Route`. Use `router.push`'s object form, which accepts `pathname` + `query` separately:
+
+```ts
+router.push({
+  pathname: pathname as Route, // pathname came from usePathname() — it's a real route
+  query: Object.fromEntries(params),
+});
+```
+
+The remaining `as Route` on `pathname` is honest: `usePathname()` returns `string`, but at runtime it's guaranteed to be the current URL which *is* a valid route by construction. That's the one cast that's defensible.
+
+### Alternative: turn typed routes off
+
+If you don't want the safety, remove `typedRoutes: true` from `next.config.ts`, delete the four `as Route` casts, and delete the `Route` type imports. You lose the compile-time guarantee but the code stops lying about whether it has one. **Don't leave it half-on.** The current state — `typedRoutes: true` plus four escape hatches — is the worst of both worlds: you pay the build cost and get none of the safety.
+
+### Why this is a must-fix, not a nice-to-have
+
+Typed routes only works if *every* navigation in the app goes through it. A single `as Route` at a dynamic link means that family of URLs (student detail, in this case) will never catch a typo. A rename of `/admin/all-students/student/[student_id]` to `/admin/students/[student_id]` would succeed without touching `student-card.tsx`, and the card would 404 silently at runtime. That's the exact failure mode typed routes is supposed to prevent.
+
+### Effort
+
+Small. Item 4 is a ~30-minute fix across four files. Done right, it never regresses.
 
 ---
 
 ## Summary of the "must-do" queue
 
 1. Stand up `allowed_admins` table, migrate `isAdmin` to read it, delete the email-regex path on the server.
-2. When adding a third role, rewrite the `login.tsx` switch to be exhaustive with no `default:` fallback, and fix the sidebar logout redirects at the same time.
+2. When adding a third role, rewrite the `login.tsx` switch to be exhaustive with no `default:` fallback.
+3. Fix the sidebar logout redirects — either drop the `?role` param from `admin-sidebar.tsx:48` or change it to `?role=admin` and pair with item 2.
+4. Remove the four `as Route` casts by narrowing `navItems` with `as const satisfies`, using `Link`'s object form for dynamic routes, and `router.push`'s object form in the paginator — or disable `typedRoutes` entirely if you don't want the safety.
