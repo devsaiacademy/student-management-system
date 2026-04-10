@@ -1,3 +1,5 @@
+import { StudentDetail } from "@/components/student/student-detail";
+
 export default function StudentPage() {
-  return <div>StudentPage</div>;
+  return <StudentDetail studentId={11} />;
 }
