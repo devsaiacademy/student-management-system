@@ -15,7 +15,7 @@ export default async function StudentPage({ params }: StudentPageProps) {
   }
 
   const trpc = await createTRPCServerCaller();
-  let exists = false; 
+  let exists = false;
   try {
     await trpc.billing.getStudentInfo({ studentId: parsedId });
     exists = true;

@@ -55,10 +55,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "explicit"
   },
-  "cSpell.words": [
-    "goey",
-    "ilike",
-    "Otomatiks",
-    "supabase"
-  ]
+  "cSpell.words": ["goey", "ilike", "Otomatiks", "supabase"]
 }

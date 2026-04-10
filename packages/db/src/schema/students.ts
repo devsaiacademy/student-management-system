@@ -12,7 +12,6 @@ import {
 import { studentStatusEnum } from "./enums";
 import { studentSourceEnum } from "./enums";
 
-
 export const students = pgTable(
   "students",
   {
@@ -43,7 +42,7 @@ export const students = pgTable(
       .default("active")
       .notNull(),
 
-    studentSource:studentSourceEnum("student_source")
+    studentSource: studentSourceEnum("student_source")
       .default("Banner")
       .notNull(),
 

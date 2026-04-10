@@ -119,7 +119,9 @@ export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
           </div>
           <div>
             <p className={LABEL}>Total Fee</p>
-            <p className={SMALL_VALUE}>{formatCurrency(enrollment.totalFees)}</p>
+            <p className={SMALL_VALUE}>
+              {formatCurrency(enrollment.totalFees)}
+            </p>
           </div>
           <div>
             <p className={LABEL}>Plan</p>

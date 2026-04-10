@@ -1,11 +1,7 @@
 export const PAYMENT_PLANS = ["single", "flexible"] as const;
 export type PaymentPlan = (typeof PAYMENT_PLANS)[number];
 
-export const STUDENT_STATUSES = [
-  "active",
-  "in_active",
-  "discontinue",
-] as const;
+export const STUDENT_STATUSES = ["active", "in_active", "discontinue"] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
 export const STUDENT_SOURCES = ["Banner", "Referral"] as const;
@@ -30,21 +26,22 @@ export const COURSES = [
 ] as const;
 export type Course = (typeof COURSES)[number];
 
-export const DURATIONS = ["3 months", "6 months", "12 months"] as const;
+export const DURATIONS = [
+  "10 - 20 hrs",
+  "20 - 30 hrs",
+  "30 - 40 hrs",
+  "40 - 50 hrs",
+  "50 - 60 hrs",
+] as const;
 export type Duration = (typeof DURATIONS)[number];
 
 export const LEVELS = ["Level 1", "Level 2", "Level 3"] as const;
 export type Level = (typeof LEVELS)[number];
 
-export const TUTOR_NAMES = [
-  "Balaji",
-  "Rahul",
-  "Priya",
-  "Arun",
-] as const;
+export const TUTOR_NAMES = ["Sai", "Priya", "Mahi", "Mohan", "Dinesh"] as const;
 export type TutorName = (typeof TUTOR_NAMES)[number];
 
-export const EMI_MONTHS_OPTIONS = [3, 6, 12] as const;
+export const EMI_MONTHS_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 export type EmiMonthsOption = (typeof EMI_MONTHS_OPTIONS)[number];
 
 export const ENROLLED_MEDIUMS = ["Online", "Offline", "Hybrid"] as const;

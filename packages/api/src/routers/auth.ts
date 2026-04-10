@@ -4,8 +4,8 @@ import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { isOtomatiksAdminEmail } from "../lib/admin-email";
 import { protectedProcedure, publicProcedure, router } from "../index";
+import { isOtomatiksAdminEmail } from "../lib/admin-email";
 
 export const authRouter = router({
   sendMagicLink: publicProcedure
@@ -36,10 +36,12 @@ export const authRouter = router({
   isStudentEmail: publicProcedure
     .input(z.object({ email: z.email() }))
     .query(async ({ input }) => {
-      if (input.email === 'balajivijay679@gmail.com') {
-        return [{
-          id:1
-        }]
+      if (input.email === "balajivijay679@gmail.com") {
+        return [
+          {
+            id: 1,
+          },
+        ];
       }
       const student = await db
         .select({ id: students.id })
