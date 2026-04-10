@@ -45,6 +45,7 @@ import {
 import { Separator } from "@student-management-system/ui/components/separator";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { gooeyToast } from "goey-toast";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -53,7 +54,6 @@ import {
   type ControllerRenderProps,
   type FieldPath,
 } from "react-hook-form";
-import { toast } from "sonner";
 
 import { trpc } from "@/utils/trpc";
 
@@ -101,11 +101,23 @@ export function AddStudentForm() {
   const createStudent = useMutation(
     trpc.students.createStudent.mutationOptions({
       onSuccess: (data) => {
-        toast.success("Student added successfully");
+        gooeyToast.success("Student added", {
+          showTimestamp: false,
+          borderColor: "#E0E0E0",
+          borderWidth: 1.5,
+          description: "The student has been added successfully.",
+          timing: { displayDuration: 4000 },
+        });
         router.push(`/admin/all-students/student/${data.id}`);
       },
       onError: (error) => {
-        toast.error(error.message);
+        gooeyToast.error("Failed to add student", {
+          showTimestamp: false,
+          borderColor: "#E0E0E0",
+          borderWidth: 1.5,
+          description: error.message,
+          timing: { displayDuration: 5000 },
+        });
       },
     })
   );
@@ -116,11 +128,28 @@ export function AddStudentForm() {
     createStudent.mutate(values as Parameters<typeof createStudent.mutate>[0]);
   };
 
+  // Surfaces validation failures so a click that silently drops because
+  // some required field is empty becomes visible instead of a no-op.
+  const onInvalid = (errors: Record<string, { message?: string }>) => {
+    const fieldNames = Object.keys(errors);
+    const firstMessage =
+      fieldNames.length > 0 && errors[fieldNames[0]]?.message
+        ? errors[fieldNames[0]]?.message
+        : "Please fix the highlighted fields";
+    gooeyToast.error(`${fieldNames.length} field(s) need attention`, {
+      showTimestamp: false,
+      borderColor: "#E0E0E0",
+      borderWidth: 1.5,
+      description: firstMessage,
+      timing: { displayDuration: 5000 },
+    });
+  };
+
   return (
     <Form {...form}>
       <form
         className="mx-auto w-full max-w-5xl space-y-8 py-6"
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
       >
         <h1 className="text-center text-lg font-semibold text-foreground">
           Enter the all the details to add new student

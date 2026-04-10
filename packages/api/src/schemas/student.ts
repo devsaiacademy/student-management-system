@@ -11,12 +11,17 @@ import {
 } from "@student-management-system/db/schema/constants";
 import z from "zod";
 
-// Accepts an empty string / null / undefined from form state and forwards it
-// as `undefined` so downstream `z.number()` reports "Required" instead of
-// a confusing NaN or coercion error.
+// Accepts an empty string / undefined from form state and forwards it as
+// `undefined` so downstream `z.number()` reports "Required" instead of a
+// confusing NaN or coercion error. `null` is preserved as-is so nullable
+// number fields (e.g. `emiMonths` when paymentPlan is "single") pass through
+// without being turned into `undefined` — which `.nullable()` rejects.
 const toNumberOrUndefined = (value: unknown) => {
-  if (value === "" || value === null || value === undefined) {
+  if (value === "" || value === undefined) {
     return undefined;
+  }
+  if (value === null) {
+    return null;
   }
   if (typeof value === "string") {
     const parsed = Number(value);
