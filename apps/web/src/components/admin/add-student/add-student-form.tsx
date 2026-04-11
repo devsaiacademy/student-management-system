@@ -86,15 +86,16 @@ export function AddStudentForm() {
       showTimestamp: false,
       borderColor: "#E0E0E0",
       borderWidth: 1.5,
-      timing: { displayDuration: 4000 },
+      timing: { displayDuration: 7000 },
       description:
-        "Student cannot be added, enter all the details to add student",
+        "Student cannot be added, enter all the details to add",
     });
   };
 
   return (
     <Form {...form}>
-      <form
+      <div className="overflow-y-scroll">
+        <form
         className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-6 py-6"
         onSubmit={form.handleSubmit(onSubmit, onInvalid)}
       >
@@ -126,6 +127,7 @@ export function AddStudentForm() {
           </Button>
         </div>
       </form>
+      </div>
     </Form>
   );
 }

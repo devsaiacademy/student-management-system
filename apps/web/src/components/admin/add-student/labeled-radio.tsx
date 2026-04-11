@@ -22,7 +22,7 @@ export function LabeledRadio<Name extends FieldPath<CreateStudentInput>>({
   control: Control<CreateStudentInput>;
   name: Name;
   label: string;
-  options: { value: string; label: string }[];
+  options: { value: string | boolean; label: string }[];
   onValueChange?: (value: string) => void;
 }) {
   return (
@@ -42,7 +42,7 @@ export function LabeledRadio<Name extends FieldPath<CreateStudentInput>>({
                 }}
               >
                 {options.map((option) => (
-                  <RadioGroupItem key={option.value} value={option.value}>
+                  <RadioGroupItem key={option.label} value={option.value}>
                     {option.label}
                   </RadioGroupItem>
                 ))}

@@ -34,13 +34,14 @@ import type { UseFormReturn } from "react-hook-form";
 import { DatePickerField } from "./date-picker-field";
 import { LabeledRadio } from "./labeled-radio";
 import { LabeledSelect } from "./labeled-select";
+import { useState } from "react";
 
 export function EnrollmentCard({
   form,
 }: {
   form: UseFormReturn<CreateStudentInput>;
 }) {
-  const paymentPlan = form.watch("paymentPlan");
+  const [paymentPlan, setPaymentPlan] = useState(form.watch("paymentPlan"));
 
   return (
     <Card
@@ -112,7 +113,11 @@ export function EnrollmentCard({
               ]}
               onValueChange={(value) => {
                 if (value === "single") {
+                  setPaymentPlan("single");
                   form.setValue("emiMonths", null, { shouldValidate: true });
+                } else {
+                  setPaymentPlan("flexible");
+                  form.setValue("emiMonths", 2, { shouldValidate: true });
                 }
               }}
             />
@@ -171,8 +176,8 @@ export function EnrollmentCard({
               name="kitProvided"
               label="Kit Provided"
               options={[
-                { value: "yes", label: "Yes" },
-                { value: "no", label: "No" },
+                { value: true, label: "Yes" },
+                { value: false, label: "No" },
               ]}
             />
           </div>
@@ -211,7 +216,7 @@ function FeesField({
                   field.onChange(
                     rupees === ""
                       ? ("" as unknown as number)
-                      : Math.round(Number(rupees) * 100)
+                      : Math.round(Number(rupees) * 100),
                   );
                 }}
                 onBlur={field.onBlur}
