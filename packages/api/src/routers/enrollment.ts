@@ -44,8 +44,6 @@ export const enrollmentRouter = router({
       const nextUnpaid = enrollmentPayments.find(
         (p) => p.paymentStatus === "unpaid",
       );
-      const lastPayment = enrollmentPayments.at(-1);
-
       return {
         enrollment: {
           id: enrollment.id,
@@ -62,7 +60,6 @@ export const enrollmentRouter = router({
           totalCount: enrollmentPayments.length,
           totalPaid,
           startDate: enrollment.createdAt.toISOString(),
-          endDate: lastPayment?.dueDate ?? null,
           nextDueDate: nextUnpaid?.dueDate ?? null,
         },
       };

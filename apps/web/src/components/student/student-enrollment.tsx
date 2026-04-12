@@ -130,10 +130,6 @@ export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
             <p className={SMALL_VALUE}>{formatDate(progress.startDate)}</p>
           </div>
           <div>
-            <p className={LABEL}>Ends</p>
-            <p className={SMALL_VALUE}>{formatDate(progress.endDate)}</p>
-          </div>
-          <div>
             <p className={LABEL}>Total Fee</p>
             <p className={SMALL_VALUE}>
               {formatCurrency(enrollment.totalFees)}
