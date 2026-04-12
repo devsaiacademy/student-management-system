@@ -4,7 +4,7 @@ export type PaymentPlan = (typeof PAYMENT_PLANS)[number];
 export const STUDENT_STATUSES = ["active", "in_active", "discontinue"] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
-export const STUDENT_SOURCES = ["Banner", "Referral"] as const;
+export const STUDENT_SOURCES = ["Banner", "Referral" ,"Website"] as const;
 export type StudentSource = (typeof STUDENT_SOURCES)[number];
 
 export const PAYMENT_STATUSES = ["paid", "unpaid"] as const;
@@ -35,7 +35,7 @@ export const DURATIONS = [
 ] as const;
 export type Duration = (typeof DURATIONS)[number];
 
-export const LEVELS = ["Level 1", "Level 2", "Level 3"] as const;
+export const LEVELS = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6"] as const;
 export type Level = (typeof LEVELS)[number];
 
 export const TUTOR_NAMES = ["Sai", "Priya", "Mahi", "Mohan", "Dinesh"] as const;
