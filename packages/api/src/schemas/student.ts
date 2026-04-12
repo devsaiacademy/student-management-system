@@ -63,7 +63,7 @@ export const createStudentSchema = z
     level: z.enum(LEVELS),
     tutorName: z.enum(TUTOR_NAMES),
 
-    totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in paise
+    totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in rupees
     paymentPlan: z.enum(PAYMENT_PLANS),
     emiMonths: z.preprocess(
       toNumberOrUndefined,

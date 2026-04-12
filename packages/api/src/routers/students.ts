@@ -4,6 +4,7 @@ import {
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
+import { payments } from "@student-management-system/db/schema/payment";
 import { students } from "@student-management-system/db/schema/students";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, ilike, or } from "drizzle-orm";
@@ -14,12 +15,37 @@ import { createStudentSchema } from "../schemas/student";
 
 const LIMIT = 10;
 
+// Format a Date as "YYYY-MM-DD" — Drizzle `date` columns expect a string.
+const formatDateForPg = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// Add `months` to `base`, clamping the day to the last day of the target
+// month so Jan 31 + 1 month → Feb 28/29 (instead of JS's native rollover
+// to Mar 3). Matches `date-fns` addMonths semantics.
+const addMonthsClamped = (base: Date, months: number): Date => {
+  const result = new Date(base);
+  const originalDay = result.getDate();
+  result.setDate(1);
+  result.setMonth(result.getMonth() + months);
+  const lastDayOfTargetMonth = new Date(
+    result.getFullYear(),
+    result.getMonth() + 1,
+    0,
+  ).getDate();
+  result.setDate(Math.min(originalDay, lastDayOfTargetMonth));
+  return result;
+};
+
 export const studentsRouter = router({
   getAllStudents: protectedProcedure
     .input(
       z.object({
         page: z.number().min(1),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { page } = input;
@@ -58,7 +84,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         status: z.enum(STUDENT_STATUSES).nullable(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { status } = input;
@@ -77,7 +103,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         source: z.enum(STUDENT_SOURCES).nullable(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { source } = input;
@@ -99,7 +125,7 @@ export const studentsRouter = router({
         search: z.string().nullable(),
         status: z.enum(STUDENT_STATUSES).nullable(),
         source: z.enum(STUDENT_SOURCES).nullable(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { search, status, source } = input;
@@ -113,7 +139,7 @@ export const studentsRouter = router({
               ? or(
                   ilike(students.name, `%${search}%`),
                   ilike(students.email, `%${search}%`),
-                  ilike(students.rollNumber, `%${search}%`)
+                  ilike(students.rollNumber, `%${search}%`),
                 )
               : undefined,
 
@@ -121,9 +147,48 @@ export const studentsRouter = router({
             status ? eq(students.studentStatus, status) : undefined,
 
             //  filter by source
-            source ? eq(students.studentSource, source) : undefined
-          )
+            source ? eq(students.studentSource, source) : undefined,
+          ),
         );
+    }),
+
+  // Student header card — avatar + name + contact + badges
+  getStudentInfo: protectedProcedure
+    .input(z.object({ studentId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const { studentId } = input;
+      const [student] = await db
+        .select({
+          id: students.id,
+          name: students.name,
+          email: students.email,
+          phoneNumber: students.phoneNumber,
+          rollNumber: students.rollNumber,
+          studentStatus: students.studentStatus,
+          studentSource: students.studentSource,
+        })
+        .from(students)
+        .where(eq(students.id, studentId))
+        .limit(1);
+
+      if (!student) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Student not found",
+        });
+      }
+
+      const [latestEnrollment] = await db
+        .select({ kitProvided: enrollments.kitProvided })
+        .from(enrollments)
+        .where(eq(enrollments.studentId, input.studentId))
+        .orderBy(desc(enrollments.createdAt))
+        .limit(1);
+
+      return {
+        ...student,
+        kitProvided: latestEnrollment?.kitProvided ?? false,
+      };
     }),
 
   // get student detail by id.
@@ -131,7 +196,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { id } = input;
@@ -180,19 +245,67 @@ export const studentsRouter = router({
             });
           }
 
-          await tx.insert(enrollments).values({
-            studentId: created.id,
-            course: input.course,
-            level: input.level,
-            duration: input.duration,
-            tutorName: input.tutorName,
-            totalFees: input.totalFees,
-            paymentPlan: input.paymentPlan,
-            emiMonths:
-              input.paymentPlan === "flexible" ? input.emiMonths : null,
-            startDate: input.startDate,
-            kitProvided: input.kitProvided,
-          });
+          const [enrollment] = await tx
+            .insert(enrollments)
+            .values({
+              studentId: created.id,
+              course: input.course,
+              level: input.level,
+              duration: input.duration,
+              tutorName: input.tutorName,
+              totalFees: input.totalFees,
+              paymentPlan: input.paymentPlan,
+              emiMonths:
+                input.paymentPlan === "flexible" ? input.emiMonths : null,
+              startDate: input.startDate,
+              kitProvided: input.kitProvided,
+            })
+            .returning({ id: enrollments.id });
+
+          if (!enrollment) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to create enrollment",
+            });
+          }
+
+          // Generate the payment schedule for this enrollment. For a
+          // flexible plan we create one row per EMI month; for a single
+          // plan we create one row covering the full fee. All rows start
+          // as unpaid with a null paymentMethod — the method is only known
+          // once the student actually pays.
+          //
+          // totalFees is stored in rupees (int). We floor-divide across
+          // installments and dump the remainder on the last row so the
+          // sum equals totalFees exactly.
+          const installmentCount =
+            input.paymentPlan === "flexible" && input.emiMonths
+              ? input.emiMonths
+              : 1;
+          const baseInstallment = Math.floor(
+            input.totalFees / installmentCount,
+          );
+          const remainder =
+            input.totalFees - baseInstallment * installmentCount;
+
+          const paymentRows = Array.from(
+            { length: installmentCount },
+            (_, index) => {
+              const isLast = index === installmentCount - 1;
+              return {
+                studentId: created.id,
+                enrollmentId: enrollment.id,
+                amount: baseInstallment + (isLast ? remainder : 0),
+                emiNumber: installmentCount === 1 ? null : index + 1,
+                paymentStatus: "unpaid" as const,
+                dueDate: formatDateForPg(
+                  addMonthsClamped(input.startDate, index),
+                ),
+              };
+            },
+          );
+
+          await tx.insert(payments).values(paymentRows);
 
           return { id: created.id };
         });
@@ -215,9 +328,14 @@ export const studentsRouter = router({
         if (error instanceof TRPCError) {
           throw error;
         }
+        // Surface the underlying DB error so the client toast shows something
+        // actionable (e.g. "null value in column \"payment_method\" violates
+        // not-null constraint") instead of a generic "failed to create" that
+        // hides the real cause during development.
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create student",
+          message: message || "Failed to create student",
+          cause: error,
         });
       }
     }),

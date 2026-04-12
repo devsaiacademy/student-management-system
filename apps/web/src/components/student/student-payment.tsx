@@ -33,7 +33,11 @@ function formatDate(value: string) {
 }
 
 function formatCurrency(amount: number) {
-  return amount.toLocaleString("en-IN");
+  return amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  });
 }
 
 function StatusBadge({ paid }: { paid: boolean }) {
@@ -53,7 +57,7 @@ function StatusBadge({ paid }: { paid: boolean }) {
 
 export function StudentPayment({ studentId }: StudentPaymentProps) {
   const { data, isPending, isError } = useQuery(
-    trpc.billing.getStudentPayments.queryOptions({ studentId })
+    trpc.payments.getStudentPayments.queryOptions({ studentId })
   );
 
   return (

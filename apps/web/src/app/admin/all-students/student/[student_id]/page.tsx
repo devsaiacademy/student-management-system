@@ -18,10 +18,12 @@ export default async function StudentPage({ params }: StudentPageProps) {
   const trpc = await createTRPCServerCaller();
 
   try {
-    await trpc.billing.getStudentInfo({ studentId: parsedId });
+    await trpc.students.getStudentInfo({ studentId: parsedId });
   } catch {
     notFound();
   }
+  const isAdmin =await trpc.auth.isAdminUser()
+  
 
-  return <StudentDetail studentId={parsedId} />;
+  return <StudentDetail  isAdmin={isAdmin} studentId={parsedId} />;
 }

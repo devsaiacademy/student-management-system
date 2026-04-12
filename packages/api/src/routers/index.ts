@@ -1,12 +1,14 @@
 import { publicProcedure, router } from "../index";
 import { authRouter } from "./auth";
-import { billingRouter } from "./billing";
+import { enrollmentRouter } from "./enrollment";
+import { paymentsRouter } from "./payment";
 import { studentsRouter } from "./students";
 
 export const appRouter = router({
   auth: authRouter,
-  billing: billingRouter,
   students: studentsRouter,
+  enrollments: enrollmentRouter,
+  payments: paymentsRouter,
   healthCheck: publicProcedure.query(() => "OK"),
 });
 

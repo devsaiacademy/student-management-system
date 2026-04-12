@@ -2,10 +2,11 @@ import { db } from "@student-management-system/db";
 import { students } from "@student-management-system/db/schema/students";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import {  z } from "zod";
 
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { isOtomatiksAdminEmail } from "../lib/admin-email";
+import { userProfiles } from "@student-management-system/db/schema/user-profiles";
 
 export const authRouter = router({
   sendMagicLink: publicProcedure
@@ -13,7 +14,7 @@ export const authRouter = router({
       z.object({
         email: z.email(),
         redirectTo: z.url(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { error } = await ctx.supabase.auth.signInWithOtp({
@@ -50,8 +51,19 @@ export const authRouter = router({
       return student;
     }),
 
+  // using this before logging in.
   isAdmin: protectedProcedure.query(({ ctx }) => {
     return isOtomatiksAdminEmail(ctx.user.email);
+  }),
+
+  isAdminUser: protectedProcedure.query(async ({ ctx }) => {
+    const email = ctx.user.id;
+
+    const user = await db.query.userProfiles.findFirst({
+      where: eq(userProfiles.id, email),
+    });
+
+    return !!user;
   }),
 
   getUser: protectedProcedure.query(({ ctx }) => {

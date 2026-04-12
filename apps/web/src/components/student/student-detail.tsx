@@ -7,14 +7,15 @@ import { StudentInfo } from "./student-info";
 import { StudentPayment } from "./student-payment";
 
 type StudentDetailProps = {
+  isAdmin:boolean,
   studentId: number;
 };
 
-export function StudentDetail({ studentId }: StudentDetailProps) {
+export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-background">
+    <div className="flex flex-1 flex-col overflow-y-scroll bg-background">
       <header className="flex items-start justify-between gap-8 px-10 pt-8 pb-6">
-        <StudentInfo studentId={studentId} />
+        <StudentInfo isAdmin={isAdmin} studentId={studentId} />
         <div className="flex max-w-md flex-col">
           <h1 className="text-[22px] font-semibold leading-tight text-foreground">
             Student Billing

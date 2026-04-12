@@ -80,6 +80,7 @@ export function AddStudentForm() {
   const onSubmit = (values: CreateStudentInput) => {
     createStudent.mutate(values as Parameters<typeof createStudent.mutate>[0]);
   };
+  
 
   const onInvalid = () => {
     gooeyToast.error("Error adding student", {

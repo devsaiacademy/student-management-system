@@ -4,12 +4,15 @@ import {
   Avatar,
   AvatarFallback,
 } from "@student-management-system/ui/components/avatar";
+import { Badge } from "@student-management-system/ui/components/badge";
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
+import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 import { trpc } from "@/utils/trpc";
 
 type StudentInfoProps = {
+  isAdmin: boolean;
   studentId: number;
 };
 
@@ -22,9 +25,31 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-export function StudentInfo({ studentId }: StudentInfoProps) {
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "active":
+      return {
+        label: "Active",
+        className: "bg-emerald-100/80 text-emerald-700",
+      };
+    case "in_active":
+      return {
+        label: "Inactive",
+        className: "bg-slate-100 text-slate-600",
+      };
+    case "discontinue":
+      return {
+        label: "Discontinued",
+        className: "bg-red-100/80 text-red-700",
+      };
+    default:
+      return { label: status, className: "bg-slate-100 text-slate-600" };
+  }
+}
+
+export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const { data, isPending, isError } = useQuery(
-    trpc.billing.getStudentInfo.queryOptions({ studentId })
+    trpc.students.getStudentInfo.queryOptions({ studentId }),
   );
 
   if (isPending) {
@@ -48,6 +73,8 @@ export function StudentInfo({ studentId }: StudentInfoProps) {
     );
   }
 
+  const status = getStatusBadge(data.studentStatus);
+
   return (
     <div className="flex items-center gap-4">
       <Avatar className="size-12" size="lg">
@@ -56,9 +83,43 @@ export function StudentInfo({ studentId }: StudentInfoProps) {
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col leading-tight">
-        <span className="text-[15px] font-semibold text-foreground">
-          {data.name}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[15px] font-semibold text-foreground">
+            {data.name}
+          </span>
+          {isAdmin && (
+            <Badge
+              className={cn(
+                "rounded-full border-0 px-2.5 py-0.5 text-[11px] font-medium",
+                status.className,
+              )}
+              variant="outline"
+            >
+              {status.label}
+            </Badge>
+          )}
+          {isAdmin && (
+            <Badge
+              className="rounded-full border-0 bg-orange-100/80 px-2.5 py-0.5 text-[11px] font-medium text-orange-700"
+              variant="outline"
+            >
+              {data.studentSource}
+            </Badge>
+          )}
+          {isAdmin && (
+            <Badge
+              className={cn(
+                "rounded-full border-0 px-2.5 py-0.5 text-[11px] font-medium",
+                data.kitProvided
+                  ? "bg-blue-100/80 text-blue-700"
+                  : "bg-slate-100 text-slate-600",
+              )}
+              variant="outline"
+            >
+              {data.kitProvided ? "Kit Provided" : "No Kit"}
+            </Badge>
+          )}
+        </div>
         <span className="mt-0.5 text-[13px] text-muted-foreground">
           {data.email}
         </span>

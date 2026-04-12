@@ -208,7 +208,7 @@ function FeesField({
                 placeholder="Amount in rupees"
                 value={
                   typeof field.value === "number" && field.value > 0
-                    ? field.value / 100
+                    ? field.value
                     : ""
                 }
                 onChange={(event) => {
@@ -216,7 +216,7 @@ function FeesField({
                   field.onChange(
                     rupees === ""
                       ? ("" as unknown as number)
-                      : Math.round(Number(rupees) * 100),
+                      : Number(rupees),
                   );
                 }}
                 onBlur={field.onBlur}
