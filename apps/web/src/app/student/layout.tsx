@@ -29,7 +29,7 @@ export default async function StudentLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <StudentSidebar user={user} />
-      <main className="flex flex-1 flex-col overflow-scroll">{children}</main>
+      <main className="flex flex-1 flex-col overflow-y-scroll">{children}</main>
     </div>
   );
 }
