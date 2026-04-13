@@ -26,7 +26,7 @@ const navItems = [
   { label: "Students", href: "/admin/all-students", icon: Users },
   { label: "Add Student", href: "/admin/add-student", icon: UserPlus },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
-  { label: "Courses", href: "/admin/courses", icon: BookOpen },
+  // { label: "Courses", href: "/admin/courses", icon: BookOpen },
   { label: "Reports", href: "/admin/reports", icon: FileBarChart },
 ];
 
