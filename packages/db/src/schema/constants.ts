@@ -4,7 +4,7 @@ export type PaymentPlan = (typeof PAYMENT_PLANS)[number];
 export const STUDENT_STATUSES = ["active", "in_active", "discontinue"] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
-export const STUDENT_SOURCES = ["Banner", "Referral" ,"Website"] as const;
+export const STUDENT_SOURCES = ["Banner", "Referral", "DM", "GAdds", "Walkin"] as const;
 export type StudentSource = (typeof STUDENT_SOURCES)[number];
 
 export const PAYMENT_STATUSES = ["paid", "unpaid"] as const;

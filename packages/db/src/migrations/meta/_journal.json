@@ -22,6 +22,27 @@
       "when": 1775758309672,
       "tag": "0002_add_enrollment_start_date_and_kit_provided",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776077788956,
+      "tag": "0003_make_payment_method_nullable",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776077833967,
+      "tag": "0004_remove_duplicated_student_progress_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776078048218,
+      "tag": "0005_update_source_enum",
+      "breakpoints": true
     }
   ]
 }
