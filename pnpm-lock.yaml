@@ -153,6 +153,9 @@ importers:
       sonner:
         specifier: 'catalog:'
         version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      to-words:
+        specifier: ^5.4.0
+        version: 5.4.0
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -3304,6 +3307,11 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
+  to-words@5.4.0:
+    resolution: {integrity: sha512-ki+YWEP1vnDsDY1sHDdSdn71e/tF3nDZb7n9RyQnhgq1Cji/cMG3KqeCXxwZGIZttpYIfYCr5OcjjJp5SB7izg==}
+    engines: {node: '>=20.0.0'}
+    hasBin: true
+
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
@@ -5958,6 +5966,8 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  to-words@5.4.0: {}
 
   toidentifier@1.0.1: {}
 

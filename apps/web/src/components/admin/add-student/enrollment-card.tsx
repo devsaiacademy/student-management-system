@@ -29,12 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@student-management-system/ui/components/select";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { toCurrency } from "to-words/en-IN";
 
 import { DatePickerField } from "./date-picker-field";
 import { LabeledRadio } from "./labeled-radio";
 import { LabeledSelect } from "./labeled-select";
-import { useState } from "react";
 
 export function EnrollmentCard({
   form,
@@ -214,9 +215,7 @@ function FeesField({
                 onChange={(event) => {
                   const rupees = event.target.value;
                   field.onChange(
-                    rupees === ""
-                      ? ("" as unknown as number)
-                      : Number(rupees),
+                    rupees === "" ? ("" as unknown as number) : Number(rupees)
                   );
                 }}
                 onBlur={field.onBlur}
@@ -225,6 +224,11 @@ function FeesField({
               />
             </FormControl>
             <FormMessage className="mt-1" />
+            {typeof field.value === "number" && field.value > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {toCurrency(field.value)}
+              </p>
+            )}
           </div>
         </FormItem>
       )}
