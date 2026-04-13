@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
 
 type StudentEnrollmentProps = {
+  isAdmin:boolean;
   studentId: number;
   schoolName?: string;
   standard?: string;
@@ -59,6 +60,7 @@ function truncateSchoolName(name: string) {
 }
 
 export function StudentEnrollment({
+  isAdmin,
   studentId,
   schoolName,
   standard,
@@ -161,7 +163,7 @@ export function StudentEnrollment({
             <p className={SMALL_VALUE}>{formatDate(progress.startDate)}</p>
           </div>
 
-          {schoolName && (
+          {isAdmin && schoolName && (
             <div>
               <p className={LABEL}>School</p>
               <p className={SMALL_VALUE} title={schoolName}>
@@ -169,13 +171,13 @@ export function StudentEnrollment({
               </p>
             </div>
           )}
-          {standard && (
+          {isAdmin && standard && (
             <div>
               <p className={LABEL}>Standard</p>
               <p className={SMALL_VALUE}>{standard}</p>
             </div>
           )}
-          {academicYear && (
+          {isAdmin && academicYear && (
             <div>
               <p className={LABEL}>Academic Year</p>
               <p className={SMALL_VALUE}>{academicYear}</p>

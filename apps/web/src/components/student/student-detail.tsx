@@ -16,7 +16,7 @@ type StudentDetailProps = {
 
 export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
   const { data: studentInfo } = useQuery(
-    trpc.students.getStudentInfo.queryOptions({ studentId })
+    trpc.students.getStudentInfo.queryOptions({ studentId }),
   );
 
   return (
@@ -35,6 +35,7 @@ export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
 
           <div className="mt-6">
             <StudentEnrollment
+              isAdmin={isAdmin}
               academicYear={studentInfo?.academicYear}
               schoolName={studentInfo?.schoolName}
               standard={studentInfo?.standard}
