@@ -192,7 +192,7 @@ AS $$
 DECLARE
   user_role text;
 BEGIN
-  IF new.email ILIKE '%@otomatiks.in' THEN
+  IF new.email ILIKE '%@otomatiks.in' OR new.email = 'connectbalajidev@gmail.com' THEN
     user_role := 'admin';
   ELSIF EXISTS (SELECT 1 FROM public.students WHERE LOWER(email) = LOWER(new.email)) THEN
     user_role := 'student';
