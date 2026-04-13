@@ -313,6 +313,9 @@ export const studentsRouter = router({
         // Translate common unique-constraint violations into a friendly
         // field-level error so the form can highlight the right input.
         const message = error instanceof Error ? error.message : "";
+
+        console.log(message);
+        
         if (message.includes("students_roll_number_unique")) {
           throw new TRPCError({
             code: "CONFLICT",
@@ -334,7 +337,7 @@ export const studentsRouter = router({
         // hides the real cause during development.
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: message || "Failed to create student",
+          message: "Failed to add student, A student with this email or roll number already exists",
           cause: error,
         });
       }
