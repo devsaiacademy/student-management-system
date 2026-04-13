@@ -18,7 +18,7 @@ Anyone whose email ends in `@otomatiks.in` is treated as an admin. That means:
 - A rebrand to a different domain requires a code change + redeploy instead of a DB update.
 - There is no "revoke admin" action short of disabling the Supabase user entirely.
 
-This is a *stopgap*, not authorization.
+This is a _stopgap_, not authorization.
 
 ### Target state
 
@@ -129,16 +129,16 @@ The otomatiks.in domain check **only runs in the `default:` branch**, which is t
 
 The existing flow has exactly two entry points and both are correct:
 
-| Entry point | `?role` | Which branch | Check used |
-|---|---|---|---|
-| Student / parent portal | `?role=parent` | `case "parent"` | Must exist in `students` table (by email) |
-| Admin portal | absent or anything else | `default` | Must be `@otomatiks.in` |
+| Entry point             | `?role`                 | Which branch    | Check used                                |
+| ----------------------- | ----------------------- | --------------- | ----------------------------------------- |
+| Student / parent portal | `?role=parent`          | `case "parent"` | Must exist in `students` table (by email) |
+| Admin portal            | absent or anything else | `default`       | Must be `@otomatiks.in`                   |
 
-A parent should *not* be domain-locked — they're external users signing in with their personal email to view their child's billing. A `.includes(...) / regex` check would lock them out, which is why the branch is structured this way. The UX copy even reflects this: the parent branch says "not registered, contact admin," while the admin branch says "use your otomatiks.in email."
+A parent should _not_ be domain-locked — they're external users signing in with their personal email to view their child's billing. A `.includes(...) / regex` check would lock them out, which is why the branch is structured this way. The UX copy even reflects this: the parent branch says "not registered, contact admin," while the admin branch says "use your otomatiks.in email."
 
 ### Why it is a footgun for later
 
-The `default:` case is the problem. It's a catch-all that silently applies the admin rule to *any* unknown role. Concretely:
+The `default:` case is the problem. It's a catch-all that silently applies the admin rule to _any_ unknown role. Concretely:
 
 - Add `?role=teacher` later → falls into `default` → teacher has to have an `@otomatiks.in` email → probably wrong, probably not what you meant.
 - A bug in the route that forwards `role` loses it → falls into `default` → suddenly all traffic hits the admin domain check.
@@ -206,13 +206,13 @@ See item 3 below. That issue was promoted out of this subsection because it's li
 
 ### Why it's a live bug, not a future concern
 
-It's not producing wrong behavior *right now* — admins logging out do end up going through the admin domain check, which is what you want. But it's wrong in a way that will bite the moment someone trusts the URL:
+It's not producing wrong behavior _right now_ — admins logging out do end up going through the admin domain check, which is what you want. But it's wrong in a way that will bite the moment someone trusts the URL:
 
 - A future `case "teacher":` added to handle real teachers would silently remove the domain check from the admin logout path. Admins would stop being forced to use an `@otomatiks.in` email on relogin.
 - A reviewer reading the sidebar assumes teachers are a role in this app. They aren't.
 - Anyone who searches the codebase for `"teacher"` gets a misleading hit.
 
-The bug is *semantic*, not *behavioral*. Semantic bugs are the ones you don't notice until the day you have to trust the symbol.
+The bug is _semantic_, not _behavioral_. Semantic bugs are the ones you don't notice until the day you have to trust the symbol.
 
 ### The fix
 
@@ -225,7 +225,7 @@ Two equally valid options, pick one:
 router.push("/login");
 
 // student-sidebar.tsx:33
-router.push("/login?role=parent");  // keep — parent is legit
+router.push("/login?role=parent"); // keep — parent is legit
 ```
 
 **Option B — use a truthful role string and make the switch exhaustive (ties into item 2).**
@@ -251,14 +251,14 @@ Option A is a one-character edit and doesn't touch `login.tsx`. Option B pairs n
 
 `apps/web/next.config.ts` has `typedRoutes: true`. That flag makes Next.js generate a TypeScript `Route` union containing every valid URL in the app — any `<Link href="/typo">` becomes a compile error.
 
-Four call sites opt *out* of that safety net with `as Route`:
+Four call sites opt _out_ of that safety net with `as Route`:
 
-| File | Line | Cast |
-|---|---|---|
-| `apps/web/src/components/admin/admin-sidebar.tsx` | 91 | `href={item.href as Route}` |
-| `apps/web/src/components/student/student-sidebar.tsx` | 74 | `href={item.href as Route}` |
-| `apps/web/src/components/admin/student-card.tsx` | 67 | ``href={`/admin/all-students/student/${student.id}` as Route}`` |
-| `apps/web/src/components/admin/pagination.tsx` | 87 | `router.push(buildHref(page) as Route)` |
+| File                                                  | Line | Cast                                                            |
+| ----------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `apps/web/src/components/admin/admin-sidebar.tsx`     | 91   | `href={item.href as Route}`                                     |
+| `apps/web/src/components/student/student-sidebar.tsx` | 74   | `href={item.href as Route}`                                     |
+| `apps/web/src/components/admin/student-card.tsx`      | 67   | ``href={`/admin/all-students/student/${student.id}` as Route}`` |
+| `apps/web/src/components/admin/pagination.tsx`        | 87   | `router.push(buildHref(page) as Route)`                         |
 
 ### Why each cast exists, and how to remove it
 
@@ -273,7 +273,11 @@ const navItems = [
   { label: "Students", href: "/admin/all-students", icon: Users },
   { label: "Add Student", href: "/admin/add-student", icon: UserPlus },
   // ...
-] as const satisfies ReadonlyArray<{ label: string; href: Route; icon: LucideIcon }>;
+] as const satisfies ReadonlyArray<{
+  label: string;
+  href: Route;
+  icon: LucideIcon;
+}>;
 ```
 
 `as const` narrows each `href` to its literal string type (e.g., `"/admin/all-students"`), and `satisfies` verifies each literal against the generated `Route` union at compile time. Rename a route, the `navItems` array fails to compile, you find out before the browser does. The `as Route` at the JSX site goes away.
@@ -310,7 +314,7 @@ router.push({
 });
 ```
 
-The remaining `as Route` on `pathname` is honest: `usePathname()` returns `string`, but at runtime it's guaranteed to be the current URL which *is* a valid route by construction. That's the one cast that's defensible.
+The remaining `as Route` on `pathname` is honest: `usePathname()` returns `string`, but at runtime it's guaranteed to be the current URL which _is_ a valid route by construction. That's the one cast that's defensible.
 
 ### Alternative: turn typed routes off
 
@@ -318,7 +322,7 @@ If you don't want the safety, remove `typedRoutes: true` from `next.config.ts`, 
 
 ### Why this is a must-fix, not a nice-to-have
 
-Typed routes only works if *every* navigation in the app goes through it. A single `as Route` at a dynamic link means that family of URLs (student detail, in this case) will never catch a typo. A rename of `/admin/all-students/student/[student_id]` to `/admin/students/[student_id]` would succeed without touching `student-card.tsx`, and the card would 404 silently at runtime. That's the exact failure mode typed routes is supposed to prevent.
+Typed routes only works if _every_ navigation in the app goes through it. A single `as Route` at a dynamic link means that family of URLs (student detail, in this case) will never catch a typo. A rename of `/admin/all-students/student/[student_id]` to `/admin/students/[student_id]` would succeed without touching `student-card.tsx`, and the card would 404 silently at runtime. That's the exact failure mode typed routes is supposed to prevent.
 
 ### Effort
 

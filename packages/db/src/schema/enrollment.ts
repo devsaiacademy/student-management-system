@@ -5,6 +5,7 @@ import {
   integer,
   varchar,
   timestamp,
+  boolean,
   foreignKey,
   pgPolicy,
 } from "drizzle-orm/pg-core";
@@ -27,6 +28,9 @@ export const enrollments = pgTable(
     totalFees: integer("total_fees").notNull(),
     paymentPlan: paymentPlanEnum("payment_plan").notNull(),
     emiMonths: integer("emi_months"),
+
+    startDate: timestamp("start_date").notNull(),
+    kitProvided: boolean("kit_provided").default(false).notNull(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

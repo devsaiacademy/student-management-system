@@ -2,9 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   pgTable,
   serial,
-  varchar,
   integer,
-  boolean,
   date,
   timestamp,
   foreignKey,
@@ -23,19 +21,10 @@ export const studentProgress = pgTable(
     studentId: integer("student_id").notNull(),
     enrollmentId: integer("enrollment_id").notNull(),
 
-    course: varchar("course", { length: 100 }).notNull(),
-    level: varchar("level", { length: 50 }).notNull(),
-    duration: varchar("duration", { length: 50 }).notNull(),
-
-    kitProvided: boolean("kit_provided").default(false).notNull(),
-
-    tutorName: varchar("tutor_name", { length: 100 }).notNull(),
-
     status: studentProgressStatusEnum("status")
       .default("in_progress")
       .notNull(),
 
-    startDate: date("start_date").notNull(),
     endDate: date("end_date"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -28,7 +28,9 @@ export const payments = pgTable(
     description: varchar("description", { length: 255 }),
     currency: varchar("currency", { length: 3 }).default("INR").notNull(),
 
-    paymentMethod: paymentMethodEnum("payment_method").notNull(),
+    // Nullable: a payment row exists from enrollment creation, but the method
+    // is only known once the student actually pays. NULL = not yet collected.
+    paymentMethod: paymentMethodEnum("payment_method"),
     paymentStatus: paymentStatusEnum("payment_status")
       .default("unpaid")
       .notNull(),

@@ -15,7 +15,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
-  
   const role = searchParams.get("role");
 
   const sendMagicLink = useMutation({
@@ -49,7 +48,7 @@ export default function Login() {
         }
         break;
       }
-      default: {
+      case "teacher": {
         if (!isOtomatiksAdminEmail(email)) {
           gooeyToast.error("Invalid email", {
             showTimestamp: false,
@@ -64,6 +63,20 @@ export default function Login() {
           return;
         }
         break;
+      }
+
+      default: {
+        gooeyToast.error("Invalid email", {
+          showTimestamp: false,
+          borderColor: "#E0E0E0",
+          borderWidth: 1.5,
+          description:
+            "You are not allowed to login with this email, use your otomatiks.in email.",
+          timing: {
+            displayDuration: 5000,
+          },
+        });
+        return;
       }
     }
 

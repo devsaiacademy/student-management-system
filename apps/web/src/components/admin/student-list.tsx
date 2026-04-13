@@ -44,15 +44,15 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
   const statusQuery = useQuery(
     trpc.students.filterStudentsWithStatus.queryOptions(
       { status: isStatusFiltered ? (statusFilter as StudentStatus) : null },
-      { enabled: isStatusFiltered },
-    ),
+      { enabled: isStatusFiltered }
+    )
   );
 
   const sourceQuery = useQuery(
     trpc.students.filterStudentsWithSource.queryOptions(
       { source: isSourceFiltered ? (sourceFilter as StudentSource) : null },
-      { enabled: isSourceFiltered },
-    ),
+      { enabled: isSourceFiltered }
+    )
   );
 
   const searchResults = useQuery(
@@ -62,8 +62,10 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
         status: isStatusFiltered ? (statusFilter as StudentStatus) : null,
         source: isSourceFiltered ? (sourceFilter as StudentSource) : null,
       },
-      { enabled: searchQuery.length > 0 || isSourceFiltered || isStatusFiltered},
-    ),
+      {
+        enabled: searchQuery.length > 0 || isSourceFiltered || isStatusFiltered,
+      }
+    )
   );
 
   const baseList: Student[] = useMemo(() => {

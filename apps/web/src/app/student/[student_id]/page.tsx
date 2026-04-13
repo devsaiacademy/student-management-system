@@ -15,9 +15,9 @@ export default async function StudentPage({ params }: StudentPageProps) {
   }
 
   const trpc = await createTRPCServerCaller();
-  let exists = false; 
+  let exists = false;
   try {
-    await trpc.billing.getStudentInfo({ studentId: parsedId });
+    await trpc.students.getStudentInfo({ studentId: parsedId });
     exists = true;
   } catch {
     // NOT_FOUND / UNAUTHORIZED / transient — treat as "no such page"
@@ -27,5 +27,7 @@ export default async function StudentPage({ params }: StudentPageProps) {
     notFound();
   }
 
-  return <StudentDetail studentId={parsedId} />;
+
+
+  return <StudentDetail isAdmin={false} studentId={parsedId} />;
 }

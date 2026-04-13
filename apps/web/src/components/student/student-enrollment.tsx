@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@student-management-system/ui/components/badge";
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +29,11 @@ function formatDate(value: string | null) {
 }
 
 function formatCurrency(amount: number) {
-  return amount.toLocaleString("en-IN");
+  return amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  });
 }
 
 function FieldSkeleton({ big }: { big?: boolean }) {
@@ -42,7 +47,7 @@ function FieldSkeleton({ big }: { big?: boolean }) {
 
 export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
   const { data, isPending, isError } = useQuery(
-    trpc.billing.getStudentEnrollment.queryOptions({ studentId })
+    trpc.enrollments.getStudentEnrollment.queryOptions({ studentId })
   );
 
   if (isPending) {
@@ -94,7 +99,18 @@ export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <div className={CARD_BG}>
+      <div className={cn(CARD_BG, "relative")}>
+        {/* <Badge
+          className={cn(
+            "absolute top-4 right-4 rounded-full border-0 px-2.5 py-0.5 text-[11px] font-medium",
+            enrollment.kitProvided
+              ? "bg-blue-100/80 text-blue-700"
+              : "bg-slate-100 text-slate-600"
+          )}
+          variant="outline"
+        >
+          {enrollment.kitProvided ? "Kit Provided" : "No Kit"}
+        </Badge> */}
         <div className="grid grid-cols-4 gap-y-7">
           <div className="col-span-2">
             <p className={LABEL}>Enrolled Course</p>
@@ -114,12 +130,10 @@ export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
             <p className={SMALL_VALUE}>{formatDate(progress.startDate)}</p>
           </div>
           <div>
-            <p className={LABEL}>Ends</p>
-            <p className={SMALL_VALUE}>{formatDate(progress.endDate)}</p>
-          </div>
-          <div>
             <p className={LABEL}>Total Fee</p>
-            <p className={SMALL_VALUE}>{formatCurrency(enrollment.totalFees)}</p>
+            <p className={SMALL_VALUE}>
+              {formatCurrency(enrollment.totalFees)}
+            </p>
           </div>
           <div>
             <p className={LABEL}>Plan</p>

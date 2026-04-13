@@ -20,7 +20,6 @@ const STATUS_LABELS: Record<(typeof STUDENT_STATUSES)[number], string> = {
   discontinue: "Discontinued",
 };
 
-
 type AdminHeaderProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
