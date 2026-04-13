@@ -8,6 +8,7 @@ import { Badge } from "@student-management-system/ui/components/badge";
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { Mail, Phone, Hash } from "lucide-react";
 
 import { trpc } from "@/utils/trpc";
 
@@ -49,17 +50,24 @@ function getStatusBadge(status: string) {
 
 export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const { data, isPending, isError } = useQuery(
-    trpc.students.getStudentInfo.queryOptions({ studentId }),
+    trpc.students.getStudentInfo.queryOptions({ studentId })
   );
 
   if (isPending) {
     return (
-      <div className="flex items-center gap-4">
-        <Skeleton className="size-12 rounded-full" />
-        <div className="flex flex-col gap-1.5">
-          <Skeleton className="h-4 w-28 rounded" />
-          <Skeleton className="h-3 w-40 rounded" />
-          <Skeleton className="h-3 w-32 rounded" />
+      <div className="flex items-center gap-5">
+        <Skeleton className="size-14 rounded-full" />
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-5 w-36 rounded" />
+          <div className="flex gap-2">
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+          <div className="flex gap-6">
+            <Skeleton className="h-3.5 w-36 rounded" />
+            <Skeleton className="h-3.5 w-28 rounded" />
+            <Skeleton className="h-3.5 w-24 rounded" />
+          </div>
         </div>
       </div>
     );
@@ -76,22 +84,23 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const status = getStatusBadge(data.studentStatus);
 
   return (
-    <div className="flex items-center gap-4">
-      <Avatar className="size-12" size="lg">
-        <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+    <div className="flex items-center gap-5">
+      <Avatar className="size-14" size="lg">
+        <AvatarFallback className="bg-primary/10 text-base font-semibold text-primary">
           {getInitials(data.name)}
         </AvatarFallback>
       </Avatar>
-      <div className="flex flex-col leading-tight">
-        <div className="flex items-center gap-2">
-          <span className="text-[15px] font-semibold text-foreground">
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-lg font-semibold leading-tight text-foreground">
             {data.name}
-          </span>
+          </h2>
           {isAdmin && (
             <Badge
               className={cn(
                 "rounded-full border-0 px-2.5 py-0.5 text-[11px] font-medium",
-                status.className,
+                status.className
               )}
               variant="outline"
             >
@@ -112,7 +121,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
                 "rounded-full border-0 px-2.5 py-0.5 text-[11px] font-medium",
                 data.kitProvided
                   ? "bg-blue-100/80 text-blue-700"
-                  : "bg-slate-100 text-slate-600",
+                  : "bg-slate-100 text-slate-600"
               )}
               variant="outline"
             >
@@ -120,12 +129,21 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
             </Badge>
           )}
         </div>
-        <span className="mt-0.5 text-[13px] text-muted-foreground">
-          {data.email}
-        </span>
-        <span className="text-[13px] text-muted-foreground">
-          +91 {data.phoneNumber}
-        </span>
+
+        <div className="flex items-center gap-5 text-[13px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Mail aria-hidden className="size-3.5" />
+            {data.email}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Phone aria-hidden className="size-3.5" />
+            +91 {data.phoneNumber}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Hash aria-hidden className="size-3.5" />
+            {data.rollNumber}
+          </span>
+        </div>
       </div>
     </div>
   );

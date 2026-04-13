@@ -9,6 +9,10 @@ import { trpc } from "@/utils/trpc";
 
 type StudentEnrollmentProps = {
   studentId: number;
+  schoolName?: string;
+  standard?: string;
+  academicYear?: string;
+  tutorName?: string;
 };
 
 const CARD_BG = "rounded-xl bg-surface-info text-surface-info-foreground p-8";
@@ -45,9 +49,23 @@ function FieldSkeleton({ big }: { big?: boolean }) {
   );
 }
 
-export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
+const MAX_SCHOOL_NAME_LENGTH = 28;
+
+function truncateSchoolName(name: string) {
+  if (name.length <= MAX_SCHOOL_NAME_LENGTH) {
+    return name;
+  }
+  return `${name.slice(0, MAX_SCHOOL_NAME_LENGTH).trimEnd()}…`;
+}
+
+export function StudentEnrollment({
+  studentId,
+  schoolName,
+  standard,
+  academicYear,
+}: StudentEnrollmentProps) {
   const { data, isPending, isError } = useQuery(
-    trpc.enrollments.getStudentEnrollment.queryOptions({ studentId })
+    trpc.enrollments.getStudentEnrollment.queryOptions({ studentId }),
   );
 
   if (isPending) {
@@ -60,6 +78,9 @@ export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
             </div>
             <FieldSkeleton big />
             <FieldSkeleton big />
+            <FieldSkeleton />
+            <FieldSkeleton />
+            <FieldSkeleton />
             <FieldSkeleton />
             <FieldSkeleton />
             <FieldSkeleton />
@@ -111,8 +132,8 @@ export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
         >
           {enrollment.kitProvided ? "Kit Provided" : "No Kit"}
         </Badge> */}
-        <div className="grid grid-cols-4 gap-y-7">
-          <div className="col-span-2">
+        <div className="grid grid-cols-5 gap-y-7">
+          <div className="col-span-1">
             <p className={LABEL}>Enrolled Course</p>
             <p className={BIG_VALUE}>{enrollment.course}</p>
           </div>
@@ -124,21 +145,49 @@ export function StudentEnrollment({ studentId }: StudentEnrollmentProps) {
             <p className={LABEL}>Level</p>
             <p className={BIG_VALUE}>{enrollment.level}</p>
           </div>
-
-          <div>
-            <p className={LABEL}>Starts</p>
-            <p className={SMALL_VALUE}>{formatDate(progress.startDate)}</p>
-          </div>
           <div>
             <p className={LABEL}>Total Fee</p>
             <p className={SMALL_VALUE}>
               {formatCurrency(enrollment.totalFees)}
             </p>
           </div>
+
           <div>
             <p className={LABEL}>Plan</p>
             <p className={SMALL_VALUE}>{planLabel}</p>
           </div>
+          <div>
+            <p className={LABEL}>Starts</p>
+            <p className={SMALL_VALUE}>{formatDate(progress.startDate)}</p>
+          </div>
+
+          {schoolName && (
+            <div>
+              <p className={LABEL}>School</p>
+              <p className={SMALL_VALUE} title={schoolName}>
+                {truncateSchoolName(schoolName)}
+              </p>
+            </div>
+          )}
+          {standard && (
+            <div>
+              <p className={LABEL}>Standard</p>
+              <p className={SMALL_VALUE}>{standard}</p>
+            </div>
+          )}
+          {academicYear && (
+            <div>
+              <p className={LABEL}>Academic Year</p>
+              <p className={SMALL_VALUE}>{academicYear}</p>
+            </div>
+          )}
+
+          {data.enrollment.tutorName && (
+            <div>
+              <p className={LABEL}>Tutor Name</p>
+              <p className={SMALL_VALUE}>{data.enrollment.tutorName}</p>
+            </div>
+          )}
         </div>
       </div>
 

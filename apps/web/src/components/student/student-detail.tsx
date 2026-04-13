@@ -1,30 +1,28 @@
 "use client";
 
 import { ScrollArea } from "@student-management-system/ui/components/scroll-area";
+import { useQuery } from "@tanstack/react-query";
+
+import { trpc } from "@/utils/trpc";
 
 import { StudentEnrollment } from "./student-enrollment";
 import { StudentInfo } from "./student-info";
 import { StudentPayment } from "./student-payment";
 
 type StudentDetailProps = {
-  isAdmin:boolean,
+  isAdmin: boolean;
   studentId: number;
 };
 
 export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
+  const { data: studentInfo } = useQuery(
+    trpc.students.getStudentInfo.queryOptions({ studentId })
+  );
+
   return (
     <div className="flex flex-1 flex-col overflow-y-scroll bg-background">
       <header className="flex items-start justify-between gap-8 px-10 pt-8 pb-6">
         <StudentInfo isAdmin={isAdmin} studentId={studentId} />
-        <div className="flex max-w-md flex-col">
-          <h1 className="text-[22px] font-semibold leading-tight text-foreground">
-            Student Billing
-          </h1>
-          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-            Track your single enrolled course and split payment schedule in one
-            place.
-          </p>
-        </div>
       </header>
 
       <ScrollArea className="flex-1">
@@ -36,7 +34,12 @@ export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
           </div>
 
           <div className="mt-6">
-            <StudentEnrollment studentId={studentId} />
+            <StudentEnrollment
+              academicYear={studentInfo?.academicYear}
+              schoolName={studentInfo?.schoolName}
+              standard={studentInfo?.standard}
+              studentId={studentId}
+            />
           </div>
 
           <div className="mt-10">

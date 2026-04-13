@@ -166,6 +166,9 @@ export const studentsRouter = router({
           rollNumber: students.rollNumber,
           studentStatus: students.studentStatus,
           studentSource: students.studentSource,
+          schoolName: students.schoolName,
+          standard: students.standard,
+          academicYear: students.academicYear,
         })
         .from(students)
         .where(eq(students.id, studentId))
@@ -314,7 +317,6 @@ export const studentsRouter = router({
         // field-level error so the form can highlight the right input.
         const message = error instanceof Error ? error.message : "";
 
-        console.log(message);
         
         if (message.includes("students_roll_number_unique")) {
           throw new TRPCError({
@@ -337,7 +339,8 @@ export const studentsRouter = router({
         // hides the real cause during development.
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to add student, A student with this email or roll number already exists",
+          message:
+            "Failed to add student, A student with this email or roll number already exists",
           cause: error,
         });
       }
