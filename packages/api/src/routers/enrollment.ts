@@ -36,13 +36,13 @@ export const enrollmentRouter = router({
         .orderBy(asc(payments.emiNumber), asc(payments.dueDate));
 
       const paidCount = enrollmentPayments.filter(
-        (p) => p.paymentStatus === "paid",
+        (p) => p.paymentStatus === "paid"
       ).length;
       const totalPaid = enrollmentPayments
         .filter((p) => p.paymentStatus === "paid")
         .reduce((sum, p) => sum + p.amount, 0);
       const nextUnpaid = enrollmentPayments.find(
-        (p) => p.paymentStatus === "unpaid",
+        (p) => p.paymentStatus === "unpaid"
       );
       return {
         enrollment: {
@@ -54,7 +54,7 @@ export const enrollmentRouter = router({
           paymentPlan: enrollment.paymentPlan,
           emiMonths: enrollment.emiMonths,
           kitProvided: enrollment.kitProvided,
-          tutorName:enrollment.tutorName
+          tutorName: enrollment.tutorName,
         },
         progress: {
           paidCount,

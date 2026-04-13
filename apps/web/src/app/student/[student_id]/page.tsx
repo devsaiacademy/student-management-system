@@ -27,7 +27,5 @@ export default async function StudentPage({ params }: StudentPageProps) {
     notFound();
   }
 
-
-
   return <StudentDetail isAdmin={false} studentId={parsedId} />;
 }

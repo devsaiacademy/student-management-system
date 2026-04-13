@@ -80,7 +80,6 @@ export function AddStudentForm() {
   const onSubmit = (values: CreateStudentInput) => {
     createStudent.mutate(values as Parameters<typeof createStudent.mutate>[0]);
   };
-  
 
   const onInvalid = () => {
     gooeyToast.error("Error adding student", {
@@ -88,8 +87,7 @@ export function AddStudentForm() {
       borderColor: "#E0E0E0",
       borderWidth: 1.5,
       timing: { displayDuration: 7000 },
-      description:
-        "Student cannot be added, enter all the details to add",
+      description: "Student cannot be added, enter all the details to add",
     });
   };
 
@@ -97,37 +95,37 @@ export function AddStudentForm() {
     <Form {...form}>
       <div className="overflow-y-scroll">
         <form
-        className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-6 py-6"
-        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
-      >
-        <h1
-          className="animate-in fade-in slide-in-from-bottom-2 text-center text-lg font-semibold text-foreground"
-          style={{ animationDuration: "400ms" }}
+          className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-6 py-6"
+          onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         >
-          Enter the all the details to add new student
-        </h1>
-
-        <StudentInfoCard control={form.control} />
-        <EnrollmentCard form={form} />
-
-        <div
-          className="animate-in fade-in slide-in-from-bottom-2 flex justify-end"
-          style={{
-            animationDelay: "180ms",
-            animationDuration: "400ms",
-            animationFillMode: "backwards",
-          }}
-        >
-          <Button
-            type="submit"
-            variant="blue"
-            className="rounded-[8px] px-6"
-            disabled={createStudent.isPending}
+          <h1
+            className="animate-in fade-in slide-in-from-bottom-2 text-center text-lg font-semibold text-foreground"
+            style={{ animationDuration: "400ms" }}
           >
-            {createStudent.isPending ? "Adding..." : "Add Student"}
-          </Button>
-        </div>
-      </form>
+            Enter the all the details to add new student
+          </h1>
+
+          <StudentInfoCard control={form.control} />
+          <EnrollmentCard form={form} />
+
+          <div
+            className="animate-in fade-in slide-in-from-bottom-2 flex justify-end"
+            style={{
+              animationDelay: "180ms",
+              animationDuration: "400ms",
+              animationFillMode: "backwards",
+            }}
+          >
+            <Button
+              type="submit"
+              variant="blue"
+              className="rounded-[8px] px-6"
+              disabled={createStudent.isPending}
+            >
+              {createStudent.isPending ? "Adding..." : "Add Student"}
+            </Button>
+          </div>
+        </form>
       </div>
     </Form>
   );

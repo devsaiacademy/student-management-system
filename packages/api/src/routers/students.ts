@@ -34,7 +34,7 @@ const addMonthsClamped = (base: Date, months: number): Date => {
   const lastDayOfTargetMonth = new Date(
     result.getFullYear(),
     result.getMonth() + 1,
-    0,
+    0
   ).getDate();
   result.setDate(Math.min(originalDay, lastDayOfTargetMonth));
   return result;
@@ -45,7 +45,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         page: z.number().min(1),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { page } = input;
@@ -84,7 +84,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         status: z.enum(STUDENT_STATUSES).nullable(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { status } = input;
@@ -103,7 +103,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         source: z.enum(STUDENT_SOURCES).nullable(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { source } = input;
@@ -125,7 +125,7 @@ export const studentsRouter = router({
         search: z.string().nullable(),
         status: z.enum(STUDENT_STATUSES).nullable(),
         source: z.enum(STUDENT_SOURCES).nullable(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { search, status, source } = input;
@@ -139,7 +139,7 @@ export const studentsRouter = router({
               ? or(
                   ilike(students.name, `%${search}%`),
                   ilike(students.email, `%${search}%`),
-                  ilike(students.rollNumber, `%${search}%`),
+                  ilike(students.rollNumber, `%${search}%`)
                 )
               : undefined,
 
@@ -147,8 +147,8 @@ export const studentsRouter = router({
             status ? eq(students.studentStatus, status) : undefined,
 
             //  filter by source
-            source ? eq(students.studentSource, source) : undefined,
-          ),
+            source ? eq(students.studentSource, source) : undefined
+          )
         );
     }),
 
@@ -199,7 +199,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         id: z.number(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { id } = input;
@@ -286,7 +286,7 @@ export const studentsRouter = router({
               ? input.emiMonths
               : 1;
           const baseInstallment = Math.floor(
-            input.totalFees / installmentCount,
+            input.totalFees / installmentCount
           );
           const remainder =
             input.totalFees - baseInstallment * installmentCount;
@@ -302,10 +302,10 @@ export const studentsRouter = router({
                 emiNumber: installmentCount === 1 ? null : index + 1,
                 paymentStatus: "unpaid" as const,
                 dueDate: formatDateForPg(
-                  addMonthsClamped(input.startDate, index),
+                  addMonthsClamped(input.startDate, index)
                 ),
               };
-            },
+            }
           );
 
           await tx.insert(payments).values(paymentRows);
@@ -317,7 +317,6 @@ export const studentsRouter = router({
         // field-level error so the form can highlight the right input.
         const message = error instanceof Error ? error.message : "";
 
-        
         if (message.includes("students_roll_number_unique")) {
           throw new TRPCError({
             code: "CONFLICT",

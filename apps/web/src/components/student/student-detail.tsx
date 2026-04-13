@@ -16,7 +16,7 @@ type StudentDetailProps = {
 
 export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
   const { data: studentInfo } = useQuery(
-    trpc.students.getStudentInfo.queryOptions({ studentId }),
+    trpc.students.getStudentInfo.queryOptions({ studentId })
   );
 
   return (
@@ -44,7 +44,7 @@ export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
           </div>
 
           <div className="mt-10">
-            <StudentPayment studentId={studentId} />
+            <StudentPayment isAdmin={isAdmin} studentId={studentId} />
           </div>
         </div>
       </ScrollArea>

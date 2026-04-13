@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
 
 type StudentEnrollmentProps = {
-  isAdmin:boolean;
+  isAdmin: boolean;
   studentId: number;
   schoolName?: string;
   standard?: string;
@@ -67,7 +67,7 @@ export function StudentEnrollment({
   academicYear,
 }: StudentEnrollmentProps) {
   const { data, isPending, isError } = useQuery(
-    trpc.enrollments.getStudentEnrollment.queryOptions({ studentId }),
+    trpc.enrollments.getStudentEnrollment.queryOptions({ studentId })
   );
 
   if (isPending) {

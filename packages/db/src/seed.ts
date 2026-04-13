@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 
 async function publicTableExists(
   pool: Pool,
-  tableName: string,
+  tableName: string
 ): Promise<boolean> {
   const result = await pool.query<{ exists: boolean }>(
     `SELECT EXISTS (
@@ -18,7 +18,7 @@ async function publicTableExists(
        FROM information_schema.tables
        WHERE table_schema = 'public' AND table_name = $1
      ) AS exists`,
-    [tableName],
+    [tableName]
   );
   return result.rows[0]?.exists ?? false;
 }
