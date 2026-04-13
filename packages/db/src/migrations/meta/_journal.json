@@ -43,6 +43,13 @@
       "when": 1776078048218,
       "tag": "0005_update_source_enum",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776278400000,
+      "tag": "0006_add_admin_email",
+      "breakpoints": true
     }
   ]
 }
