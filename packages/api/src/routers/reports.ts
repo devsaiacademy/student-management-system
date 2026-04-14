@@ -1,5 +1,7 @@
 import { db } from "@student-management-system/db";
+import { STUDENT_SOURCES } from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
+import { students } from "@student-management-system/db/schema/students";
 import { count } from "drizzle-orm";
 
 import { protectedProcedure, router } from "../index";
@@ -19,6 +21,27 @@ export const reportsRouter = router({
     return rows.map((row) => ({
       level: row.level,
       count: Number(row.count),
+    }));
+  }),
+
+  // Student counts per source. Includes all STUDENT_SOURCES values, with zero-count
+  // entries for sources with no students so the X-axis stays stable.
+  getSourcesCount: protectedProcedure.query(async () => {
+    const rows = await db
+      .select({
+        source: students.studentSource,
+        count: count(students.id),
+      })
+      .from(students)
+      .groupBy(students.studentSource);
+
+    const countsBySource = new Map(
+      rows.map((row) => [row.source, Number(row.count)])
+    );
+
+    return STUDENT_SOURCES.map((source) => ({
+      source,
+      count: countsBySource.get(source) ?? 0,
     }));
   }),
 });

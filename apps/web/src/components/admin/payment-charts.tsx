@@ -52,7 +52,7 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="grid grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Student Payment Status</CardTitle>

@@ -24,14 +24,22 @@ const naturalCompare = new Intl.Collator(undefined, {
 }).compare;
 
 type LevelCount = { level: string; count: number };
+type SourceCount = { source: string; count: number };
 
-export function ReportsCharts({ levels }: { levels: LevelCount[] }) {
+type ReportsChartsProps = {
+  levels: LevelCount[];
+  sources: SourceCount[];
+};
+
+export function ReportsCharts({ levels, sources }: ReportsChartsProps) {
   const sortedLevels = [...levels].sort((a, b) =>
     naturalCompare(a.level, b.level)
   );
 
+  const sortedSources = [...sources].sort((a, b) => b.count - a.count);
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="grid grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle>LEVELS COUNT</CardTitle>
@@ -41,6 +49,35 @@ export function ReportsCharts({ levels }: { levels: LevelCount[] }) {
             <BarChart data={sortedLevels}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="level" />
+              <YAxis
+                allowDecimals={false}
+                label={{
+                  angle: -90,
+                  position: "insideLeft",
+                  value: "Count",
+                }}
+              />
+              <Tooltip />
+              <Bar
+                dataKey="count"
+                fill={BAR_COLOR}
+                name="Student Count"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>STUDENT SOURCES</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer height={400} width="100%">
+            <BarChart data={sortedSources}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="source" />
               <YAxis
                 allowDecimals={false}
                 label={{
