@@ -10,7 +10,7 @@ config({ path: resolve(__dirname, "../../../.env") });
 
 export const env = createEnv({
   server: {
-    DATABASE_URL: z.string().min(1).optional(),
+    DATABASE_URL: z.string().min(1),
     CORS_ORIGIN: z.url().optional(),
     NODE_ENV: z
       .enum(["development", "production", "test"])

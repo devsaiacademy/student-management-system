@@ -23,10 +23,6 @@ declare global {
   var _pgPool: Pool | undefined;
 }
 
-if (!env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is required");
-}
-
 const pool =
   globalThis._pgPool ??
   new Pool({
