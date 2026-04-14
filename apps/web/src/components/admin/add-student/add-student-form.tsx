@@ -93,7 +93,7 @@ export function AddStudentForm() {
 
   return (
     <Form {...form}>
-      <div className="overflow-y-scroll">
+      <div>
         <form
           className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-6 py-6"
           onSubmit={form.handleSubmit(onSubmit, onInvalid)}

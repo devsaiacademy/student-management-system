@@ -20,7 +20,7 @@ export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
   );
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-scroll bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <header className="flex items-start justify-between gap-8 px-10 pt-8 pb-6">
         <StudentInfo isAdmin={isAdmin} studentId={studentId} />
       </header>
