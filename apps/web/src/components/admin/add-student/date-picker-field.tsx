@@ -53,6 +53,8 @@ export function DatePickerField<Name extends FieldPath<CreateStudentInput>>({
                   <Calendar
                     mode="single"
                     selected={selectedDate}
+                    defaultMonth={selectedDate}
+                    captionLayout="dropdown"
                     onSelect={(date) => {
                       if (date) {
                         field.onChange(date);

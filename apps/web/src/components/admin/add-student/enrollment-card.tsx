@@ -3,7 +3,7 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
-  ENROLLED_MEDIUMS,
+  STUDENT_SOURCES,
   LEVELS,
   STUDENT_STATUSES,
   TUTOR_NAMES,
@@ -166,10 +166,10 @@ export function EnrollmentCard({
 
             <LabeledSelect
               control={form.control}
-              name="enrolledMedium"
+              name="studentSource"
               label="Enrolled via"
               placeholder="Select Medium"
-              options={ENROLLED_MEDIUMS}
+              options={STUDENT_SOURCES}
             />
 
             <LabeledRadio

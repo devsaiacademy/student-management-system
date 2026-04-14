@@ -1,4 +1,5 @@
 import type { CreateStudentInput } from "@student-management-system/api/schemas/student";
+import { STANDARDS } from "@student-management-system/db/schema/constants";
 import {
   Card,
   CardContent,
@@ -9,6 +10,9 @@ import { Input } from "@student-management-system/ui/components/input";
 import type { Control } from "react-hook-form";
 
 import { LabeledField } from "./labeled-field";
+import { LabeledSelect } from "./labeled-select";
+
+const STANDARD_OPTIONS = STANDARDS.map(String);
 
 function TextField({
   control,
@@ -91,7 +95,13 @@ export function StudentInfoCard({
             />
           </div>
           <div className="space-y-4">
-            <TextField control={control} name="standard" label="Standard" />
+            <LabeledSelect
+              control={control}
+              name="standard"
+              label="Standard"
+              placeholder="Select Standard"
+              options={STANDARD_OPTIONS}
+            />
             <TextField
               control={control}
               name="academicYear"
