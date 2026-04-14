@@ -119,6 +119,7 @@ export function AddStudentForm() {
             <Button
               type="submit"
               variant="blue"
+              size="md"
               className="rounded-[8px] px-6"
               disabled={createStudent.isPending}
             >
