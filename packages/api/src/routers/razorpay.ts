@@ -14,7 +14,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../index";
 
 const razorpay = new Razorpay({
-  key_id: env.RAZORPAY_KEY_ID,
+  key_id: env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
   key_secret: env.RAZORPAY_KEY_SECRET,
 });
 
@@ -109,7 +109,7 @@ export const razorpayRouter = router({
             razorpayOrderId: existing.razorpayOrderId,
             amount: existing.amount,
             currency: existing.currency,
-            keyId: env.RAZORPAY_KEY_ID,
+            keyId: env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
             studentName: row.studentName,
             studentEmail: row.studentEmail,
             studentPhone: row.studentPhone,
@@ -165,7 +165,7 @@ export const razorpayRouter = router({
         razorpayOrderId: order.id,
         amount: Number(order.amount),
         currency: order.currency,
-        keyId: env.RAZORPAY_KEY_ID,
+        keyId: env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         studentName: row.studentName,
         studentEmail: row.studentEmail,
         studentPhone: row.studentPhone,
