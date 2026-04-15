@@ -62,12 +62,23 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
             <BarChart data={barData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} label={{ angle: -90, position: "insideLeft", value: "Student Count" }} />
+              <YAxis
+                allowDecimals={false}
+                label={{
+                  angle: -90,
+                  position: "insideLeft",
+                  value: "Student Count",
+                }}
+              />
               <Tooltip />
               <Bar dataKey="count" name="Student Count" radius={[4, 4, 0, 0]}>
                 {barData.map((entry) => (
                   <Cell
-                    fill={entry.name === "Paid" ? BAR_COLORS.paid : BAR_COLORS.unpaid}
+                    fill={
+                      entry.name === "Paid"
+                        ? BAR_COLORS.paid
+                        : BAR_COLORS.unpaid
+                    }
                     key={entry.name}
                   />
                 ))}

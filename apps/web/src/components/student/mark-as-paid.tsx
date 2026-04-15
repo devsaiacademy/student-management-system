@@ -1,6 +1,7 @@
 "use client";
 
-import { PAYMENT_METHODS } from "@student-management-system/db/schema/constants";
+import { MANUAL_PAYMENT_METHODS } from "@student-management-system/db/schema/constants";
+import type { ManualPaymentMethod } from "@student-management-system/db/schema/constants";
 import { Button } from "@student-management-system/ui/components/button";
 import {
   Dialog,
@@ -87,7 +88,7 @@ export function MarkAsPaid({
     if (!paymentMethod) return;
     markPaid.mutate({
       paymentId: payment.id,
-      paymentMethod: paymentMethod as "cash" | "razorpay" | "others",
+      paymentMethod: paymentMethod as ManualPaymentMethod,
     });
   };
 
@@ -164,7 +165,7 @@ export function MarkAsPaid({
                   className="rounded-[6px]"
                   alignItemWithTrigger={false}
                 >
-                  {PAYMENT_METHODS.map((method) => (
+                  {MANUAL_PAYMENT_METHODS.map((method) => (
                     <SelectItem key={method} value={method}>
                       {method.charAt(0).toUpperCase() + method.slice(1)}
                     </SelectItem>
