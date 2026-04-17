@@ -134,7 +134,7 @@ export function StudentEnrollment({
         >
           {enrollment.kitProvided ? "Kit Provided" : "No Kit"}
         </Badge> */}
-        <div className="grid grid-cols-5 gap-y-7">
+        <div className="grid grid-cols-5 gap-y-7 max-md:grid max-md:grid-cols-2">
           <div className="col-span-1">
             <p className={LABEL}>Enrolled Course</p>
             <p className={BIG_VALUE}>{enrollment.course}</p>
