@@ -1,3 +1,8 @@
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@student-management-system/ui/components/sidebar";
 import { redirect } from "next/navigation";
 
 import { StudentSidebar } from "@/components/student/student-sidebar";
@@ -27,9 +32,14 @@ export default async function StudentLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <SidebarProvider className="h-svh overflow-hidden bg-background">
       <StudentSidebar user={user} />
-      <main className="flex flex-1 flex-col overflow-y-scroll">{children}</main>
-    </div>
+      <SidebarInset>
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-3 md:h-14">
+          <SidebarTrigger />
+        </header>
+        <div className="flex-1 overflow-y-auto">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

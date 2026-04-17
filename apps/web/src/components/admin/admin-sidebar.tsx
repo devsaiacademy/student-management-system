@@ -4,16 +4,24 @@ import {
   Avatar,
   AvatarFallback,
 } from "@student-management-system/ui/components/avatar";
-import { Separator } from "@student-management-system/ui/components/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+} from "@student-management-system/ui/components/sidebar";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  BookOpen,
   CreditCard,
   FileBarChart,
   LogOut,
-  Users,
   UserPlus,
+  Users,
 } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
@@ -59,79 +67,84 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   };
 
   return (
-    <aside className="flex h-full w-[220px] flex-col border-r border-border bg-background">
-      <div className="flex items-center gap-2 px-5 py-5">
+    <Sidebar>
+      <SidebarHeader>
         <Image
           alt="Otomatiks Logo"
-          className="h-8 w-auto"
+          className="h-8 w-auto group-data-[state=collapsed]/sidebar:hidden"
           height={32}
           priority
           src="/logo.svg"
           width={150}
         />
-      </div>
+      </SidebarHeader>
 
-      <Separator />
+      <SidebarSeparator />
 
-      <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-        {navItems.map((item, index) => {
-          const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(item.href);
+      <SidebarContent>
+        <SidebarMenu>
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-              href={item.href as Route}
-              key={item.href}
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <item.icon className="size-4 shrink-0" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.label}
+                >
+                  <Link href={item.href as Route}>
+                    <item.icon className="size-4 shrink-0" />
+                    <span className="group-data-[state=collapsed]/sidebar:hidden">
+                      {item.label}
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarContent>
 
-      <Separator />
+      <SidebarSeparator />
 
-      <button
-        aria-label="Log out"
-        className={cn(
-          "group flex items-center gap-3 px-4 py-4 text-left transition-colors",
-          "hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
-          "disabled:cursor-not-allowed disabled:opacity-60"
-        )}
-        disabled={logoutMutation.isPending}
-        onClick={handleLogout}
-        type="button"
-      >
-        <Avatar className="size-9">
-          <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-            {user?.name?.[0] ?? user?.email?.[0]?.toUpperCase() ?? "A"}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-medium text-foreground">
-            {user?.name ?? "Admin User"}
-          </span>
-          <span className="truncate text-xs text-muted-foreground group-hover:text-foreground">
-            {logoutMutation.isPending
-              ? "Signing out…"
-              : (user?.email ?? "admin@otomatiks.in")}
-          </span>
-        </div>
-        <LogOut
-          aria-hidden
-          className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-destructive"
-        />
-      </button>
-    </aside>
+      <SidebarFooter>
+        <button
+          aria-label="Log out"
+          className={cn(
+            "group flex items-center gap-3 px-4 py-4 text-left transition-colors",
+            "hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+            "group-data-[state=collapsed]/sidebar:justify-center group-data-[state=collapsed]/sidebar:px-2"
+          )}
+          disabled={logoutMutation.isPending}
+          onClick={handleLogout}
+          type="button"
+        >
+          <Avatar className="size-9 group-data-[state=collapsed]/sidebar:size-8">
+            <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+              {user?.name?.[0] ?? user?.email?.[0]?.toUpperCase() ?? "A"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex min-w-0 flex-1 flex-col group-data-[state=collapsed]/sidebar:hidden">
+            <span className="truncate text-sm font-medium text-foreground">
+              {user?.name ?? "Admin User"}
+            </span>
+            <span className="truncate text-xs text-muted-foreground group-hover:text-foreground">
+              {logoutMutation.isPending
+                ? "Signing out…"
+                : (user?.email ?? "admin@otomatiks.in")}
+            </span>
+          </div>
+          <LogOut
+            aria-hidden
+            className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-destructive group-data-[state=collapsed]/sidebar:hidden"
+          />
+        </button>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

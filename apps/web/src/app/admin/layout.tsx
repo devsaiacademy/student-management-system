@@ -1,3 +1,8 @@
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@student-management-system/ui/components/sidebar";
 import { redirect } from "next/navigation";
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -24,9 +29,12 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <SidebarProvider className="h-svh overflow-hidden bg-background">
       <AdminSidebar user={user} />
-      <main className="flex flex-1 flex-col overflow-scroll">{children}</main>
-    </div>
+      <SidebarInset>
+        <SidebarTrigger className="absolute"/>
+        <div className="flex-1 overflow-y-auto">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
