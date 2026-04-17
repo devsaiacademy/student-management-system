@@ -166,35 +166,48 @@ function MobileRow(props: PaymentActionsProps) {
           />
         </button>
       </div>
-      {open && (
-        <div className="mt-3 flex flex-col gap-2 pl-1 text-[13px]">
-          <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">Course</span>
-            <span className="text-foreground">{payment.course}</span>
-          </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">Due Date</span>
-            <span className="text-foreground">
-              {formatDate(payment.dueDate)}
-            </span>
-          </div>
-          {!isPaid && isAdmin && (
-            <div className="mt-1 flex flex-wrap gap-2">
-              <MarkAsPaid
-                formatCurrency={formatCurrency}
-                formatDate={formatDate}
-                payment={{
-                  id: payment.id,
-                  label,
-                  amount: payment.amount,
-                  dueDate: payment.dueDate,
-                }}
-                studentId={studentId}
-              />
+      <div
+        aria-hidden={!open}
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-out",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={cn(
+              "mt-3 flex flex-col gap-2 pl-1 text-[13px] transition-opacity duration-200",
+              open ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">Course</span>
+              <span className="text-foreground">{payment.course}</span>
             </div>
-          )}
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">Due Date</span>
+              <span className="text-foreground">
+                {formatDate(payment.dueDate)}
+              </span>
+            </div>
+            {!isPaid && isAdmin && (
+              <div className="mt-1 flex flex-wrap gap-2">
+                <MarkAsPaid
+                  formatCurrency={formatCurrency}
+                  formatDate={formatDate}
+                  payment={{
+                    id: payment.id,
+                    label,
+                    amount: payment.amount,
+                    dueDate: payment.dueDate,
+                  }}
+                  studentId={studentId}
+                />
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
