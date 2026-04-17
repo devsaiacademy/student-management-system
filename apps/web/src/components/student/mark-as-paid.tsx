@@ -176,7 +176,7 @@ export function MarkAsPaid({
           </div>
 
           <DialogFooter>
-            <Button
+            {/* <Button
               className="rounded-[5px]"
               variant="white"
               size="sm"
@@ -184,9 +184,9 @@ export function MarkAsPaid({
               disabled={markPaid.isPending}
             >
               Cancel
-            </Button>
+            </Button> */}
             <Button
-              className="rounded-[5px]"
+              className="ml-auto rounded-[5px] max-w-fit"
               variant="blue"
               size="sm"
               onClick={handleConfirm}
