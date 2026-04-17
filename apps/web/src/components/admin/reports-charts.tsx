@@ -39,33 +39,35 @@ export function ReportsCharts({ levels, sources }: ReportsChartsProps) {
   const sortedSources = [...sources].sort((a, b) => b.count - a.count);
 
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
       <Card>
         <CardHeader>
           <CardTitle>LEVELS COUNT</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer height={400} width="100%">
-            <BarChart data={sortedLevels}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="level" />
-              <YAxis
-                allowDecimals={false}
-                label={{
-                  angle: -90,
-                  position: "insideLeft",
-                  value: "Count",
-                }}
-              />
-              <Tooltip />
-              <Bar
-                dataKey="count"
-                fill={BAR_COLOR}
-                name="Student Count"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="h-[280px] sm:h-[360px] md:h-[400px]">
+            <ResponsiveContainer height="100%" width="100%">
+              <BarChart data={sortedLevels}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="level" />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    angle: -90,
+                    position: "insideLeft",
+                    value: "Count",
+                  }}
+                />
+                <Tooltip />
+                <Bar
+                  dataKey="count"
+                  fill={BAR_COLOR}
+                  name="Student Count"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
@@ -74,27 +76,29 @@ export function ReportsCharts({ levels, sources }: ReportsChartsProps) {
           <CardTitle>STUDENT SOURCES</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer height={400} width="100%">
-            <BarChart data={sortedSources}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="source" />
-              <YAxis
-                allowDecimals={false}
-                label={{
-                  angle: -90,
-                  position: "insideLeft",
-                  value: "Count",
-                }}
-              />
-              <Tooltip />
-              <Bar
-                dataKey="count"
-                fill={BAR_COLOR}
-                name="Student Count"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="h-[280px] sm:h-[360px] md:h-[400px]">
+            <ResponsiveContainer height="100%" width="100%">
+              <BarChart data={sortedSources}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="source" />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    angle: -90,
+                    position: "insideLeft",
+                    value: "Count",
+                  }}
+                />
+                <Tooltip />
+                <Bar
+                  dataKey="count"
+                  fill={BAR_COLOR}
+                  name="Student Count"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </div>

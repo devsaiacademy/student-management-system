@@ -21,12 +21,12 @@ export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
 
   return (
     <div className="flex flex-1 flex-col bg-background">
-      <header className="flex items-start justify-between gap-8 px-10 pt-8 pb-6">
+      <header className="flex items-start justify-between gap-8 px-4 pt-6 pb-4 sm:px-6 md:px-10 md:pt-8 md:pb-6">
         <StudentInfo isAdmin={isAdmin} studentId={studentId} />
       </header>
 
       <ScrollArea className="flex-1">
-        <div className="px-10 pb-10">
+        <div className="px-10 pb-10 max-md:px-4">
           <div className="border-b border-border">
             <span className="inline-block border-b-2 border-primary px-1 pb-2 text-[13px] font-medium text-primary">
               Overview

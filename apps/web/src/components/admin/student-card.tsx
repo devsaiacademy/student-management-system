@@ -60,7 +60,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
   return (
     <Link
       className={cn(
-        "group flex items-center gap-4 rounded-[12px] border border-border bg-background px-5 py-4",
+        "group flex items-start gap-3 rounded-[12px] border border-border bg-background px-4 py-4 sm:items-center sm:gap-4 sm:px-5",
         "transition-all duration-200 hover:border-primary/30 hover:shadow-sm",
         "animate-in fade-in slide-in-from-bottom-2"
       )}
@@ -76,39 +76,41 @@ export function StudentCard({ student, index }: StudentCardProps) {
         </AvatarFallback>
       </Avatar>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[14px] font-semibold leading-tight text-foreground">
-            {student.name}
-          </span>
-          <span className="text-[13px] leading-tight text-muted-foreground">
-            @{username}
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+            <span className="text-[14px] font-semibold leading-tight text-foreground">
+              {student.name}
+            </span>
+            <span className="min-w-0 truncate text-[13px] leading-tight text-muted-foreground">
+              @{username}
+            </span>
+          </div>
+          <span className="mt-0.5 text-[12px] leading-tight text-muted-foreground">
+            Rollno:{student.rollNumber}
           </span>
         </div>
-        <span className="mt-0.5 text-[12px] leading-tight text-muted-foreground">
-          Rollno:{student.rollNumber}
-        </span>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge
+            className={cn(
+              "rounded-full border-0 px-3 py-0.5 text-[11px] font-medium",
+              status.className
+            )}
+            variant="outline"
+          >
+            {status.label}
+          </Badge>
+          <Badge
+            className="rounded-full border-0 bg-orange-100/80 px-3 py-0.5 text-[11px] font-medium text-orange-700"
+            variant="outline"
+          >
+            {student.studentSource}
+          </Badge>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Badge
-          className={cn(
-            "rounded-full border-0 px-3 py-0.5 text-[11px] font-medium",
-            status.className
-          )}
-          variant="outline"
-        >
-          {status.label}
-        </Badge>
-        <Badge
-          className="rounded-full border-0 bg-orange-100/80 px-3 py-0.5 text-[11px] font-medium text-orange-700"
-          variant="outline"
-        >
-          {student.studentSource}
-        </Badge>
-      </div>
-
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5" />
+      <ChevronRight className="size-4 shrink-0 self-center text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5" />
     </Link>
   );
 }

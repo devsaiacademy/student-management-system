@@ -9,8 +9,8 @@ export default async function ReportsPage() {
   ]);
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-6 py-6">
-      <h1 className="text-lg font-semibold">Reports</h1>
+    <div className="flex flex-1 flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
+      <h1 className="text-base font-semibold md:text-lg">Reports</h1>
       <ReportsCharts levels={levels} sources={sources} />
     </div>
   );

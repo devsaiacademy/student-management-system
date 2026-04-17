@@ -4,6 +4,8 @@ import { Button } from "@student-management-system/ui/components/button";
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
@@ -13,6 +15,15 @@ import { PayButton } from "./pay-button";
 type StudentPaymentProps = {
   isAdmin: boolean;
   studentId: number;
+};
+
+type Payment = {
+  id: number;
+  course: string;
+  dueDate: string;
+  amount: number;
+  paymentStatus: string;
+  emiNumber: number | null;
 };
 
 const ROW_GRID =
@@ -59,6 +70,148 @@ function StatusBadge({ paid }: { paid: boolean }) {
   );
 }
 
+function getInstallmentLabel(payment: Payment, total: number) {
+  return payment.emiNumber
+    ? `Payment ${payment.emiNumber} of ${total}`
+    : "Full Payment";
+}
+
+type PaymentActionsProps = {
+  payment: Payment;
+  label: string;
+  isPaid: boolean;
+  isAdmin: boolean;
+  studentId: number;
+};
+
+function PaymentActions({
+  payment,
+  label,
+  isPaid,
+  isAdmin,
+  studentId,
+}: PaymentActionsProps) {
+  if (isPaid) {
+    return (
+      <Button
+        className="h-8 rounded-md bg-muted px-4 text-[12px] font-medium text-muted-foreground hover:bg-muted/80"
+        size="sm"
+        variant="ghost"
+      >
+        View
+      </Button>
+    );
+  }
+  return (
+    <>
+      <PayButton paymentId={payment.id} studentId={studentId} />
+      {isAdmin && (
+        <MarkAsPaid
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          payment={{
+            id: payment.id,
+            label,
+            amount: payment.amount,
+            dueDate: payment.dueDate,
+          }}
+          studentId={studentId}
+        />
+      )}
+    </>
+  );
+}
+
+function MobileRow(props: PaymentActionsProps) {
+  const { payment, label, isPaid, isAdmin, studentId } = props;
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-border py-3">
+      <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-[14px] font-medium text-foreground">
+              {label}
+            </span>
+            <StatusBadge paid={isPaid} />
+          </div>
+          <span className="text-[12px] text-muted-foreground">
+            {formatCurrency(payment.amount)}
+          </span>
+        </div>
+        {isPaid ? (
+          <Button
+            className="h-8 rounded-md bg-muted px-4 text-[12px] font-medium text-muted-foreground hover:bg-muted/80"
+            size="sm"
+            variant="ghost"
+          >
+            View
+          </Button>
+        ) : (
+          <PayButton paymentId={payment.id} studentId={studentId} />
+        )}
+        <button
+          aria-expanded={open}
+          aria-label="Toggle payment details"
+          className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted"
+          onClick={() => setOpen((prev) => !prev)}
+          type="button"
+        >
+          <ChevronDown
+            aria-hidden
+            className={cn(
+              "size-4 transition-transform duration-200",
+              open && "rotate-180"
+            )}
+          />
+        </button>
+      </div>
+      <div
+        aria-hidden={!open}
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-out",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={cn(
+              "mt-3 flex flex-col gap-2 pl-1 text-[13px] transition-opacity duration-200",
+              open ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">Course</span>
+              <span className="text-foreground">{payment.course}</span>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">Due Date</span>
+              <span className="text-foreground">
+                {formatDate(payment.dueDate)}
+              </span>
+            </div>
+            {!isPaid && isAdmin && (
+              <div className="mt-1 flex flex-wrap gap-2">
+                <MarkAsPaid
+                  formatCurrency={formatCurrency}
+                  formatDate={formatDate}
+                  payment={{
+                    id: payment.id,
+                    label,
+                    amount: payment.amount,
+                    dueDate: payment.dueDate,
+                  }}
+                  studentId={studentId}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
   const { data, isPending, isError } = useQuery(
     trpc.payments.getStudentPayments.queryOptions({ studentId })
@@ -66,7 +219,9 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
 
   return (
     <div>
-      <div className={cn(ROW_GRID, "border-b border-border py-4")}>
+      <div
+        className={cn(ROW_GRID, "hidden border-b border-border py-4 md:grid")}
+      >
         {HEADER_LABELS.map((label) => (
           <span
             className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
@@ -78,21 +233,41 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
         <span />
       </div>
 
-      {isPending &&
-        Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
-          <div
-            className={cn(ROW_GRID, "border-b border-border py-5")}
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
-            key={index}
-          >
-            <Skeleton className="h-4 w-28 rounded" />
-            <Skeleton className="h-4 w-32 rounded" />
-            <Skeleton className="h-4 w-24 rounded" />
-            <Skeleton className="h-5 w-14 rounded-md" />
-            <Skeleton className="h-4 w-16 rounded" />
-            <Skeleton className="h-8 w-16 rounded" />
-          </div>
-        ))}
+      {isPending && (
+        <>
+          {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
+            <div
+              className={cn(
+                ROW_GRID,
+                "hidden border-b border-border py-5 md:grid"
+              )}
+              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
+              key={`desktop-${index}`}
+            >
+              <Skeleton className="h-4 w-28 rounded" />
+              <Skeleton className="h-4 w-32 rounded" />
+              <Skeleton className="h-4 w-24 rounded" />
+              <Skeleton className="h-5 w-14 rounded-md" />
+              <Skeleton className="h-4 w-16 rounded" />
+              <Skeleton className="h-8 w-16 rounded" />
+            </div>
+          ))}
+          {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
+            <div
+              className="flex flex-col gap-2 border-b border-border py-4 md:hidden"
+              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
+              key={`mobile-${index}`}
+            >
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-32 rounded" />
+                <Skeleton className="h-4 w-16 rounded" />
+              </div>
+              <Skeleton className="h-4 w-40 rounded" />
+              <Skeleton className="h-8 w-24 rounded" />
+            </div>
+          ))}
+        </>
+      )}
 
       {isError && !isPending && (
         <div className="px-2 py-10 text-center text-sm text-destructive">
@@ -110,63 +285,52 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
         data &&
         data.map((payment, index) => {
           const isPaid = payment.paymentStatus === "paid";
-          const label = payment.emiNumber
-            ? `Payment ${payment.emiNumber} of ${data.length}`
-            : "Full Payment";
+          const label = getInstallmentLabel(payment, data.length);
 
           return (
-            <div
-              className={cn(
-                ROW_GRID,
-                "border-b border-border py-5 transition-colors duration-150 hover:bg-muted/30",
-                "animate-in fade-in slide-in-from-bottom-1"
-              )}
-              key={payment.id}
-              style={{
-                animationDelay: `${index * 80}ms`,
-                animationFillMode: "backwards",
-              }}
-            >
-              <span className="text-[14px] text-foreground">{label}</span>
-              <span className="text-[14px] text-foreground">
-                {payment.course}
-              </span>
-              <span className="text-[14px] text-foreground">
-                {formatDate(payment.dueDate)}
-              </span>
-              <div>
-                <StatusBadge paid={isPaid} />
-              </div>
-              <span className="text-[14px] text-foreground">
-                {formatCurrency(payment.amount)}
-              </span>
-              <div className="flex gap-2">
-                {isPaid ? (
-                  <Button
-                    className="h-8 rounded-md bg-muted px-4 text-[12px] font-medium text-muted-foreground hover:bg-muted/80"
-                    size="sm"
-                    variant="ghost"
-                  >
-                    View
-                  </Button>
-                ) : (
-                  <>
-                    <PayButton paymentId={payment.id} studentId={studentId} />
-                    {isAdmin && (
-                      <MarkAsPaid
-                        studentId={studentId}
-                        payment={{
-                          id: payment.id,
-                          label,
-                          amount: payment.amount,
-                          dueDate: payment.dueDate,
-                        }}
-                        formatCurrency={formatCurrency}
-                        formatDate={formatDate}
-                      />
-                    )}
-                  </>
+            <div key={payment.id}>
+              <div
+                className={cn(
+                  ROW_GRID,
+                  "hidden border-b border-border py-5 transition-colors duration-150 hover:bg-muted/30 md:grid",
+                  "animate-in fade-in slide-in-from-bottom-1"
                 )}
+                style={{
+                  animationDelay: `${index * 80}ms`,
+                  animationFillMode: "backwards",
+                }}
+              >
+                <span className="text-[14px] text-foreground">{label}</span>
+                <span className="text-[14px] text-foreground">
+                  {payment.course}
+                </span>
+                <span className="text-[14px] text-foreground">
+                  {formatDate(payment.dueDate)}
+                </span>
+                <div>
+                  <StatusBadge paid={isPaid} />
+                </div>
+                <span className="text-[14px] text-foreground">
+                  {formatCurrency(payment.amount)}
+                </span>
+                <div className="flex gap-2">
+                  <PaymentActions
+                    isAdmin={isAdmin}
+                    isPaid={isPaid}
+                    label={label}
+                    payment={payment}
+                    studentId={studentId}
+                  />
+                </div>
+              </div>
+              <div className="md:hidden">
+                <MobileRow
+                  isAdmin={isAdmin}
+                  isPaid={isPaid}
+                  label={label}
+                  payment={payment}
+                  studentId={studentId}
+                />
               </div>
             </div>
           );
