@@ -38,10 +38,10 @@ export function AdminHeader({
   onSourceChange,
 }: AdminHeaderProps) {
   return (
-    <header className="grid h-[73px] grid-cols-3 items-center gap-4 border-b border-border bg-background px-6 py-4">
-      <div />
+    <header className="flex flex-col gap-3 border-b border-border bg-background px-4 py-3 pl-14 md:grid md:h-[73px] md:grid-cols-3 md:items-center md:gap-4 md:px-6 md:py-4 md:pl-6">
+      <div className="hidden md:block" />
 
-      <div className="relative mx-auto w-full max-w-md">
+      <div className="relative w-full md:mx-auto md:max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="h-10 rounded-[8px] pl-9"
@@ -52,9 +52,9 @@ export function AdminHeader({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex items-center gap-2 md:justify-end md:gap-3">
         <Select onValueChange={onStatusChange} value={statusFilter}>
-          <SelectTrigger className="h-10 w-[150px] justify-between rounded-[8px] px-3 text-sm">
+          <SelectTrigger className="h-10 w-full flex-1 justify-between rounded-[8px] px-3 text-sm md:w-[150px] md:flex-none">
             <SelectValue>
               {(value) =>
                 !value || value === "all"
@@ -80,7 +80,7 @@ export function AdminHeader({
         </Select>
 
         <Select onValueChange={onSourceChange} value={sourceFilter}>
-          <SelectTrigger className="h-10 w-[150px] justify-between rounded-[8px] px-3 text-sm">
+          <SelectTrigger className="h-10 w-full flex-1 justify-between rounded-[8px] px-3 text-sm md:w-[150px] md:flex-none">
             <SelectValue>
               {(value) =>
                 !value || value === "all" ? "All Sources" : String(value)
