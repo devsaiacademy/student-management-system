@@ -21,7 +21,7 @@ export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
 
   return (
     <div className="flex flex-1 flex-col bg-background">
-      <header className="flex items-start justify-between gap-8 px-10 pt-8 pb-6">
+      <header className="flex items-start justify-between gap-8 px-4 pt-6 pb-4 sm:px-6 md:px-10 md:pt-8 md:pb-6">
         <StudentInfo isAdmin={isAdmin} studentId={studentId} />
       </header>
 

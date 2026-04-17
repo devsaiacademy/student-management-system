@@ -56,17 +56,17 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   if (isPending) {
     return (
       <div className="flex items-center gap-5">
-        <Skeleton className="size-14 rounded-full" />
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-5 w-36 rounded" />
-          <div className="flex gap-2">
+        <Skeleton className="size-14 shrink-0 rounded-full" />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <Skeleton className="h-5 w-36 max-w-full rounded" />
+          <div className="flex flex-wrap gap-2">
             <Skeleton className="h-5 w-16 rounded-full" />
             <Skeleton className="h-5 w-20 rounded-full" />
           </div>
-          <div className="flex gap-6">
-            <Skeleton className="h-3.5 w-36 rounded" />
-            <Skeleton className="h-3.5 w-28 rounded" />
-            <Skeleton className="h-3.5 w-24 rounded" />
+          <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-6">
+            <Skeleton className="h-3.5 w-36 max-w-full rounded" />
+            <Skeleton className="h-3.5 w-28 max-w-full rounded" />
+            <Skeleton className="h-3.5 w-24 max-w-full rounded" />
           </div>
         </div>
       </div>
@@ -91,8 +91,8 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
         </AvatarFallback>
       </Avatar>
 
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-2.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
           <h2 className="text-lg font-semibold leading-tight text-foreground">
             {data.name}
           </h2>
@@ -130,17 +130,17 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-5 text-[13px] text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Mail aria-hidden className="size-3.5" />
-            {data.email}
+        <div className="flex flex-col gap-1 text-[13px] text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-1">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <Mail aria-hidden className="size-3.5 shrink-0" />
+            <span className="truncate">{data.email}</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <Phone aria-hidden className="size-3.5" />
+            <Phone aria-hidden className="size-3.5 shrink-0" />
             +91 {data.phoneNumber}
           </span>
           <span className="flex items-center gap-1.5">
-            <Hash aria-hidden className="size-3.5" />
+            <Hash aria-hidden className="size-3.5 shrink-0" />
             {data.rollNumber}
           </span>
         </div>
