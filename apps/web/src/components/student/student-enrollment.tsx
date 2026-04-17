@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@student-management-system/ui/components/badge";
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -16,11 +15,13 @@ type StudentEnrollmentProps = {
   tutorName?: string;
 };
 
-const CARD_BG = "rounded-xl bg-surface-info text-surface-info-foreground p-8";
+const CARD_BG =
+  "rounded-xl bg-surface-info text-surface-info-foreground p-5 sm:p-6 md:p-8";
 const LABEL =
   "text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground";
-const BIG_VALUE = "mt-1 text-[20px] font-semibold text-foreground";
-const SMALL_VALUE = "mt-0.5 text-[14px] text-foreground";
+const BIG_VALUE =
+  "mt-1 break-words text-[18px] font-semibold text-foreground md:text-[20px]";
+const SMALL_VALUE = "mt-0.5 break-words text-[14px] text-foreground";
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -72,15 +73,11 @@ export function StudentEnrollment({
 
   if (isPending) {
     return (
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className={CARD_BG}>
-          <div className="grid grid-cols-4 gap-y-7">
-            <div className="col-span-2">
-              <FieldSkeleton big />
-            </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-4 md:gap-x-6 md:gap-y-7">
             <FieldSkeleton big />
             <FieldSkeleton big />
-            <FieldSkeleton />
             <FieldSkeleton />
             <FieldSkeleton />
             <FieldSkeleton />
@@ -91,9 +88,9 @@ export function StudentEnrollment({
         </div>
         <div className={CARD_BG}>
           <div className="flex h-full flex-col justify-center gap-3">
-            <Skeleton className="h-3 w-32 rounded" />
-            <Skeleton className="h-8 w-40 rounded" />
-            <Skeleton className="h-3 w-56 rounded" />
+            <Skeleton className="h-3 w-32 max-w-full rounded" />
+            <Skeleton className="h-8 w-40 max-w-full rounded" />
+            <Skeleton className="h-3 w-56 max-w-full rounded" />
           </div>
         </div>
       </div>
@@ -121,21 +118,10 @@ export function StudentEnrollment({
       : `${enrollment.emiMonths ?? progress.totalCount} split payments`;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
       <div className={cn(CARD_BG, "relative")}>
-        {/* <Badge
-          className={cn(
-            "absolute top-4 right-4 rounded-full border-0 px-2.5 py-0.5 text-[11px] font-medium",
-            enrollment.kitProvided
-              ? "bg-blue-100/80 text-blue-700"
-              : "bg-slate-100 text-slate-600"
-          )}
-          variant="outline"
-        >
-          {enrollment.kitProvided ? "Kit Provided" : "No Kit"}
-        </Badge> */}
-        <div className="grid grid-cols-5 gap-y-7 max-md:grid max-md:grid-cols-2">
-          <div className="col-span-1">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 md:gap-x-6 md:gap-y-7 lg:grid-cols-5">
+          <div>
             <p className={LABEL}>Enrolled Course</p>
             <p className={BIG_VALUE}>{enrollment.course}</p>
           </div>
@@ -164,7 +150,7 @@ export function StudentEnrollment({
           </div>
 
           {isAdmin && schoolName && (
-            <div>
+            <div className="min-w-0">
               <p className={LABEL}>School</p>
               <p className={SMALL_VALUE} title={schoolName}>
                 {truncateSchoolName(schoolName)}
@@ -194,12 +180,12 @@ export function StudentEnrollment({
       </div>
 
       <div className={CARD_BG}>
-        <div className="flex h-full flex-col justify-center">
+        <div className="flex h-full flex-col justify-center gap-3">
           <p className={LABEL}>Payment Progress</p>
-          <p className="mt-2 text-[26px] font-semibold leading-tight text-foreground">
+          <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
             {progress.paidCount} of {progress.totalCount} paid
           </p>
-          <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
             {formatCurrency(progress.totalPaid)} paid so far.
             {progress.nextDueDate ? (
               <> Next installment due on {formatDate(progress.nextDueDate)}.</>
