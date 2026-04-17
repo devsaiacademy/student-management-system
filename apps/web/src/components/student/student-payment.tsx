@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
 
 import { MarkAsPaid } from "./mark-as-paid";
+import { PayButton } from "./pay-button";
 
 type StudentPaymentProps = {
   isAdmin: boolean;
@@ -150,13 +151,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                   </Button>
                 ) : (
                   <>
-                    <Button
-                      className="h-8 rounded-md px-5 text-[12px] font-medium"
-                      size="sm"
-                      variant="blue"
-                    >
-                      Pay
-                    </Button>
+                    <PayButton paymentId={payment.id} studentId={studentId} />
                     {isAdmin && (
                       <MarkAsPaid
                         studentId={studentId}

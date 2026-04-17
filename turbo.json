@@ -6,7 +6,13 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**"],
-      "env": ["DATABASE_URL", "NODE_ENV"]
+      "env": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "CORS_ORIGIN",
+        "RAZORPAY_KEY_SECRET",
+        "RAZORPAY_WEBHOOK_SECRET"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]

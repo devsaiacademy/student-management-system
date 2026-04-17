@@ -20,6 +20,7 @@
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.2",
     "next": "catalog:",
+    "razorpay": "^2.9.6",
     "zod": "catalog:"
   },
   "devDependencies": {

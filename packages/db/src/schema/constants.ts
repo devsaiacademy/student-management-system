@@ -19,6 +19,12 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export const PAYMENT_METHODS = ["cash", "razorpay", "others"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
+// UI-only: methods an admin can pick when manually reconciling an offline
+// payment. Excludes "razorpay" because the real Razorpay flow goes through the
+// Pay button, not the Mark-Paid dialog. The DB enum keeps all three values.
+export const MANUAL_PAYMENT_METHODS = ["cash", "others"] as const;
+export type ManualPaymentMethod = (typeof MANUAL_PAYMENT_METHODS)[number];
+
 export const STUDENT_PROGRESS_STATUSES = ["in_progress", "completed"] as const;
 export type StudentProgressStatus = (typeof STUDENT_PROGRESS_STATUSES)[number];
 
@@ -57,9 +63,7 @@ export type TutorName = (typeof TUTOR_NAMES)[number];
 export const EMI_MONTHS_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 export type EmiMonthsOption = (typeof EMI_MONTHS_OPTIONS)[number];
 
-export const STANDARDS = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-] as const;
+export const STANDARDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 export type Standard = (typeof STANDARDS)[number];
 
 export const ENROLLED_MEDIUMS = ["Online", "Offline", "Hybrid"] as const;
