@@ -52,39 +52,41 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Student Payment Status</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer height={400} width="100%">
-            <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis
-                allowDecimals={false}
-                label={{
-                  angle: -90,
-                  position: "insideLeft",
-                  value: "Student Count",
-                }}
-              />
-              <Tooltip />
-              <Bar dataKey="count" name="Student Count" radius={[4, 4, 0, 0]}>
-                {barData.map((entry) => (
-                  <Cell
-                    fill={
-                      entry.name === "Paid"
-                        ? BAR_COLORS.paid
-                        : BAR_COLORS.unpaid
-                    }
-                    key={entry.name}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="h-[280px] sm:h-[360px] md:h-[400px]">
+            <ResponsiveContainer height="100%" width="100%">
+              <BarChart data={barData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    angle: -90,
+                    position: "insideLeft",
+                    value: "Student Count",
+                  }}
+                />
+                <Tooltip />
+                <Bar dataKey="count" name="Student Count" radius={[4, 4, 0, 0]}>
+                  {barData.map((entry) => (
+                    <Cell
+                      fill={
+                        entry.name === "Paid"
+                          ? BAR_COLORS.paid
+                          : BAR_COLORS.unpaid
+                      }
+                      key={entry.name}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
@@ -93,31 +95,33 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
           <CardTitle>PERCENT</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer height={400} width="100%">
-            <PieChart>
-              <Pie
-                cx="50%"
-                cy="50%"
-                data={pieData}
-                dataKey="value"
-                label={({ percent }) =>
-                  percent ? `${(percent * 100).toFixed(1)}%` : ""
-                }
-                nameKey="name"
-                outerRadius={150}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell fill={PIE_COLORS[index]} key={entry.name} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value) =>
-                  `\u20B9${Number(value).toLocaleString("en-IN")}`
-                }
-              />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-[280px] sm:h-[360px] md:h-[400px]">
+            <ResponsiveContainer height="100%" width="100%">
+              <PieChart>
+                <Pie
+                  cx="50%"
+                  cy="50%"
+                  data={pieData}
+                  dataKey="value"
+                  label={({ percent }) =>
+                    percent ? `${(percent * 100).toFixed(1)}%` : ""
+                  }
+                  nameKey="name"
+                  outerRadius="75%"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell fill={PIE_COLORS[index]} key={entry.name} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) =>
+                    `\u20B9${Number(value).toLocaleString("en-IN")}`
+                  }
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </div>
