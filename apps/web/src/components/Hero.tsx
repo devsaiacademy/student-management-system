@@ -22,7 +22,7 @@ function Hexagon({ className }: { className?: string }) {
 export default function Hero() {
   const router = useRouter();
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-linear-to-br from-background px-4 pb-8 pt-4 sm:px-4 sm:pb-8 sm:pt-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-linear-to-br from-background px-4 pb-4 pt-4 sm:px-4 sm:pb-6 sm:pt-5 md:px-6 md:py-6 lg:h-auto lg:min-h-screen lg:px-8 lg:py-8">
       {/* Decorative hexagons */}
       <Hexagon className="absolute top-12 right-1/4 h-28 w-28 text-blue-500/10 sm:h-36 sm:w-36 md:h-44 md:w-44" />
       <Hexagon className="absolute top-1/3 left-1/4 h-20 w-20 text-blue-400/[0.12] sm:h-28 sm:w-28" />
@@ -36,12 +36,12 @@ export default function Hero() {
         <SiteLogo className="h-8 sm:h-10 md:h-12" priority />
 
         {/* Main Content */}
-        <div className="grid flex-1 grid-cols-1 items-center gap-8 py-6 sm:py-8 lg:grid-cols-2 lg:gap-8 lg:py-0 xl:gap-10">
+        <div className="grid min-h-0 flex-1 grid-cols-1 items-center gap-2 py-2 sm:gap-4 sm:py-4 lg:grid-cols-2 lg:gap-8 lg:py-0 xl:gap-10">
           {/* Left Section */}
-          <div className="flex flex-col space-y-5 text-center sm:space-y-6 lg:space-y-8 lg:text-left">
+          <div className="flex flex-col space-y-3 text-center sm:space-y-5 lg:space-y-8 lg:text-left">
             {/* Main Heading */}
             <div className="space-y-3 sm:space-y-4">
-              <h1 className="mx-auto max-w-xl text-balance text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl lg:mx-0 lg:max-w-md lg:text-6xl">
+              <h1 className="mx-auto max-w-xl text-balance text-2xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl lg:mx-0 lg:max-w-md lg:text-6xl">
                 Shape Your Child's Future
               </h1>
               <div className="mx-auto h-1 w-16 rounded-full bg-primary sm:h-1.5 sm:w-24 lg:mx-0" />
@@ -79,13 +79,13 @@ export default function Hero() {
           </div>
 
           {/* Right Section - Hero visual */}
-          <div className="flex justify-center lg:justify-end">
+          <div className="flex min-h-0 flex-1 justify-center lg:flex-none lg:justify-end">
             <Image
               src="/hero-image.png"
               alt="Students learning robotics"
               width={634}
               height={569}
-              className="h-auto w-full max-w-xs rounded-lg sm:max-w-md md:max-w-lg lg:max-w-none"
+              className="h-full max-h-[22vh] w-auto max-w-xs rounded-lg object-contain sm:max-h-[36vh] sm:max-w-md md:max-w-lg lg:h-auto lg:max-h-none lg:w-full lg:max-w-none"
               sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 50vw"
             />
           </div>
