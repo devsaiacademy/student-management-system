@@ -18,6 +18,7 @@ export default async function StudentLayout({
   let user: Awaited<ReturnType<typeof trpc.auth.getUser>> | null = null;
   let isStudent = false;
   try {
+    await new Promise((r) => setTimeout(r, 1500));
     user = await trpc.auth.getUser();
     if (user?.email) {
       const match = await trpc.auth.isStudentEmail({ email: user.email });

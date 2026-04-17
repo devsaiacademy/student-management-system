@@ -1,8 +1,8 @@
-"use client";
+// "use client";
 
 import { Button } from "@student-management-system/ui/components/button";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { SiteLogo } from "@/components/site-logo";
 
@@ -20,7 +20,6 @@ function Hexagon({ className }: { className?: string }) {
 }
 
 export default function Hero() {
-  const router = useRouter();
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-linear-to-br from-background px-4 pb-4 pt-4 sm:px-4 sm:pb-6 sm:pt-5 md:px-6 md:py-6 lg:h-auto lg:min-h-screen lg:px-8 lg:py-8">
       {/* Decorative hexagons */}
@@ -60,19 +59,11 @@ export default function Hero() {
                 Select Your Role to Continue
               </p>
               <div className="flex items-start justify-start gap-4">
-                <Button
-                  onClick={() => router.push("/login?role=parent")}
-                  variant="blue"
-                  size="md"
-                >
-                  Parent
+                <Button  variant="blue" size="md">
+                  <Link href="/login?role=parent">Parent</Link>
                 </Button>
-                <Button
-                  onClick={() => router.push("/login?role=teacher")}
-                  variant="white"
-                  size="md"
-                >
-                  Teacher
+                <Button  variant="white" size="md">
+                  <Link href="/login?role=teacher">Teacher</Link>
                 </Button>
               </div>
             </div>
@@ -97,21 +88,11 @@ export default function Hero() {
             Select Your Role to Continue
           </p>
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Button
-              className="w-full sm:w-auto"
-              onClick={() => router.push("/login?role=parent")}
-              variant="blue"
-              size="md"
-            >
-              Parent
+            <Button  className="w-full sm:w-auto" variant="blue" size="md">
+              <Link href="/login?role=parent">Parent</Link>
             </Button>
-            <Button
-              className="w-full sm:w-auto"
-              onClick={() => router.push("/login?role=teacher")}
-              variant="white"
-              size="md"
-            >
-              Teacher
+            <Button  className="w-full sm:w-auto" variant="white" size="md">
+              <Link href="/login?role=teacher">Teacher</Link>
             </Button>
           </div>
         </div>

@@ -19,6 +19,7 @@ export default async function StudentPage({ params }: StudentPageProps) {
   const trpc = await createTRPCServerCaller();
 
   try {
+    await new Promise((r) => setTimeout(r, 3500));
     await trpc.students.getStudentInfo({ studentId: parsedId });
   } catch {
     notFound();
