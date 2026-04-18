@@ -34,7 +34,7 @@ const defaultValues: CreateStudentInput = {
   studentSource: "Banner",
   studentStatus: "active",
   course: "Robotics",
-  duration: "10 - 20 hrs",
+  duration: "3 months",
   level: "Level 1",
   tutorName: "Mohan",
   totalFees: "" as unknown as number,

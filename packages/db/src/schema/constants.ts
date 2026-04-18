@@ -39,11 +39,14 @@ export const COURSES = [
 export type Course = (typeof COURSES)[number];
 
 export const DURATIONS = [
-  "10 - 20 hrs",
-  "20 - 30 hrs",
-  "30 - 40 hrs",
-  "40 - 50 hrs",
-  "50 - 60 hrs",
+  "3 months",
+  "6 months",
+  "9 months",
+  "12 months",
+  "15 months",
+  "18 months",
+  "21 months",
+  "24 months",
 ] as const;
 export type Duration = (typeof DURATIONS)[number];
 
