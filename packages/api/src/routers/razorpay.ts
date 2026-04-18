@@ -11,7 +11,7 @@ import { and, eq, gt, sql } from "drizzle-orm";
 import Razorpay from "razorpay";
 import { z } from "zod";
 
-import { protectedProcedure, router } from "../index";
+import { assertStudentAccess, router, studentProcedure } from "../index";
 
 const razorpay = new Razorpay({
   key_id: env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -42,9 +42,9 @@ function signatureMatches(expected: string, actual: string) {
 }
 
 export const razorpayRouter = router({
-  createOrder: protectedProcedure
+  createOrder: studentProcedure
     .input(z.object({ paymentId: z.number().int().positive() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { paymentId } = input;
 
       const [row] = await db
@@ -74,6 +74,8 @@ export const razorpayRouter = router({
           message: "Payment not found",
         });
       }
+
+      assertStudentAccess(ctx, row.studentId);
 
       if (row.paymentStatus === "paid") {
         throw new TRPCError({
@@ -175,9 +177,9 @@ export const razorpayRouter = router({
       };
     }),
 
-  verifyPayment: protectedProcedure
+  verifyPayment: studentProcedure
     .input(verifyPaymentInput)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
         input;
 
@@ -188,6 +190,21 @@ export const razorpayRouter = router({
           message: "Invalid Razorpay signature",
         });
       }
+
+      const [order] = await db
+        .select({ studentId: razorpayOrders.studentId })
+        .from(razorpayOrders)
+        .where(eq(razorpayOrders.razorpayOrderId, razorpay_order_id))
+        .limit(1);
+
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Razorpay order not found",
+        });
+      }
+
+      assertStudentAccess(ctx, order.studentId);
 
       const result = await db.transaction(async (tx) => {
         // Idempotent: only the first successful verify flips status to 'paid'.

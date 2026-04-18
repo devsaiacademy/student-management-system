@@ -35,9 +35,7 @@ export default async function StudentLayout({
     <SidebarProvider className="h-svh overflow-hidden bg-background">
       <StudentSidebar user={user} />
       <SidebarInset>
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-3 md:h-14">
-          <SidebarTrigger />
-        </header>
+        <SidebarTrigger className="absolute"/>
         <div className="flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>
     </SidebarProvider>

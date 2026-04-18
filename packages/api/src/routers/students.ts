@@ -10,7 +10,12 @@ import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import z from "zod";
 
-import { protectedProcedure, router } from "../index";
+import {
+  assertStudentAccess,
+  protectedProcedure,
+  router,
+  studentProcedure,
+} from "../index";
 import { createStudentSchema } from "../schemas/student";
 
 const LIMIT = 10;
@@ -153,10 +158,11 @@ export const studentsRouter = router({
     }),
 
   // Student header card — avatar + name + contact + badges
-  getStudentInfo: protectedProcedure
+  getStudentInfo: studentProcedure
     .input(z.object({ studentId: z.number().int().positive() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const { studentId } = input;
+      assertStudentAccess(ctx, studentId);
       const [student] = await db
         .select({
           id: students.id,
@@ -195,14 +201,15 @@ export const studentsRouter = router({
     }),
 
   // get student detail by id.
-  getStudentDetailById: protectedProcedure
+  getStudentDetailById: studentProcedure
     .input(
       z.object({
         id: z.number(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const { id } = input;
+      assertStudentAccess(ctx, id);
 
       const student = await db
         .select()

@@ -4,16 +4,17 @@ import { payments } from "@student-management-system/db/schema/payment";
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { protectedProcedure, router } from "../index";
+import { assertStudentAccess, router, studentProcedure } from "../index";
 
 const studentIdInput = z.object({ studentId: z.number().int().positive() });
 
 export const enrollmentRouter = router({
   // Latest enrollment + derived payment progress for the overview cards
-  getStudentEnrollment: protectedProcedure
+  getStudentEnrollment: studentProcedure
     .input(studentIdInput)
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const { studentId } = input;
+      assertStudentAccess(ctx, studentId);
       const [enrollment] = await db
         .select()
         .from(enrollments)
