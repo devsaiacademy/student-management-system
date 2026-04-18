@@ -7,9 +7,9 @@ export const env = createEnv({
     CORS_ORIGIN: z.url().optional(),
     RAZORPAY_KEY_SECRET: z.string().min(1),
     RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
-    RESEND_API_KEY: z.string().min(1).optional(),
-    RESEND_FROM: z.email().default("onboarding@resend.dev"),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    RESEND_API_KEY: z.string().min(1),
+    RESEND_FROM: z.email(),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
