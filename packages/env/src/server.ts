@@ -7,6 +7,9 @@ export const env = createEnv({
     CORS_ORIGIN: z.url().optional(),
     RAZORPAY_KEY_SECRET: z.string().min(1),
     RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+    RESEND_API_KEY: z.string().min(1).optional(),
+    RESEND_FROM: z.email().default("onboarding@resend.dev"),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
@@ -14,6 +17,7 @@ export const env = createEnv({
   clientPrefix: "NEXT_PUBLIC_",
   client: {
     NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().min(1),
+    NEXT_PUBLIC_SUPABASE_URL: z.url(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
