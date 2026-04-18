@@ -6,7 +6,12 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { protectedProcedure, router } from "../index";
+import {
+  assertStudentAccess,
+  protectedProcedure,
+  router,
+  studentProcedure,
+} from "../index";
 
 const studentIdInput = z.object({ studentId: z.number().int().positive() });
 
@@ -74,10 +79,11 @@ export const paymentsRouter = router({
   }),
 
   // Installments table for the latest enrollment only
-  getStudentPayments: protectedProcedure
+  getStudentPayments: studentProcedure
     .input(studentIdInput)
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const { studentId } = input;
+      assertStudentAccess(ctx, studentId);
       const [latestEnrollment] = await db
         .select({ id: enrollments.id })
         .from(enrollments)
@@ -105,15 +111,30 @@ export const paymentsRouter = router({
         .orderBy(asc(payments.emiNumber), asc(payments.dueDate));
     }),
 
-  markPaymentAsPaid: protectedProcedure
+  markPaymentAsPaid: studentProcedure
     .input(
       z.object({
         paymentId: z.number().int().positive(),
         paymentMethod: z.enum(PAYMENT_METHODS),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { paymentId, paymentMethod } = input;
+
+      const [owner] = await db
+        .select({ studentId: payments.studentId })
+        .from(payments)
+        .where(eq(payments.id, paymentId))
+        .limit(1);
+
+      if (!owner) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found",
+        });
+      }
+
+      assertStudentAccess(ctx, owner.studentId);
 
       const [updated] = await db
         .update(payments)
