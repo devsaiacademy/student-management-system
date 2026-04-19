@@ -16,13 +16,13 @@ export type StudentSource = (typeof STUDENT_SOURCES)[number];
 export const PAYMENT_STATUSES = ["paid", "unpaid"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
-export const PAYMENT_METHODS = ["cash", "razorpay", "others"] as const;
+export const PAYMENT_METHODS = ["cash", "razorpay", "upi", "others"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 // UI-only: methods an admin can pick when manually reconciling an offline
 // payment. Excludes "razorpay" because the real Razorpay flow goes through the
-// Pay button, not the Mark-Paid dialog. The DB enum keeps all three values.
-export const MANUAL_PAYMENT_METHODS = ["cash", "others"] as const;
+// Pay button, not the Mark-Paid dialog.
+export const MANUAL_PAYMENT_METHODS = ["upi", "cash", "others"] as const;
 export type ManualPaymentMethod = (typeof MANUAL_PAYMENT_METHODS)[number];
 
 export const STUDENT_PROGRESS_STATUSES = ["in_progress", "completed"] as const;

@@ -105,6 +105,7 @@ export const paymentsRouter = router({
           emiNumber: payments.emiNumber,
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
+          paymentMethod: payments.paymentMethod,
         })
         .from(payments)
         .innerJoin(enrollments, eq(payments.enrollmentId, enrollments.id))
@@ -153,6 +154,59 @@ export const paymentsRouter = router({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Payment not found or already paid",
+        });
+      }
+
+      return { id: updated.id };
+    }),
+
+  markPaymentAsUnpaid: studentProcedure
+    .input(z.object({ paymentId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const { paymentId } = input;
+
+      const [owner] = await db
+        .select({
+          studentId: payments.studentId,
+          paymentMethod: payments.paymentMethod,
+        })
+        .from(payments)
+        .where(eq(payments.id, paymentId))
+        .limit(1);
+
+      if (!owner) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found",
+        });
+      }
+
+      assertStudentAccess(ctx, owner.studentId);
+
+      if (owner.paymentMethod === "razorpay") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Razorpay payments cannot be reverted from the app. Issue a refund instead.",
+        });
+      }
+
+      const [updated] = await db
+        .update(payments)
+        .set({
+          paymentStatus: "unpaid",
+          paymentMethod: null,
+          paidDate: null,
+        })
+        .where(
+          and(eq(payments.id, paymentId), eq(payments.paymentStatus, "paid"))
+        )
+        .returning({ id: payments.id });
+
+      if (!updated) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found or already unpaid",
         });
       }
 
