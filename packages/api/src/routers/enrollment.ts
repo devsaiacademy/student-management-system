@@ -31,18 +31,29 @@ export const enrollmentRouter = router({
           amount: payments.amount,
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
+          description: payments.description,
         })
         .from(payments)
         .where(eq(payments.enrollmentId, enrollment.id))
         .orderBy(asc(payments.emiNumber), asc(payments.dueDate));
 
-      const paidCount = enrollmentPayments.filter(
+      // Progress counters describe tuition only — the kit payment row has
+      // its own card and should not inflate "N of M paid" or "₹X paid so
+      // far". Kit rows are identified by description === "Kit".
+      const tuitionPayments = enrollmentPayments.filter(
+        (p) => p.description !== "Kit"
+      );
+      const kitPayment = enrollmentPayments.find(
+        (p) => p.description === "Kit"
+      );
+
+      const paidCount = tuitionPayments.filter(
         (p) => p.paymentStatus === "paid"
       ).length;
-      const totalPaid = enrollmentPayments
+      const totalPaid = tuitionPayments
         .filter((p) => p.paymentStatus === "paid")
         .reduce((sum, p) => sum + p.amount, 0);
-      const nextUnpaid = enrollmentPayments.find(
+      const nextUnpaid = tuitionPayments.find(
         (p) => p.paymentStatus === "unpaid"
       );
       return {
@@ -55,15 +66,23 @@ export const enrollmentRouter = router({
           paymentPlan: enrollment.paymentPlan,
           emiMonths: enrollment.emiMonths,
           kitProvided: enrollment.kitProvided,
+          kitCost: enrollment.kitCost,
           tutorName: enrollment.tutorName,
         },
         progress: {
           paidCount,
-          totalCount: enrollmentPayments.length,
+          totalCount: tuitionPayments.length,
           totalPaid,
           startDate: enrollment.createdAt.toISOString(),
           nextDueDate: nextUnpaid?.dueDate ?? null,
         },
+        kit: kitPayment
+          ? {
+              amount: kitPayment.amount,
+              paymentStatus: kitPayment.paymentStatus,
+              dueDate: kitPayment.dueDate,
+            }
+          : null,
       };
     }),
 });

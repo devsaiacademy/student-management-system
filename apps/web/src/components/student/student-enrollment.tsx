@@ -3,6 +3,8 @@
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronDown } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
@@ -40,6 +42,58 @@ function formatCurrency(amount: number) {
     currency: "INR",
     maximumFractionDigits: 0,
   });
+}
+
+function CollapsibleCard({
+  title,
+  className,
+  children,
+}: {
+  title: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={cn(CARD_BG, "flex flex-col", className)}>
+      <div className="flex items-start justify-between gap-2">
+        <p className={LABEL}>{title}</p>
+        <button
+          aria-expanded={open}
+          aria-label={`Toggle ${title}`}
+          className="-mt-1 shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted sm:hidden"
+          onClick={() => setOpen((prev) => !prev)}
+          type="button"
+        >
+          <ChevronDown
+            aria-hidden
+            className={cn(
+              "size-4 transition-transform duration-200",
+              open && "rotate-180"
+            )}
+          />
+        </button>
+      </div>
+      <div
+        aria-hidden={!open}
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-out sm:flex sm:flex-1 sm:items-center",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div className="w-full overflow-hidden">
+          <div
+            className={cn(
+              "mt-3 transition-opacity duration-200 sm:mt-0 sm:opacity-100",
+              open ? "opacity-100" : "opacity-0"
+            )}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function FieldSkeleton({ big }: { big?: boolean }) {
@@ -118,9 +172,9 @@ export function StudentEnrollment({
       : `${enrollment.emiMonths ?? progress.totalCount} split payments`;
 
   return (
-    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <div className={cn(CARD_BG, "relative")}>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 md:gap-x-6 md:gap-y-7 lg:grid-cols-5">
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+      <CollapsibleCard className="relative" title="Enrollment Details">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:mt-4 sm:grid-cols-3 md:mt-6 md:grid-cols-4 md:gap-x-6 md:gap-y-7 lg:grid-cols-5">
           <div>
             <p className={LABEL}>Enrolled Course</p>
             <p className={BIG_VALUE}>{enrollment.course}</p>
@@ -177,21 +231,53 @@ export function StudentEnrollment({
             </div>
           )}
         </div>
-      </div>
+      </CollapsibleCard>
 
-      <div className={CARD_BG}>
-        <div className="flex h-full flex-col justify-center gap-3">
-          <p className={LABEL}>Payment Progress</p>
-          <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
-            {progress.paidCount} of {progress.totalCount} paid
-          </p>
-          <p className="text-[13px] leading-relaxed text-muted-foreground">
-            {formatCurrency(progress.totalPaid)} paid so far.
-            {progress.nextDueDate ? (
-              <> Next installment due on {formatDate(progress.nextDueDate)}.</>
-            ) : null}
-          </p>
-        </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
+        <CollapsibleCard className="flex-1" title="Payment Progress">
+          <div className="flex flex-col gap-3">
+            <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
+              {progress.paidCount} of {progress.totalCount} paid
+            </p>
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              {formatCurrency(progress.totalPaid)} paid so far.
+              {progress.nextDueDate ? (
+                <>
+                  {" "}
+                  Next installment due on {formatDate(progress.nextDueDate)}.
+                </>
+              ) : null}
+            </p>
+          </div>
+        </CollapsibleCard>
+
+        {enrollment.kitProvided && (
+          <CollapsibleCard className="flex-1" title="Kit Details">
+            <div className="flex flex-col gap-3">
+              {enrollment.kitCost === 0 ? (
+                <>
+                  <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
+                    Complementary
+                  </p>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">
+                    Kit included with enrollment at no cost.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
+                    {formatCurrency(enrollment.kitCost ?? 0)}
+                  </p>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">
+                    {data.kit?.paymentStatus === "paid"
+                      ? "Kit fee paid."
+                      : `Kit fee due on ${formatDate(data.kit?.dueDate ?? null)}.`}
+                  </p>
+                </>
+              )}
+            </div>
+          </CollapsibleCard>
+        )}
       </div>
     </div>
   );
