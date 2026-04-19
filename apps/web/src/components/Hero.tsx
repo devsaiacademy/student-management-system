@@ -1,6 +1,7 @@
 // "use client";
 
 import { buttonVariants } from "@student-management-system/ui/components/button";
+import { cn } from "@student-management-system/ui/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -61,13 +62,13 @@ export default function Hero() {
               <div className="flex items-start justify-start gap-4">
                 <Link
                   href="/login?role=parent"
-                  className={buttonVariants({ variant: "blue", size: "md" })}
+                  className={cn(buttonVariants({ variant: "blue", size: "md" }))}
                 >
                   Parent
                 </Link>
                 <Link
                   href="/login?role=teacher"
-                  className={buttonVariants({ variant: "white", size: "md" })}
+                  className={cn(buttonVariants({ variant: "white", size: "md" }))}
                 >
                   Teacher
                 </Link>
@@ -96,21 +97,19 @@ export default function Hero() {
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
               href="/login?role=parent"
-              className={buttonVariants({
-                variant: "blue",
-                size: "md",
-                className: "w-full sm:w-auto",
-              })}
+              className={cn(
+                buttonVariants({ variant: "blue", size: "md" }),
+                "w-full sm:w-auto"
+              )}
             >
               Parent
             </Link>
             <Link
               href="/login?role=teacher"
-              className={buttonVariants({
-                variant: "white",
-                size: "md",
-                className: "w-full sm:w-auto",
-              })}
+              className={cn(
+                buttonVariants({ variant: "white", size: "md" }),
+                "w-full sm:w-auto"
+              )}
             >
               Teacher
             </Link>
