@@ -9,6 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@student-management-system/ui/components/dialog";
+import { Label } from "@student-management-system/ui/components/label";
+import { Textarea } from "@student-management-system/ui/components/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gooeyToast } from "goey-toast";
 import { useState } from "react";
@@ -37,6 +39,9 @@ export function MarkAsUnpaid({
 }: MarkAsUnpaidProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [reason, setReason] = useState<string>("");
+
+  const REASON_MAX_LENGTH = 500;
 
   const markUnpaid = useMutation(
     trpc.payments.markPaymentAsUnpaid.mutationOptions({
@@ -58,6 +63,7 @@ export function MarkAsUnpaid({
           }).queryKey,
         });
         setDialogOpen(false);
+        setReason("");
       },
       onError: (error) => {
         gooeyToast.error("Failed to revert payment", {
@@ -72,7 +78,11 @@ export function MarkAsUnpaid({
   );
 
   const handleConfirm = () => {
-    markUnpaid.mutate({ paymentId: payment.id });
+    const trimmedReason = reason.trim();
+    markUnpaid.mutate({
+      paymentId: payment.id,
+      ...(trimmedReason ? { reason: trimmedReason } : {}),
+    });
   };
 
   return (
@@ -81,12 +91,23 @@ export function MarkAsUnpaid({
         className="h-8 rounded-md px-3 text-[12px] font-medium"
         size="sm"
         variant="white"
-        onClick={() => setDialogOpen(true)}
+        onClick={() => {
+          setReason("");
+          setDialogOpen(true);
+        }}
       >
         Mark Unpaid
       </Button>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setReason("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Revert Payment to Unpaid</DialogTitle>
@@ -119,6 +140,26 @@ export function MarkAsUnpaid({
                   {formatDate(payment.dueDate)}
                 </p>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                className="text-[12px] font-medium"
+                htmlFor="mark-unpaid-reason"
+              >
+                Reason{" "}
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
+              </Label>
+              <Textarea
+                id="mark-unpaid-reason"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Enter the reason for reverting the payment"
+                maxLength={REASON_MAX_LENGTH}
+                rows={3}
+              />
             </div>
           </div>
 

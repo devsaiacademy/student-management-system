@@ -1,0 +1,1 @@
+ALTER TABLE "payments" ADD COLUMN "meta_data" jsonb;

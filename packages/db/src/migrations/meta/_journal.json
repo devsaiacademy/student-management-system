@@ -61,8 +61,15 @@
     {
       "idx": 8,
       "version": "7",
-      "when": 1776598503303,
+      "when": 1776607961272,
       "tag": "0008_add_upi_payment_method",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776607973691,
+      "tag": "0009_add_payment_meta_data",
       "breakpoints": true
     }
   ]
