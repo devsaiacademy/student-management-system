@@ -10,6 +10,7 @@ import { useState } from "react";
 import { trpc } from "@/utils/trpc";
 
 import { MarkAsPaid } from "./mark-as-paid";
+import { MarkAsUnpaid } from "./mark-as-unpaid";
 import { PayButton } from "./pay-button";
 
 type StudentPaymentProps = {
@@ -23,6 +24,7 @@ type Payment = {
   dueDate: string;
   amount: number;
   paymentStatus: string;
+  paymentMethod: string | null;
   emiNumber: number | null;
   description: string | null;
 };
@@ -96,14 +98,30 @@ function PaymentActions({
   studentId,
 }: PaymentActionsProps) {
   if (isPaid) {
+    const canRevert = isAdmin && payment.paymentMethod !== "razorpay";
     return (
-      <Button
-        className="h-8 rounded-md bg-muted px-4 text-[12px] font-medium text-muted-foreground hover:bg-muted/80"
-        size="sm"
-        variant="ghost"
-      >
-        View
-      </Button>
+      <>
+        <Button
+          className="h-8 rounded-md bg-muted px-4 text-[12px] font-medium text-muted-foreground hover:bg-muted/80"
+          size="sm"
+          variant="ghost"
+        >
+          View
+        </Button>
+        {canRevert && (
+          <MarkAsUnpaid
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+            payment={{
+              id: payment.id,
+              label,
+              amount: payment.amount,
+              dueDate: payment.dueDate,
+            }}
+            studentId={studentId}
+          />
+        )}
+      </>
     );
   }
   return (
@@ -197,6 +215,21 @@ function MobileRow(props: PaymentActionsProps) {
             {!isPaid && isAdmin && (
               <div className="mt-1 flex flex-wrap gap-2">
                 <MarkAsPaid
+                  formatCurrency={formatCurrency}
+                  formatDate={formatDate}
+                  payment={{
+                    id: payment.id,
+                    label,
+                    amount: payment.amount,
+                    dueDate: payment.dueDate,
+                  }}
+                  studentId={studentId}
+                />
+              </div>
+            )}
+            {isPaid && isAdmin && payment.paymentMethod !== "razorpay" && (
+              <div className="mt-1 flex flex-wrap gap-2">
+                <MarkAsUnpaid
                   formatCurrency={formatCurrency}
                   formatDate={formatDate}
                   payment={{

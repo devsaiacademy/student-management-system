@@ -6,6 +6,7 @@ import {
   varchar,
   timestamp,
   date,
+  jsonb,
   foreignKey,
   pgPolicy,
 } from "drizzle-orm/pg-core";
@@ -14,6 +15,17 @@ import { enrollments } from "./enrollment";
 import { paymentStatusEnum, paymentMethodEnum } from "./enums";
 import { razorpayOrders } from "./razorpay-order";
 import { students } from "./students";
+
+// Audit trail written alongside mark-as-paid / mark-as-unpaid actions. Stored
+// as jsonb so the shape can grow without a schema migration.
+export type PaymentMetaData = {
+  markedPaidBy?: string;
+  markedPaidAt?: string;
+  markedPaidReason?: string;
+  markedUnpaidBy?: string;
+  markedUnpaidAt?: string;
+  markedUnpaidReason?: string;
+};
 
 export const payments = pgTable(
   "payments",
@@ -39,6 +51,8 @@ export const payments = pgTable(
 
     dueDate: date("due_date").notNull(),
     paidDate: date("paid_date"),
+
+    metaData: jsonb("meta_data").$type<PaymentMetaData>(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

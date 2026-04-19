@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@student-management-system/ui/components/select";
+import { Textarea } from "@student-management-system/ui/components/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gooeyToast } from "goey-toast";
 import { useState } from "react";
@@ -49,6 +50,9 @@ export function MarkAsPaid({
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const [reason, setReason] = useState<string>("");
+
+  const REASON_MAX_LENGTH = 500;
 
   const markPaid = useMutation(
     trpc.payments.markPaymentAsPaid.mutationOptions({
@@ -71,6 +75,7 @@ export function MarkAsPaid({
         });
         setDialogOpen(false);
         setPaymentMethod("");
+        setReason("");
       },
       onError: (error) => {
         gooeyToast.error("Failed to mark payment", {
@@ -86,9 +91,11 @@ export function MarkAsPaid({
 
   const handleConfirm = () => {
     if (!paymentMethod) return;
+    const trimmedReason = reason.trim();
     markPaid.mutate({
       paymentId: payment.id,
       paymentMethod: paymentMethod as ManualPaymentMethod,
+      ...(trimmedReason ? { reason: trimmedReason } : {}),
     });
   };
 
@@ -100,6 +107,7 @@ export function MarkAsPaid({
         variant="white"
         onClick={() => {
           setPaymentMethod("");
+          setReason("");
           setDialogOpen(true);
         }}
       >
@@ -112,6 +120,7 @@ export function MarkAsPaid({
           setDialogOpen(open);
           if (!open) {
             setPaymentMethod("");
+            setReason("");
           }
         }}
       >
@@ -172,6 +181,23 @@ export function MarkAsPaid({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[12px] font-medium" htmlFor="mark-paid-reason">
+                Reason{" "}
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
+              </Label>
+              <Textarea
+                id="mark-paid-reason"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Enter the reason for the mark as paid"
+                maxLength={REASON_MAX_LENGTH}
+                rows={3}
+              />
             </div>
           </div>
 

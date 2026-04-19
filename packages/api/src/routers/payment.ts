@@ -1,7 +1,10 @@
 import { db } from "@student-management-system/db";
 import { PAYMENT_METHODS } from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
-import { payments } from "@student-management-system/db/schema/payment";
+import {
+  payments,
+  type PaymentMetaData,
+} from "@student-management-system/db/schema/payment";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -105,6 +108,7 @@ export const paymentsRouter = router({
           emiNumber: payments.emiNumber,
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
+          paymentMethod: payments.paymentMethod,
         })
         .from(payments)
         .innerJoin(enrollments, eq(payments.enrollmentId, enrollments.id))
@@ -117,10 +121,11 @@ export const paymentsRouter = router({
       z.object({
         paymentId: z.number().int().positive(),
         paymentMethod: z.enum(PAYMENT_METHODS),
+        reason: z.string().trim().max(500).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { paymentId, paymentMethod } = input;
+      const { paymentId, paymentMethod, reason } = input;
 
       const [owner] = await db
         .select({ studentId: payments.studentId })
@@ -137,12 +142,19 @@ export const paymentsRouter = router({
 
       assertStudentAccess(ctx, owner.studentId);
 
+      const metaData: PaymentMetaData = {
+        markedPaidBy: ctx.user.email,
+        markedPaidAt: new Date().toISOString(),
+        ...(reason ? { markedPaidReason: reason } : {}),
+      };
+
       const [updated] = await db
         .update(payments)
         .set({
           paymentStatus: "paid",
           paymentMethod,
           paidDate: new Date().toISOString().split("T")[0],
+          metaData,
         })
         .where(
           and(eq(payments.id, paymentId), eq(payments.paymentStatus, "unpaid"))
@@ -153,6 +165,73 @@ export const paymentsRouter = router({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Payment not found or already paid",
+        });
+      }
+
+      return { id: updated.id };
+    }),
+
+  markPaymentAsUnpaid: studentProcedure
+    .input(
+      z.object({
+        paymentId: z.number().int().positive(),
+        reason: z.string().trim().max(500).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { paymentId, reason } = input;
+
+      const [owner] = await db
+        .select({
+          studentId: payments.studentId,
+          paymentMethod: payments.paymentMethod,
+          metaData: payments.metaData,
+        })
+        .from(payments)
+        .where(eq(payments.id, paymentId))
+        .limit(1);
+
+      if (!owner) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found",
+        });
+      }
+
+      assertStudentAccess(ctx, owner.studentId);
+
+      if (owner.paymentMethod === "razorpay") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Razorpay payments cannot be reverted from the app. Issue a refund instead.",
+        });
+      }
+
+      const metaData: PaymentMetaData = {
+        ...(owner.metaData ?? {}),
+        markedUnpaidBy: ctx.user.email,
+        markedUnpaidAt: new Date().toISOString(),
+        ...(reason ? { markedUnpaidReason: reason } : {}),
+      };
+
+      const [updated] = await db
+        .update(payments)
+        .set({
+          paymentStatus: "unpaid",
+          paymentMethod: null,
+          paidDate: null,
+          metaData,
+        })
+        .where(
+          and(eq(payments.id, paymentId), eq(payments.paymentStatus, "paid"))
+        )
+        .returning({ id: payments.id });
+
+      if (!updated) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found or already unpaid",
         });
       }
 

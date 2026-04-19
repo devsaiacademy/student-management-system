@@ -57,6 +57,20 @@
       "when": 1776577778610,
       "tag": "0007_add_kit_cost_to_enrollments",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776607961272,
+      "tag": "0008_add_upi_payment_method",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776607973691,
+      "tag": "0009_add_payment_meta_data",
+      "breakpoints": true
     }
   ]
 }
