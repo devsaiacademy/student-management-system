@@ -100,7 +100,7 @@ export function AddStudentForm() {
           onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         >
           <h1
-            className="animate-in fade-in slide-in-from-bottom-2 text-center text-lg font-semibold text-foreground"
+            className="animate-in fade-in slide-in-from-bottom-2 px-10 text-center text-lg font-semibold text-foreground md:px-0"
             style={{ animationDuration: "400ms" }}
           >
             Enter the all the details to add new student

@@ -38,7 +38,7 @@ export function AdminHeader({
   onSourceChange,
 }: AdminHeaderProps) {
   return (
-    <header className="flex flex-col gap-3 border-b border-border bg-background px-4 py-3 pl-14 md:grid md:h-[73px] md:grid-cols-3 md:items-center md:gap-4 md:px-6 md:py-4 md:pl-6">
+    <header className="flex flex-col gap-3 border-b border-border bg-background px-4 py-3 pr-14 md:grid md:h-[73px] md:grid-cols-3 md:items-center md:gap-4 md:px-6 md:py-4 md:pr-6">
       <div className="hidden md:block" />
 
       <div className="relative w-full md:mx-auto md:max-w-md">
