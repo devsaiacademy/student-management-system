@@ -31,8 +31,6 @@ export const students = pgTable(
     standard: varchar("standard", { length: 20 }).notNull(),
     academicYear: varchar("academic_year", { length: 20 }).notNull(),
 
-    enrolledMedium: varchar("enrolled_medium", { length: 50 }).notNull(),
-
     motherName: varchar("mother_name", { length: 100 }),
     motherOccupation: varchar("mother_occupation", { length: 100 }),
     fatherName: varchar("father_name", { length: 100 }),

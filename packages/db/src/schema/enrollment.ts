@@ -23,7 +23,7 @@ export const enrollments = pgTable(
     course: varchar("course", { length: 100 }).notNull(),
     level: varchar("level", { length: 50 }).notNull(),
     duration: varchar("duration", { length: 50 }).notNull(),
-    tutorName: varchar("tutor_name", { length: 100 }).notNull(),
+    enrolledBy: varchar("enrolled_by", { length: 100 }).notNull(),
 
     totalFees: integer("total_fees").notNull(),
     paymentPlan: paymentPlanEnum("payment_plan").notNull(),

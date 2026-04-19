@@ -3,10 +3,10 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
+  ENROLLED_BY_NAMES,
   STUDENT_SOURCES,
   LEVELS,
   STUDENT_STATUSES,
-  TUTOR_NAMES,
 } from "@student-management-system/db/schema/constants";
 import {
   Card,
@@ -85,10 +85,10 @@ export function EnrollmentCard({
             />
             <LabeledSelect
               control={form.control}
-              name="tutorName"
-              label="Tutor Name"
-              placeholder="Tutor Name"
-              options={TUTOR_NAMES}
+              name="enrolledBy"
+              label="Enrolled By"
+              placeholder="Enrolled By"
+              options={ENROLLED_BY_NAMES}
             />
             <DatePickerField
               control={form.control}
@@ -188,8 +188,7 @@ export function EnrollmentCard({
                 // passes the RadioGroupItem's actual value prop through. For
                 // this radio the options are booleans, so `value` is the
                 // boolean at runtime.
-                const enabled =
-                  (value as unknown) === true || value === "true";
+                const enabled = (value as unknown) === true || value === "true";
                 setKitProvided(enabled);
                 if (!enabled) {
                   form.setValue("kitCost", undefined, { shouldValidate: true });

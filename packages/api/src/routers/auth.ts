@@ -24,7 +24,7 @@ export const authRouter = router({
       // Dev: keep Supabase's built-in flow so Mailpit delivery still works.
       if (env.NODE_ENV !== "production") {
         console.log(env.NODE_ENV);
-        
+
         const { error } = await ctx.supabase.auth.signInWithOtp({
           email: input.email,
           options: { emailRedirectTo: input.redirectTo },
@@ -39,7 +39,7 @@ export const authRouter = router({
 
         return { success: true };
       }
-      
+
       // Prod: mint the link via Supabase admin, deliver it via Resend.
       if (!(supabaseAdmin && resend)) {
         throw new TRPCError({

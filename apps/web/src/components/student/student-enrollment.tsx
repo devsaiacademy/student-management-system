@@ -14,7 +14,7 @@ type StudentEnrollmentProps = {
   schoolName?: string;
   standard?: string;
   academicYear?: string;
-  tutorName?: string;
+  enrolledBy?: string;
 };
 
 const CARD_BG =
@@ -224,10 +224,10 @@ export function StudentEnrollment({
             </div>
           )}
 
-          {data.enrollment.tutorName && (
+          {isAdmin && data.enrollment.enrolledBy && (
             <div>
-              <p className={LABEL}>Tutor Name</p>
-              <p className={SMALL_VALUE}>{data.enrollment.tutorName}</p>
+              <p className={LABEL}>Enrolled By</p>
+              <p className={SMALL_VALUE}>{data.enrollment.enrolledBy}</p>
             </div>
           )}
         </div>
