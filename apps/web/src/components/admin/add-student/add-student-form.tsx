@@ -42,6 +42,7 @@ const defaultValues: CreateStudentInput = {
   emiMonths: null,
   startDate: new Date(),
   kitProvided: false,
+  kitCost: undefined,
 };
 
 export function AddStudentForm() {

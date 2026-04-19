@@ -31,6 +31,7 @@ export const enrollments = pgTable(
 
     startDate: timestamp("start_date").notNull(),
     kitProvided: boolean("kit_provided").default(false).notNull(),
+    kitCost: integer("kit_cost"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

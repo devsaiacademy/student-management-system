@@ -24,6 +24,7 @@ type Payment = {
   amount: number;
   paymentStatus: string;
   emiNumber: number | null;
+  description: string | null;
 };
 
 const ROW_GRID =
@@ -71,6 +72,9 @@ function StatusBadge({ paid }: { paid: boolean }) {
 }
 
 function getInstallmentLabel(payment: Payment, total: number) {
+  if (payment.description === "Kit") {
+    return "Kit";
+  }
   return payment.emiNumber
     ? `Payment ${payment.emiNumber} of ${total}`
     : "Full Payment";
@@ -283,38 +287,52 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
 
       {!(isPending || isError) &&
         data &&
-        data.map((payment, index) => {
-          const isPaid = payment.paymentStatus === "paid";
-          const label = getInstallmentLabel(payment, data.length);
+        (() => {
+          const installmentTotal = data.filter(
+            (p) => p.description !== "Kit"
+          ).length;
+          return data.map((payment, index) => {
+            const isPaid = payment.paymentStatus === "paid";
+            const label = getInstallmentLabel(payment, installmentTotal);
 
-          return (
-            <div key={payment.id}>
-              <div
-                className={cn(
-                  ROW_GRID,
-                  "hidden border-b border-border py-5 transition-colors duration-150 hover:bg-muted/30 md:grid",
-                  "animate-in fade-in slide-in-from-bottom-1"
-                )}
-                style={{
-                  animationDelay: `${index * 80}ms`,
-                  animationFillMode: "backwards",
-                }}
-              >
-                <span className="text-[14px] text-foreground">{label}</span>
-                <span className="text-[14px] text-foreground">
-                  {payment.course}
-                </span>
-                <span className="text-[14px] text-foreground">
-                  {formatDate(payment.dueDate)}
-                </span>
-                <div>
-                  <StatusBadge paid={isPaid} />
+            return (
+              <div key={payment.id}>
+                <div
+                  className={cn(
+                    ROW_GRID,
+                    "hidden border-b border-border py-5 transition-colors duration-150 hover:bg-muted/30 md:grid",
+                    "animate-in fade-in slide-in-from-bottom-1"
+                  )}
+                  style={{
+                    animationDelay: `${index * 80}ms`,
+                    animationFillMode: "backwards",
+                  }}
+                >
+                  <span className="text-[14px] text-foreground">{label}</span>
+                  <span className="text-[14px] text-foreground">
+                    {payment.course}
+                  </span>
+                  <span className="text-[14px] text-foreground">
+                    {formatDate(payment.dueDate)}
+                  </span>
+                  <div>
+                    <StatusBadge paid={isPaid} />
+                  </div>
+                  <span className="text-[14px] text-foreground">
+                    {formatCurrency(payment.amount)}
+                  </span>
+                  <div className="flex gap-2">
+                    <PaymentActions
+                      isAdmin={isAdmin}
+                      isPaid={isPaid}
+                      label={label}
+                      payment={payment}
+                      studentId={studentId}
+                    />
+                  </div>
                 </div>
-                <span className="text-[14px] text-foreground">
-                  {formatCurrency(payment.amount)}
-                </span>
-                <div className="flex gap-2">
-                  <PaymentActions
+                <div className="md:hidden">
+                  <MobileRow
                     isAdmin={isAdmin}
                     isPaid={isPaid}
                     label={label}
@@ -323,18 +341,9 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                   />
                 </div>
               </div>
-              <div className="md:hidden">
-                <MobileRow
-                  isAdmin={isAdmin}
-                  isPaid={isPaid}
-                  label={label}
-                  payment={payment}
-                  studentId={studentId}
-                />
-              </div>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
     </div>
   );
 }

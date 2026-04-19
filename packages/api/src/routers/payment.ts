@@ -101,6 +101,7 @@ export const paymentsRouter = router({
           enrollmentId: payments.enrollmentId,
           course: enrollments.course,
           amount: payments.amount,
+          description: payments.description,
           emiNumber: payments.emiNumber,
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
