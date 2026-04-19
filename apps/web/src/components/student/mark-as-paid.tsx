@@ -184,7 +184,10 @@ export function MarkAsPaid({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[12px] font-medium" htmlFor="mark-paid-reason">
+              <Label
+                className="text-[12px] font-medium"
+                htmlFor="mark-paid-reason"
+              >
                 Reason{" "}
                 <span className="font-normal text-muted-foreground">
                   (optional)

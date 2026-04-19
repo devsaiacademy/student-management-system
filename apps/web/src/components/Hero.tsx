@@ -62,13 +62,17 @@ export default function Hero() {
               <div className="flex items-start justify-start gap-4">
                 <Link
                   href="/login?role=parent"
-                  className={cn(buttonVariants({ variant: "blue", size: "md" }))}
+                  className={cn(
+                    buttonVariants({ variant: "blue", size: "md" })
+                  )}
                 >
                   Parent
                 </Link>
                 <Link
                   href="/login?role=teacher"
-                  className={cn(buttonVariants({ variant: "white", size: "md" }))}
+                  className={cn(
+                    buttonVariants({ variant: "white", size: "md" })
+                  )}
                 >
                   Teacher
                 </Link>

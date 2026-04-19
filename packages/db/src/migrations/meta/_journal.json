@@ -71,6 +71,13 @@
       "when": 1776607973691,
       "tag": "0009_add_payment_meta_data",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1808000000000,
+      "tag": "0010_rename_tutor_name_to_enrolled_by",
+      "breakpoints": true
     }
   ]
 }

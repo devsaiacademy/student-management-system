@@ -29,7 +29,7 @@ export const STUDENT_PROGRESS_STATUSES = ["in_progress", "completed"] as const;
 export type StudentProgressStatus = (typeof STUDENT_PROGRESS_STATUSES)[number];
 
 // Form option constants — used as static dropdown sources and for server-side
-// enum validation. Change these when the business adds courses, tutors, etc.
+// enum validation. Change these when the business adds courses, staff, etc.
 export const COURSES = [
   "Robotics",
   "Programming",
@@ -60,8 +60,14 @@ export const LEVELS = [
 ] as const;
 export type Level = (typeof LEVELS)[number];
 
-export const TUTOR_NAMES = ["Sai", "Priya", "Mahi", "Mohan", "Dinesh"] as const;
-export type TutorName = (typeof TUTOR_NAMES)[number];
+export const ENROLLED_BY_NAMES = [
+  "Sai",
+  "Priya",
+  "Mahi",
+  "Mohan",
+  "Dinesh",
+] as const;
+export type EnrolledByName = (typeof ENROLLED_BY_NAMES)[number];
 
 export const EMI_MONTHS_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 export type EmiMonthsOption = (typeof EMI_MONTHS_OPTIONS)[number];

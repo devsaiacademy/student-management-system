@@ -2,12 +2,12 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
+  ENROLLED_BY_NAMES,
   ENROLLED_MEDIUMS,
   LEVELS,
   PAYMENT_PLANS,
   STUDENT_SOURCES,
   STUDENT_STATUSES,
-  TUTOR_NAMES,
 } from "@student-management-system/db/schema/constants";
 import z from "zod";
 
@@ -61,7 +61,7 @@ export const createStudentSchema = z
     course: z.enum(COURSES),
     duration: z.enum(DURATIONS),
     level: z.enum(LEVELS),
-    tutorName: z.enum(TUTOR_NAMES),
+    enrolledBy: z.enum(ENROLLED_BY_NAMES),
 
     totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in rupees
     paymentPlan: z.enum(PAYMENT_PLANS),
