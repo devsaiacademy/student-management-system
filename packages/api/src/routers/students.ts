@@ -188,7 +188,10 @@ export const studentsRouter = router({
       }
 
       const [latestEnrollment] = await db
-        .select({ kitProvided: enrollments.kitProvided })
+        .select({
+          kitProvided: enrollments.kitProvided,
+          kitCost: enrollments.kitCost,
+        })
         .from(enrollments)
         .where(eq(enrollments.studentId, input.studentId))
         .orderBy(desc(enrollments.createdAt))
@@ -197,6 +200,7 @@ export const studentsRouter = router({
       return {
         ...student,
         kitProvided: latestEnrollment?.kitProvided ?? false,
+        kitCost: latestEnrollment?.kitCost ?? null,
       };
     }),
 
@@ -269,6 +273,7 @@ export const studentsRouter = router({
                 input.paymentPlan === "flexible" ? input.emiMonths : null,
               startDate: input.startDate,
               kitProvided: input.kitProvided,
+              kitCost: input.kitProvided ? (input.kitCost ?? 0) : null,
             })
             .returning({ id: enrollments.id });
 
@@ -298,7 +303,7 @@ export const studentsRouter = router({
           const remainder =
             input.totalFees - baseInstallment * installmentCount;
 
-          const paymentRows = Array.from(
+          const paymentRows: (typeof payments.$inferInsert)[] = Array.from(
             { length: installmentCount },
             (_, index) => {
               const isLast = index === installmentCount - 1;
@@ -314,6 +319,26 @@ export const studentsRouter = router({
               };
             }
           );
+
+          // A kit payment row is added whenever a kit is provided. For a
+          // paid kit (kitCost > 0) the row is created unpaid; for a
+          // complementary kit (kitCost === 0) it's inserted as already paid
+          // on the enrollment start date so the ledger reflects it without
+          // ever showing as dues.
+          if (input.kitProvided && typeof input.kitCost === "number") {
+            const startDateString = formatDateForPg(input.startDate);
+            paymentRows.push({
+              studentId: created.id,
+              enrollmentId: enrollment.id,
+              amount: input.kitCost,
+              description: "Kit",
+              emiNumber: null,
+              paymentStatus:
+                input.kitCost === 0 ? ("paid" as const) : ("unpaid" as const),
+              dueDate: startDateString,
+              paidDate: input.kitCost === 0 ? startDateString : null,
+            });
+          }
 
           await tx.insert(payments).values(paymentRows);
 

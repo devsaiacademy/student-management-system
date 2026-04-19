@@ -43,6 +43,9 @@ export function EnrollmentCard({
   form: UseFormReturn<CreateStudentInput>;
 }) {
   const [paymentPlan, setPaymentPlan] = useState(form.watch("paymentPlan"));
+  const [kitProvided, setKitProvided] = useState<boolean>(
+    Boolean(form.watch("kitProvided"))
+  );
 
   return (
     <Card
@@ -180,11 +183,68 @@ export function EnrollmentCard({
                 { value: true, label: "Yes" },
                 { value: false, label: "No" },
               ]}
+              onValueChange={(value) => {
+                // LabeledRadio's generic types value as string, but Base UI
+                // passes the RadioGroupItem's actual value prop through. For
+                // this radio the options are booleans, so `value` is the
+                // boolean at runtime.
+                const enabled =
+                  (value as unknown) === true || value === "true";
+                setKitProvided(enabled);
+                if (!enabled) {
+                  form.setValue("kitCost", undefined, { shouldValidate: true });
+                }
+              }}
             />
+
+            {kitProvided ? <KitCostField control={form.control} /> : null}
           </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function KitCostField({
+  control,
+}: {
+  control: UseFormReturn<CreateStudentInput>["control"];
+}) {
+  return (
+    <FormField
+      control={control}
+      name="kitCost"
+      render={({ field }) => (
+        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
+          <FormLabel>Kit Cost</FormLabel>
+          <div>
+            <FormControl>
+              <Input
+                className="rounded-[8px]"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Amount in rupees (0 if complementary)"
+                value={typeof field.value === "number" ? field.value : ""}
+                onChange={(event) => {
+                  const rupees = event.target.value;
+                  field.onChange(rupees === "" ? undefined : Number(rupees));
+                }}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                name={field.name}
+              />
+            </FormControl>
+            <FormMessage className="mt-1" />
+            {typeof field.value === "number" && field.value >= 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {toCurrency(field.value)}
+              </p>
+            )}
+          </div>
+        </FormItem>
+      )}
+    />
   );
 }
 

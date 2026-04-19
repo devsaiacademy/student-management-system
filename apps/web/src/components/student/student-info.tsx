@@ -128,6 +128,14 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
               {data.kitProvided ? "Kit Provided" : "No Kit"}
             </Badge>
           )}
+          {isAdmin && data.kitProvided && data.kitCost === 0 && (
+            <Badge
+              className="rounded-full border-0 bg-emerald-100/80 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700"
+              variant="outline"
+            >
+              Complementary
+            </Badge>
+          )}
         </div>
 
         <div className="flex flex-col gap-1 text-[13px] text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-1">

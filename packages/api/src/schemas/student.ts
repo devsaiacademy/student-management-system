@@ -32,7 +32,7 @@ const toNumberOrUndefined = (value: unknown) => {
 
 // Shared schema for the "Add Student" form. Used by both the client form
 // (zodResolver) and the tRPC mutation, so validation and types stay in sync.
-// Fees are stored and submitted as **paise** (1 rupee = 100 paise).
+// Fees and kit cost are stored and submitted as **rupees** (integer).
 export const createStudentSchema = z
   .object({
     // --- Student (students table) ---
@@ -79,15 +79,25 @@ export const createStudentSchema = z
 
     startDate: z.coerce.date(),
     kitProvided: z.boolean(),
+    kitCost: z.number().int().min(0).optional(),
   })
-  .refine(
-    (data) =>
-      data.paymentPlan === "flexible" ? data.emiMonths !== null : true,
-    {
-      message: "EMI duration is required for a flexible payment plan",
-      path: ["emiMonths"],
+  .superRefine((data, ctx) => {
+    if (data.paymentPlan === "flexible" && data.emiMonths === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "EMI duration is required for a flexible payment plan",
+        path: ["emiMonths"],
+      });
     }
-  );
+    if (data.kitProvided && typeof data.kitCost !== "number") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Kit cost is required when a kit is provided (enter 0 if complementary)",
+        path: ["kitCost"],
+      });
+    }
+  });
 
 // Form uses the permissive INPUT type (strings in numeric fields are OK).
 // tRPC receives the parsed OUTPUT type where those fields are numbers.
