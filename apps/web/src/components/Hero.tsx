@@ -1,6 +1,7 @@
 // "use client";
 
-import { Button } from "@student-management-system/ui/components/button";
+import { buttonVariants } from "@student-management-system/ui/components/button";
+import { cn } from "@student-management-system/ui/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -59,12 +60,18 @@ export default function Hero() {
                 Select Your Role to Continue
               </p>
               <div className="flex items-start justify-start gap-4">
-                <Button  variant="blue" size="md">
-                  <Link href="/login?role=parent">Parent</Link>
-                </Button>
-                <Button  variant="white" size="md">
-                  <Link href="/login?role=teacher">Teacher</Link>
-                </Button>
+                <Link
+                  href="/login?role=parent"
+                  className={cn(buttonVariants({ variant: "blue", size: "md" }))}
+                >
+                  Parent
+                </Link>
+                <Link
+                  href="/login?role=teacher"
+                  className={cn(buttonVariants({ variant: "white", size: "md" }))}
+                >
+                  Teacher
+                </Link>
               </div>
             </div>
           </div>
@@ -88,12 +95,24 @@ export default function Hero() {
             Select Your Role to Continue
           </p>
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Button  className="w-full sm:w-auto" variant="blue" size="md">
-              <Link href="/login?role=parent">Parent</Link>
-            </Button>
-            <Button  className="w-full sm:w-auto" variant="white" size="md">
-              <Link href="/login?role=teacher">Teacher</Link>
-            </Button>
+            <Link
+              href="/login?role=parent"
+              className={cn(
+                buttonVariants({ variant: "blue", size: "md" }),
+                "w-full sm:w-auto"
+              )}
+            >
+              Parent
+            </Link>
+            <Link
+              href="/login?role=teacher"
+              className={cn(
+                buttonVariants({ variant: "white", size: "md" }),
+                "w-full sm:w-auto"
+              )}
+            >
+              Teacher
+            </Link>
           </div>
         </div>
       </div>

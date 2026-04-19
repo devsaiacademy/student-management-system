@@ -32,7 +32,7 @@ export default async function AdminLayout({
     <SidebarProvider className="h-svh overflow-hidden bg-background">
       <AdminSidebar user={user} />
       <SidebarInset>
-        <SidebarTrigger className="absolute"/>
+        <SidebarTrigger className="absolute right-2 top-2 size-10 rounded-md border border-border bg-background shadow-sm [&_svg]:size-5 md:right-auto md:top-auto md:size-8 md:rounded-none md:border-0 md:bg-transparent md:shadow-none md:[&_svg]:size-4" />
         <div className="flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>
     </SidebarProvider>

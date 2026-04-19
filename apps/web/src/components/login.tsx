@@ -113,15 +113,6 @@ export default function Login() {
                 <span className="font-semibold text-foreground">{email}</span>.
                 Click the link in your email to sign in.
               </p>
-              <Button
-                className="mt-8 w-full py-3 text-base font-semibold"
-                size="lg"
-                type="button"
-                variant="white"
-                onClick={() => setMagicLinkSent(false)}
-              >
-                Back to login
-              </Button>
             </div>
           ) : (
             <>
