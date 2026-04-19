@@ -30,7 +30,6 @@ const defaultValues: CreateStudentInput = {
   motherOccupation: "",
   fatherName: "",
   fatherOccupation: "",
-  enrolledMedium: "Online",
   studentSource: "Banner",
   studentStatus: "active",
   course: "Robotics",

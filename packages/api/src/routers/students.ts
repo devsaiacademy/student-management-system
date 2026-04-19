@@ -242,7 +242,6 @@ export const studentsRouter = router({
               schoolName: input.schoolName,
               standard: input.standard,
               academicYear: input.academicYear,
-              enrolledMedium: input.enrolledMedium,
               motherName: input.motherName || null,
               motherOccupation: input.motherOccupation || null,
               fatherName: input.fatherName || null,

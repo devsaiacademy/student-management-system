@@ -3,7 +3,6 @@ import {
   DURATIONS,
   EMI_MONTHS_OPTIONS,
   ENROLLED_BY_NAMES,
-  ENROLLED_MEDIUMS,
   LEVELS,
   PAYMENT_PLANS,
   STUDENT_SOURCES,
@@ -53,7 +52,6 @@ export const createStudentSchema = z
     fatherName: z.string().trim().max(100).optional(),
     fatherOccupation: z.string().trim().max(100).optional(),
 
-    enrolledMedium: z.enum(ENROLLED_MEDIUMS),
     studentSource: z.enum(STUDENT_SOURCES),
     studentStatus: z.enum(STUDENT_STATUSES),
 
