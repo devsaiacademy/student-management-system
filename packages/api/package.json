@@ -11,6 +11,7 @@
   },
   "scripts": {},
   "dependencies": {
+    "@react-email/components": "^1.0.12",
     "@student-management-system/db": "workspace:*",
     "@student-management-system/env": "workspace:*",
     "@supabase/ssr": "^0.10.0",
@@ -21,10 +22,13 @@
     "drizzle-orm": "^0.45.2",
     "next": "catalog:",
     "razorpay": "^2.9.6",
+    "react": "catalog:",
+    "resend": "^6.12.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@student-management-system/config": "workspace:*",
+    "@types/react": "catalog:",
     "typescript": "^5"
   }
 }
