@@ -6,14 +6,13 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
 
-import { EMAIL_LOGO_SRC } from "./logo";
+import { EmailLogo } from "./logo";
 
 interface MagicLinkEmailProps {
   actionLink: string;
@@ -44,13 +43,7 @@ export function MagicLinkEmail({ actionLink }: MagicLinkEmailProps) {
             borderRadius: "8px",
           }}
         >
-          <Img
-            alt="Otomatiks"
-            height={37}
-            src={EMAIL_LOGO_SRC}
-            style={{ display: "block", margin: 0 }}
-            width={200}
-          />
+          <EmailLogo />
 
           <Heading
             style={{

@@ -52,11 +52,11 @@ export type Duration = (typeof DURATIONS)[number];
 
 export const LEVELS = [
   "Level 1",
-  "Level 2",
-  "Level 3",
-  "Level 4",
-  "Level 5",
-  "Level 6",
+  "Level 1 - 2",
+  "Level 1 - 3",
+  "Level 1 - 4",
+  "Level 1 - 5",
+  "Level 1 - 6",
 ] as const;
 export type Level = (typeof LEVELS)[number];
 

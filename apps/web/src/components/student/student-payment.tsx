@@ -4,8 +4,9 @@ import { Button } from "@student-management-system/ui/components/button";
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
@@ -69,7 +70,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-medium",
+        "inline-flex w-fit items-center rounded-md px-2.5 py-0.5 text-[11px] font-medium",
         isPaid && "bg-surface-success text-surface-success-foreground",
         isOverdue && "bg-red-600 text-white",
         !(isPaid || isOverdue) &&
@@ -78,6 +79,39 @@ function StatusBadge({ status }: { status: string }) {
     >
       {isPaid ? "Paid" : isOverdue ? "Overdue" : "Unpaid"}
     </span>
+  );
+}
+
+function useRefreshingNow(intervalMs: number) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+}
+
+function StatusCell({
+  status,
+  notifiedAt,
+}: {
+  status: string;
+  notifiedAt: string | null;
+}) {
+  useRefreshingNow(30_000);
+  const showNotified = status !== "paid" && notifiedAt;
+  const relative = showNotified
+    ? formatDistanceToNow(Date.parse(notifiedAt), { addSuffix: true })
+    : null;
+
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <StatusBadge status={status} />
+      {relative && (
+        <span className="whitespace-nowrap text-[10px] leading-tight text-muted-foreground">
+          Notified {relative}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -175,6 +209,16 @@ function MobileRow(props: PaymentActionsProps) {
           <span className="text-[12px] text-muted-foreground">
             {formatCurrency(payment.amount)}
           </span>
+          {payment.paymentStatus !== "paid" &&
+            payment.metaData?.overdueNotifiedAt && (
+              <span className="text-[10px] text-muted-foreground">
+                Notified{" "}
+                {formatDistanceToNow(
+                  Date.parse(payment.metaData.overdueNotifiedAt),
+                  { addSuffix: true }
+                )}
+              </span>
+            )}
         </div>
         {isPaid ? (
           <Button
@@ -368,13 +412,14 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                   <span className="text-[14px] text-foreground">
                     {formatDate(payment.dueDate)}
                   </span>
-                  <div>
-                    <StatusBadge status={payment.paymentStatus} />
-                  </div>
+                  <StatusCell
+                    notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
+                    status={payment.paymentStatus}
+                  />
                   <span className="text-[14px] text-foreground">
                     {formatCurrency(payment.amount)}
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex items-center justify-start gap-2">
                     <PaymentActions
                       isAdmin={isAdmin}
                       isPaid={isPaid}

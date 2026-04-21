@@ -8,7 +8,6 @@ import { students } from "@student-management-system/db/schema/students";
 import { env } from "@student-management-system/env/server";
 import { and, eq, lt, sql } from "drizzle-orm";
 
-import { emailLogoAttachment } from "../emails/logo";
 import { PaymentOverdueEmail } from "../emails/payment-overdue-email";
 import { resend } from "./resend";
 
@@ -91,7 +90,6 @@ async function sendEmail(
       emiNumber: ctx.emiNumber ?? undefined,
       isOverdue,
     }),
-    attachments: [emailLogoAttachment()],
   });
 
   if (error) {

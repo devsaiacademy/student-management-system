@@ -5,13 +5,12 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
 
-import { EMAIL_LOGO_SRC } from "./logo";
+import { EmailLogo } from "./logo";
 
 interface PaymentOverdueEmailProps {
   studentName: string;
@@ -73,13 +72,7 @@ export function PaymentOverdueEmail({
             padding: "40px 32px",
           }}
         >
-          <Img
-            alt="Otomatiks"
-            height={37}
-            src={EMAIL_LOGO_SRC}
-            style={{ display: "block", margin: 0 }}
-            width={200}
-          />
+          <EmailLogo />
 
           <Heading
             style={{
