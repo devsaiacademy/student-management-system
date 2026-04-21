@@ -14,7 +14,8 @@
         "RAZORPAY_WEBHOOK_SECRET",
         "SUPABASE_SERVICE_ROLE_KEY",
         "RESEND_API_KEY",
-        "RESEND_FROM"
+        "RESEND_FROM",
+        "CRON_SECRET"
       ]
     },
     "lint": {

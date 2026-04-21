@@ -12,6 +12,8 @@ import {
   Text,
 } from "@react-email/components";
 
+import { EmailLogo } from "./logo";
+
 interface MagicLinkEmailProps {
   actionLink: string;
 }
@@ -41,16 +43,7 @@ export function MagicLinkEmail({ actionLink }: MagicLinkEmailProps) {
             borderRadius: "8px",
           }}
         >
-          <Text
-            style={{
-              color: BRAND_COLOR,
-              fontSize: "20px",
-              fontWeight: 700,
-              margin: 0,
-            }}
-          >
-            Otomatiks
-          </Text>
+          <EmailLogo />
 
           <Heading
             style={{
