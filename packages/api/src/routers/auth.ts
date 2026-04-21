@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { emailLogoAttachment } from "../emails/logo";
 import { MagicLinkEmail } from "../emails/magic-link-email";
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { isOtomatiksAdminEmail } from "../lib/admin-email";
@@ -72,6 +73,7 @@ export const authRouter = router({
         to: input.email,
         subject: "Your Otomatiks sign-in link",
         react: MagicLinkEmail({ actionLink }),
+        attachments: [emailLogoAttachment()],
       });
 
       if (sendError) {

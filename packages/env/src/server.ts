@@ -10,6 +10,7 @@ export const env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
     RESEND_FROM: z.email(),
+    CRON_SECRET: z.string().min(1),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),

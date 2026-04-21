@@ -11,6 +11,7 @@ import { trpc } from "@/utils/trpc";
 
 import { MarkAsPaid } from "./mark-as-paid";
 import { MarkAsUnpaid } from "./mark-as-unpaid";
+import { NotifyUserButton } from "./notify-user-button";
 import { PayButton } from "./pay-button";
 
 type StudentPaymentProps = {
@@ -27,6 +28,10 @@ type Payment = {
   paymentMethod: string | null;
   emiNumber: number | null;
   description: string | null;
+  metaData: {
+    overdueNotifiedAt?: string;
+    overdueEmailStatus?: "sent" | "failed";
+  } | null;
 };
 
 const ROW_GRID =
@@ -58,17 +63,20 @@ function formatCurrency(amount: number) {
   });
 }
 
-function StatusBadge({ paid }: { paid: boolean }) {
+function StatusBadge({ status }: { status: string }) {
+  const isPaid = status === "paid";
+  const isOverdue = status === "overdue";
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-md px-2.5 py-0.5 text-[11px] font-medium",
-        paid
-          ? "bg-surface-success text-surface-success-foreground"
-          : "bg-surface-destructive text-surface-destructive-foreground"
+        isPaid && "bg-surface-success text-surface-success-foreground",
+        isOverdue && "bg-red-600 text-white",
+        !(isPaid || isOverdue) &&
+          "bg-surface-destructive text-surface-destructive-foreground"
       )}
     >
-      {paid ? "Paid" : "Unpaid"}
+      {isPaid ? "Paid" : isOverdue ? "Overdue" : "Unpaid"}
     </span>
   );
 }
@@ -128,17 +136,24 @@ function PaymentActions({
     <>
       <PayButton paymentId={payment.id} studentId={studentId} />
       {isAdmin && (
-        <MarkAsPaid
-          formatCurrency={formatCurrency}
-          formatDate={formatDate}
-          payment={{
-            id: payment.id,
-            label,
-            amount: payment.amount,
-            dueDate: payment.dueDate,
-          }}
-          studentId={studentId}
-        />
+        <>
+          <MarkAsPaid
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+            payment={{
+              id: payment.id,
+              label,
+              amount: payment.amount,
+              dueDate: payment.dueDate,
+            }}
+            studentId={studentId}
+          />
+          <NotifyUserButton
+            notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
+            paymentId={payment.id}
+            studentId={studentId}
+          />
+        </>
       )}
     </>
   );
@@ -155,7 +170,7 @@ function MobileRow(props: PaymentActionsProps) {
             <span className="truncate text-[14px] font-medium text-foreground">
               {label}
             </span>
-            <StatusBadge paid={isPaid} />
+            <StatusBadge status={payment.paymentStatus} />
           </div>
           <span className="text-[12px] text-muted-foreground">
             {formatCurrency(payment.amount)}
@@ -223,6 +238,11 @@ function MobileRow(props: PaymentActionsProps) {
                     amount: payment.amount,
                     dueDate: payment.dueDate,
                   }}
+                  studentId={studentId}
+                />
+                <NotifyUserButton
+                  notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
+                  paymentId={payment.id}
                   studentId={studentId}
                 />
               </div>
@@ -349,7 +369,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                     {formatDate(payment.dueDate)}
                   </span>
                   <div>
-                    <StatusBadge paid={isPaid} />
+                    <StatusBadge status={payment.paymentStatus} />
                   </div>
                   <span className="text-[14px] text-foreground">
                     {formatCurrency(payment.amount)}

@@ -25,6 +25,8 @@ export type PaymentMetaData = {
   markedUnpaidBy?: string;
   markedUnpaidAt?: string;
   markedUnpaidReason?: string;
+  overdueNotifiedAt?: string;
+  overdueEmailStatus?: "sent" | "failed";
 };
 
 export const payments = pgTable(

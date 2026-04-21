@@ -6,7 +6,7 @@ import {
   type PaymentMetaData,
 } from "@student-management-system/db/schema/payment";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -15,6 +15,7 @@ import {
   router,
   studentProcedure,
 } from "../index";
+import { sendOverdueEmail } from "../lib/overdue-payments";
 
 const studentIdInput = z.object({ studentId: z.number().int().positive() });
 
@@ -25,7 +26,7 @@ export const paymentsRouter = router({
       .select({
         studentId: payments.studentId,
         hasUnpaid:
-          sql<boolean>`bool_or(${payments.paymentStatus} = 'unpaid')`.as(
+          sql<boolean>`bool_or(${payments.paymentStatus} IN ('unpaid', 'overdue'))`.as(
             "has_unpaid"
           ),
       })
@@ -49,7 +50,7 @@ export const paymentsRouter = router({
               Number
             ),
           totalPending:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} = 'unpaid' then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') then ${payments.amount} else 0 end), 0)`.mapWith(
               Number
             ),
         })
@@ -109,6 +110,7 @@ export const paymentsRouter = router({
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
           paymentMethod: payments.paymentMethod,
+          metaData: payments.metaData,
         })
         .from(payments)
         .innerJoin(enrollments, eq(payments.enrollmentId, enrollments.id))
@@ -157,7 +159,10 @@ export const paymentsRouter = router({
           metaData,
         })
         .where(
-          and(eq(payments.id, paymentId), eq(payments.paymentStatus, "unpaid"))
+          and(
+            eq(payments.id, paymentId),
+            inArray(payments.paymentStatus, ["unpaid", "overdue"])
+          )
         )
         .returning({ id: payments.id });
 
@@ -236,5 +241,51 @@ export const paymentsRouter = router({
       }
 
       return { id: updated.id };
+    }),
+
+  sendPaymentReminder: studentProcedure
+    .input(z.object({ paymentId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can send payment reminders",
+        });
+      }
+
+      const [row] = await db
+        .select({
+          id: payments.id,
+          paymentStatus: payments.paymentStatus,
+        })
+        .from(payments)
+        .where(eq(payments.id, input.paymentId))
+        .limit(1);
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found",
+        });
+      }
+
+      if (row.paymentStatus === "paid") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This payment has already been paid",
+        });
+      }
+
+      try {
+        await sendOverdueEmail(input.paymentId);
+      } catch (err) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            err instanceof Error ? err.message : "Failed to send reminder",
+        });
+      }
+
+      return { notifiedAt: new Date().toISOString() };
     }),
 });
