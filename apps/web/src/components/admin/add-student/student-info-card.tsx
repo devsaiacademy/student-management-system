@@ -31,7 +31,7 @@ function TextField({
     <LabeledField control={control} name={name} label={label}>
       {(field) => (
         <Input
-          className="rounded-[8px]"
+          className="max-w-[300px] rounded-[8px] text-sm"
           type={type}
           inputMode={inputMode}
           {...field}
@@ -61,7 +61,7 @@ export function StudentInfoCard({
       </CardHeader>
       <CardContent>
         <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-          <div className="space-y-4">
+          <div className="space-y-4 md:space-y-6">
             <TextField control={control} name="name" label="Student Name" />
             <TextField
               control={control}
@@ -94,7 +94,7 @@ export function StudentInfoCard({
               label="School Name"
             />
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 md:space-y-6">
             <LabeledSelect
               control={control}
               name="standard"

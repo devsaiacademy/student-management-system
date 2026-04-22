@@ -61,7 +61,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
 
   if (isPending) {
     return (
-      <div className="w-full rounded-2xl border border-border bg-[#F5F5F5] p-5 shadow-lg shadow-black/5 sm:p-6">
+      <div className="w-full rounded-2xl border border-border bg-[#F0F8FF] p-5 shadow-lg shadow-black/5 sm:p-6">
         <div className="flex min-w-0 items-start gap-5">
           <Skeleton className="size-16 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
@@ -94,7 +94,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const initials = getInitials(data.name);
 
   return (
-    <div className="w-full rounded-2xl border border-border bg-[#F5F5F5] p-5 shadow-lg shadow-black/5 sm:p-6">
+    <div className="w-full rounded-2xl border border-border bg-[#F0F8FF] p-5 shadow-lg shadow-black/5 sm:p-6">
       <div className="flex min-w-0 items-start gap-5">
         <Avatar className="size-16" size="lg">
           <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
@@ -109,7 +109,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
             <div className="flex flex-wrap items-center gap-1.5">
               <span
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
                   status.className
                 )}
               >
@@ -119,12 +119,12 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
                 />
                 {status.label}
               </span>
-              <span className="rounded-full bg-orange-100/80 px-2.5 py-0.5 text-[11px] font-medium text-orange-700">
+              <span className="rounded-full bg-orange-100/80 px-2.5 py-0.5 text-xs font-medium text-orange-700">
                 {data.studentSource}
               </span>
               <span
                 className={cn(
-                  "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                  "rounded-full px-2.5 py-0.5 text-xs font-medium",
                   data.kitProvided
                     ? "bg-blue-100/80 text-blue-700"
                     : "bg-slate-100 text-slate-600"
@@ -133,13 +133,13 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
                 {data.kitProvided ? "Kit Provided" : "No Kit"}
               </span>
               {data.kitProvided && data.kitCost === 0 && (
-                <span className="rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                <span className="rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                   Complementary
                 </span>
               )}
             </div>
           )}
-          <div className="flex flex-col gap-1.5 text-[13px] text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5">
+          <div className="flex flex-col gap-1.5 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5">
             <span className="flex min-w-0 items-center gap-1.5">
               <Mail aria-hidden className="size-3.5 shrink-0" />
               <span className="truncate">{data.email}</span>

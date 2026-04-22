@@ -32,7 +32,7 @@ export function LabeledField<Name extends FieldPath<CreateStudentInput>>({
       name={name}
       render={({ field }) => (
         <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className="text-sm">{label}</FormLabel>
           <div>
             <FormControl>{children(field)}</FormControl>
             <FormMessage className="mt-1" />

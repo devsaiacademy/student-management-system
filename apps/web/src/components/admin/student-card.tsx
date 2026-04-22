@@ -79,14 +79,14 @@ export function StudentCard({ student, index }: StudentCardProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-            <span className="text-[14px] font-semibold leading-tight text-foreground">
+            <span className="text-sm font-semibold leading-tight text-foreground">
               {student.name}
             </span>
-            <span className="min-w-0 truncate text-[13px] leading-tight text-muted-foreground">
+            <span className="min-w-0 truncate text-sm leading-tight text-muted-foreground">
               @{username}
             </span>
           </div>
-          <span className="mt-0.5 text-[12px] leading-tight text-muted-foreground">
+          <span className="mt-0.5 text-xs leading-tight text-muted-foreground">
             Rollno:{student.rollNumber}
           </span>
         </div>
@@ -94,7 +94,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             className={cn(
-              "rounded-full border-0 px-3 py-0.5 text-[11px] font-medium",
+              "rounded-full border-0 px-3 py-0.5 text-xs font-medium",
               status.className
             )}
             variant="outline"
@@ -102,7 +102,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
             {status.label}
           </Badge>
           <Badge
-            className="rounded-full border-0 bg-orange-100/80 px-3 py-0.5 text-[11px] font-medium text-orange-700"
+            className="rounded-full border-0 bg-orange-100/80 px-3 py-0.5 text-xs font-medium text-orange-700"
             variant="outline"
           >
             {student.studentSource}

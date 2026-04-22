@@ -18,12 +18,12 @@ type StudentEnrollmentProps = {
 };
 
 const CARD_BG =
-  "rounded-2xl border border-border bg-[#F5F5F5] shadow-lg shadow-black/5 p-4 sm:p-5 md:p-6";
+  "rounded-2xl border border-border bg-[#F0F8FF] shadow-lg shadow-black/5 p-4 sm:p-5 md:p-6";
 const LABEL =
-  "text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground";
+  "text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground";
 const BIG_VALUE =
-  "mt-1 break-words text-[18px] font-semibold text-foreground md:text-[20px]";
-const SMALL_VALUE = "mt-0.5 break-words text-[14px] text-foreground";
+  "mt-1 break-words text-lg font-semibold text-foreground md:text-xl";
+const SMALL_VALUE = "mt-0.5 break-words text-sm text-foreground";
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -162,7 +162,7 @@ export function StudentEnrollment({
 
   if (!data) {
     return (
-      <div className="rounded-2xl border border-border bg-[#F5F5F5] shadow-lg shadow-black/5 px-6 py-10 text-center text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-border bg-[#F0F8FF] shadow-lg shadow-black/5 px-6 py-10 text-center text-sm text-muted-foreground">
         No enrollment found.
       </div>
     );
@@ -239,10 +239,10 @@ export function StudentEnrollment({
       <div className="flex flex-col gap-4 sm:gap-6">
         <CollapsibleCard className="flex-1" title="Payment Progress">
           <div className="flex flex-col gap-3">
-            <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
+            <p className="text-xl font-semibold leading-tight text-foreground sm:text-xl md:text-2xl">
               {progress.paidCount} of {progress.totalCount} paid
             </p>
-            <p className="text-[13px] leading-relaxed text-muted-foreground">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {formatCurrency(progress.totalPaid)} paid so far.
               {progress.nextDueDate ? (
                 <>
@@ -259,19 +259,19 @@ export function StudentEnrollment({
             <div className="flex flex-col gap-3">
               {enrollment.kitCost === 0 ? (
                 <>
-                  <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
+                  <p className="text-xl font-semibold leading-tight text-foreground sm:text-xl md:text-2xl">
                     Complementary
                   </p>
-                  <p className="text-[13px] leading-relaxed text-muted-foreground">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     Kit included with enrollment at no cost.
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">
+                  <p className="text-xl font-semibold leading-tight text-foreground sm:text-xl md:text-2xl">
                     {formatCurrency(enrollment.kitCost ?? 0)}
                   </p>
-                  <p className="text-[13px] leading-relaxed text-muted-foreground">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {data.kit?.paymentStatus === "paid"
                       ? "Kit fee paid."
                       : `Kit fee due on ${formatDate(data.kit?.dueDate ?? null)}.`}

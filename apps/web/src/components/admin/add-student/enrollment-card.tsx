@@ -61,7 +61,7 @@ export function EnrollmentCard({
       </CardHeader>
       <CardContent>
         <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-          <div className="space-y-4">
+          <div className="space-y-4 md:space-y-6">
             <LabeledSelect
               control={form.control}
               name="course"
@@ -132,7 +132,7 @@ export function EnrollmentCard({
                 name="emiMonths"
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
-                    <FormLabel>Emi Duration</FormLabel>
+                    <FormLabel className="text-sm">Emi Duration</FormLabel>
                     <div>
                       <FormControl>
                         <Select
@@ -145,7 +145,7 @@ export function EnrollmentCard({
                             field.onChange(Number(value))
                           }
                         >
-                          <SelectTrigger className="h-8 w-full rounded-[8px]">
+                          <SelectTrigger className="h-8 w-full max-w-[300px] rounded-[8px] text-sm">
                             <SelectValue placeholder="Select duration" />
                           </SelectTrigger>
                           <SelectContent
@@ -215,11 +215,11 @@ function KitCostField({
       name="kitCost"
       render={({ field }) => (
         <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
-          <FormLabel>Kit Cost</FormLabel>
+          <FormLabel className="text-sm">Kit Cost</FormLabel>
           <div>
             <FormControl>
               <Input
-                className="rounded-[8px]"
+                className="max-w-[300px] rounded-[8px] text-sm"
                 type="number"
                 inputMode="numeric"
                 min={0}
@@ -258,11 +258,11 @@ function FeesField({
       name="totalFees"
       render={({ field }) => (
         <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
-          <FormLabel>Fees</FormLabel>
+          <FormLabel className="text-sm">Fees</FormLabel>
           <div>
             <FormControl>
               <Input
-                className="rounded-[8px]"
+                className="max-w-[300px] rounded-[8px] text-sm"
                 type="number"
                 inputMode="numeric"
                 placeholder="Amount in rupees"
