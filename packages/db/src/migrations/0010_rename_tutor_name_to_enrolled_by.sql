@@ -1,1 +1,0 @@
-ALTER TABLE "enrollments" RENAME COLUMN "tutor_name" TO "enrolled_by";
