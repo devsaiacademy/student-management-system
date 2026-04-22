@@ -14,7 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <WelcomeToast />
       </Suspense>
-      <GooeyToaster position="top-center" />
+      <GooeyToaster position="top-center" theme="dark" />
     </QueryClientProvider>
   );
 }

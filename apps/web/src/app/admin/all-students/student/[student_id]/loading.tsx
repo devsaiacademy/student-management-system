@@ -2,7 +2,7 @@ import { ScrollArea } from "@student-management-system/ui/components/scroll-area
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 
 const CARD_BG =
-  "rounded-2xl border border-border bg-[#F5F5F5] shadow-lg shadow-black/5 p-4 sm:p-5 md:p-6";
+  "rounded-2xl border border-border bg-[#F0F8FF] shadow-lg shadow-black/5 p-4 sm:p-5 md:p-6";
 const PAYMENT_ROW_COUNT = 5;
 
 function FieldSkeleton({ big }: { big?: boolean }) {
@@ -18,7 +18,7 @@ export default function Loading() {
   return (
     <div className="flex flex-1 flex-col bg-background">
       <header className="flex items-start justify-between gap-8 px-4 pt-6 pb-4 sm:px-6 md:px-10 md:pt-8 md:pb-6">
-        <div className="w-full rounded-2xl border border-border bg-[#F5F5F5] p-5 shadow-lg shadow-black/5 sm:p-6">
+        <div className="w-full rounded-2xl border border-border bg-white p-5 shadow-lg shadow-black/5 sm:p-6">
           <div className="flex min-w-0 items-start gap-5">
             <Skeleton className="size-16 shrink-0 rounded-full" />
             <div className="flex min-w-0 flex-1 flex-col gap-2.5">

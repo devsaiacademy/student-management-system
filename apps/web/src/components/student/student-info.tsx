@@ -61,7 +61,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
 
   if (isPending) {
     return (
-      <div className="w-full rounded-2xl border border-border bg-[#F0F8FF] p-5 shadow-lg shadow-black/5 sm:p-6">
+      <div className="w-full rounded-2xl border border-border bg-white p-5 shadow-lg shadow-black/5 sm:p-6">
         <div className="flex min-w-0 items-start gap-5">
           <Skeleton className="size-16 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
@@ -94,7 +94,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const initials = getInitials(data.name);
 
   return (
-    <div className="w-full rounded-2xl border border-border bg-[#F0F8FF] p-5 shadow-lg shadow-black/5 sm:p-6">
+    <div className="w-full rounded-2xl border border-border bg-white p-5 shadow-lg shadow-black/5 sm:p-6">
       <div className="flex min-w-0 items-start gap-5">
         <Avatar className="size-16" size="lg">
           <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">

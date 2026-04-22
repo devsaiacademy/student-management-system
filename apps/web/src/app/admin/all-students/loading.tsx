@@ -21,7 +21,7 @@ export default function Loading() {
         <div className="flex flex-col gap-3 px-6 py-6">
           {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
             <div
-              className="flex items-start gap-3 rounded-[12px] border border-border bg-[#F5F5F5] px-4 py-4 sm:items-center sm:gap-4 sm:px-5"
+              className="flex items-start gap-3 rounded-[12px] border border-border bg-background px-4 py-4 sm:items-center sm:gap-4 sm:px-5"
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
               key={index}
             >

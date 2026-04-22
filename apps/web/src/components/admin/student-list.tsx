@@ -19,7 +19,7 @@ const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5", "s6"] as const;
 
 function StudentCardSkeleton() {
   return (
-    <div className="flex items-start gap-3 rounded-[12px] border border-border bg-[#F5F5F5] px-4 py-4 sm:items-center sm:gap-4 sm:px-5">
+    <div className="flex items-start gap-3 rounded-[12px] border border-border bg-background px-4 py-4 sm:items-center sm:gap-4 sm:px-5">
       <Skeleton className="size-10 shrink-0 rounded-full" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
