@@ -75,22 +75,8 @@
     {
       "idx": 10,
       "version": "7",
-      "when": 1808000000000,
-      "tag": "0010_rename_tutor_name_to_enrolled_by",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1808000060000,
-      "tag": "0011_drop_enrolled_medium",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1776616602918,
-      "tag": "0012_add_overdue_payment_status",
+      "when": 1776836107052,
+      "tag": "0010_tutor_rename_and_overdue_drop_student_medium",
       "breakpoints": true
     }
   ]

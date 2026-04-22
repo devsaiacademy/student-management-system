@@ -1,5 +1,5 @@
 {
-  "id": "a1b8c4d2-1f0e-4a5b-9c7d-3e8f6b2c5d10",
+  "id": "45e428cb-5437-45b1-91f1-6eefbd0f06e8",
   "prevId": "78a9f34f-8909-4796-a812-f24306ea770b",
   "version": "7",
   "dialect": "postgresql",
@@ -103,8 +103,12 @@
           "name": "enrollments_student_id_fk",
           "tableFrom": "enrollments",
           "tableTo": "students",
-          "columnsFrom": ["student_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -116,35 +120,45 @@
           "name": "enrollments_select_policy_student",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'"
         },
         "enrollments_select_policy_admin": {
           "name": "enrollments_select_policy_admin",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "enrollments_insert_policy": {
           "name": "enrollments_insert_policy",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "withCheck": "public.current_user_role() = 'admin'"
         },
         "enrollments_update_policy": {
           "name": "enrollments_update_policy",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "enrollments_delete_policy": {
           "name": "enrollments_delete_policy",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         }
       },
@@ -258,8 +272,12 @@
           "name": "payments_student_id_fk",
           "tableFrom": "payments",
           "tableTo": "students",
-          "columnsFrom": ["student_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -267,8 +285,12 @@
           "name": "payments_enrollment_id_fk",
           "tableFrom": "payments",
           "tableTo": "enrollments",
-          "columnsFrom": ["enrollment_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "enrollment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -276,8 +298,12 @@
           "name": "payments_razorpay_order_id_fk",
           "tableFrom": "payments",
           "tableTo": "razorpay_orders",
-          "columnsFrom": ["razorpay_order_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "razorpay_order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -289,35 +315,45 @@
           "name": "payments_select_policy_student",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'"
         },
         "payments_select_policy_admin": {
           "name": "payments_select_policy_admin",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "payments_insert_policy": {
           "name": "payments_insert_policy",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "withCheck": "public.current_user_role() = 'admin'"
         },
         "payments_update_policy": {
           "name": "payments_update_policy",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "payments_delete_policy": {
           "name": "payments_delete_policy",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         }
       },
@@ -411,8 +447,12 @@
           "name": "razorpay_orders_student_id_fk",
           "tableFrom": "razorpay_orders",
           "tableTo": "students",
-          "columnsFrom": ["student_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -422,7 +462,9 @@
         "razorpay_orders_razorpay_order_id_unique": {
           "name": "razorpay_orders_razorpay_order_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["razorpay_order_id"]
+          "columns": [
+            "razorpay_order_id"
+          ]
         }
       },
       "policies": {
@@ -430,35 +472,45 @@
           "name": "razorpay_orders_select_policy_student",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'"
         },
         "razorpay_orders_select_policy_admin": {
           "name": "razorpay_orders_select_policy_admin",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "razorpay_orders_insert_policy": {
           "name": "razorpay_orders_insert_policy",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "withCheck": "public.current_user_role() = 'admin'"
         },
         "razorpay_orders_update_policy": {
           "name": "razorpay_orders_update_policy",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "razorpay_orders_delete_policy": {
           "name": "razorpay_orders_delete_policy",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         }
       },
@@ -522,8 +574,12 @@
           "name": "student_progress_student_id_fk",
           "tableFrom": "student_progress",
           "tableTo": "students",
-          "columnsFrom": ["student_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -531,8 +587,12 @@
           "name": "student_progress_enrollment_id_fk",
           "tableFrom": "student_progress",
           "tableTo": "enrollments",
-          "columnsFrom": ["enrollment_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "enrollment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -544,35 +604,45 @@
           "name": "student_progress_select_policy_student",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'"
         },
         "student_progress_select_policy_admin": {
           "name": "student_progress_select_policy_admin",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "student_progress_insert_policy": {
           "name": "student_progress_insert_policy",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "withCheck": "public.current_user_role() = 'admin'"
         },
         "student_progress_update_policy": {
           "name": "student_progress_update_policy",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "student_progress_delete_policy": {
           "name": "student_progress_delete_policy",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         }
       },
@@ -643,12 +713,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "enrolled_medium": {
-          "name": "enrolled_medium",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "mother_name": {
           "name": "mother_name",
           "type": "varchar(100)",
@@ -711,17 +775,23 @@
         "students_auth_user_id_unique": {
           "name": "students_auth_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["auth_user_id"]
+          "columns": [
+            "auth_user_id"
+          ]
         },
         "students_roll_number_unique": {
           "name": "students_roll_number_unique",
           "nullsNotDistinct": false,
-          "columns": ["roll_number"]
+          "columns": [
+            "roll_number"
+          ]
         },
         "students_email_unique": {
           "name": "students_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "policies": {
@@ -729,35 +799,45 @@
           "name": "students_select_policy_student",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "auth.uid() = auth_user_id AND public.current_user_role() = 'student'"
         },
         "students_select_policy_admin": {
           "name": "students_select_policy_admin",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "students_insert_policy": {
           "name": "students_insert_policy",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "withCheck": "public.current_user_role() = 'admin'"
         },
         "students_update_policy": {
           "name": "students_update_policy",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         },
         "students_delete_policy": {
           "name": "students_delete_policy",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         }
       },
@@ -804,14 +884,18 @@
           "name": "user_profiles_select_own",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "auth.uid() = id"
         },
         "user_profiles_select_admin": {
           "name": "user_profiles_select_admin",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": ["authenticated"],
+          "to": [
+            "authenticated"
+          ],
           "using": "public.current_user_role() = 'admin'"
         }
       },
@@ -823,32 +907,57 @@
     "public.payment_method": {
       "name": "payment_method",
       "schema": "public",
-      "values": ["cash", "razorpay", "upi", "others"]
+      "values": [
+        "cash",
+        "razorpay",
+        "upi",
+        "others"
+      ]
     },
     "public.payment_plan": {
       "name": "payment_plan",
       "schema": "public",
-      "values": ["single", "flexible"]
+      "values": [
+        "single",
+        "flexible"
+      ]
     },
     "public.payment_status": {
       "name": "payment_status",
       "schema": "public",
-      "values": ["paid", "unpaid"]
+      "values": [
+        "paid",
+        "unpaid",
+        "overdue"
+      ]
     },
     "public.student_progress_status": {
       "name": "student_progress_status",
       "schema": "public",
-      "values": ["in_progress", "completed"]
+      "values": [
+        "in_progress",
+        "completed"
+      ]
     },
     "public.student_source": {
       "name": "student_source",
       "schema": "public",
-      "values": ["Banner", "Referral", "DM", "GAdds", "Walkin"]
+      "values": [
+        "Banner",
+        "Referral",
+        "DM",
+        "GAdds",
+        "Walkin"
+      ]
     },
     "public.student_status": {
       "name": "student_status",
       "schema": "public",
-      "values": ["active", "in_active", "discontinue"]
+      "values": [
+        "active",
+        "in_active",
+        "discontinue"
+      ]
     }
   },
   "schemas": {},
