@@ -18,7 +18,7 @@ type StudentEnrollmentProps = {
 };
 
 const CARD_BG =
-  "rounded-xl bg-surface-info text-surface-info-foreground p-5 sm:p-6 md:p-8";
+  "rounded-2xl border border-border bg-[#F5F5F5] shadow-lg shadow-black/5 p-4 sm:p-5 md:p-6";
 const LABEL =
   "text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground";
 const BIG_VALUE =
@@ -68,7 +68,7 @@ function CollapsibleCard({
           <ChevronDown
             aria-hidden
             className={cn(
-              "size-4 transition-transform duration-200",
+              "size-4 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
               open && "rotate-180"
             )}
           />
@@ -77,15 +77,15 @@ function CollapsibleCard({
       <div
         aria-hidden={!open}
         className={cn(
-          "grid transition-[grid-template-rows] duration-200 ease-out sm:flex sm:flex-1 sm:items-center",
+          "grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] sm:flex sm:items-start",
           open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         )}
       >
         <div className="w-full overflow-hidden">
           <div
             className={cn(
-              "mt-3 transition-opacity duration-200 sm:mt-0 sm:opacity-100",
-              open ? "opacity-100" : "opacity-0"
+              "mt-3 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] sm:mt-0 sm:translate-y-0 sm:opacity-100",
+              open ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0"
             )}
           >
             {children}
@@ -129,9 +129,12 @@ export function StudentEnrollment({
     return (
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className={CARD_BG}>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-4 md:gap-x-6 md:gap-y-7">
+          <Skeleton className="h-3 w-36 rounded" />
+          <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-6 sm:mt-5 sm:grid-cols-3 md:mt-6 md:grid-cols-4 md:gap-x-6 md:gap-y-7 lg:grid-cols-5">
             <FieldSkeleton big />
             <FieldSkeleton big />
+            <FieldSkeleton big />
+            <FieldSkeleton />
             <FieldSkeleton />
             <FieldSkeleton />
             <FieldSkeleton />
@@ -141,8 +144,8 @@ export function StudentEnrollment({
           </div>
         </div>
         <div className={CARD_BG}>
-          <div className="flex h-full flex-col justify-center gap-3">
-            <Skeleton className="h-3 w-32 max-w-full rounded" />
+          <Skeleton className="h-3 w-32 rounded" />
+          <div className="mt-4 flex flex-col gap-3 sm:mt-5">
             <Skeleton className="h-8 w-40 max-w-full rounded" />
             <Skeleton className="h-3 w-56 max-w-full rounded" />
           </div>
@@ -159,7 +162,7 @@ export function StudentEnrollment({
 
   if (!data) {
     return (
-      <div className="rounded-xl bg-surface-info text-surface-info-foreground px-6 py-10 text-center text-sm text-muted-foreground">
+      <div className="rounded-2xl border border-border bg-[#F5F5F5] shadow-lg shadow-black/5 px-6 py-10 text-center text-sm text-muted-foreground">
         No enrollment found.
       </div>
     );
@@ -172,7 +175,7 @@ export function StudentEnrollment({
       : `${enrollment.emiMonths ?? progress.totalCount} split payments`;
 
   return (
-    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
       <CollapsibleCard className="relative" title="Enrollment Details">
         <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:mt-4 sm:grid-cols-3 md:mt-6 md:grid-cols-4 md:gap-x-6 md:gap-y-7 lg:grid-cols-5">
           <div>
@@ -233,7 +236,7 @@ export function StudentEnrollment({
         </div>
       </CollapsibleCard>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
+      <div className="flex flex-col gap-4 sm:gap-6">
         <CollapsibleCard className="flex-1" title="Payment Progress">
           <div className="flex flex-col gap-3">
             <p className="text-xl font-semibold leading-tight text-foreground sm:text-[22px] md:text-[26px]">

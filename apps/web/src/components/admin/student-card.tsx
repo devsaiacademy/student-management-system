@@ -60,7 +60,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
   return (
     <Link
       className={cn(
-        "group flex items-start gap-3 rounded-[12px] border border-border bg-background px-4 py-4 sm:items-center sm:gap-4 sm:px-5",
+        "group flex items-start gap-3 rounded-[12px] border border-border bg-[#F5F5F5] px-4 py-4 sm:items-center sm:gap-4 sm:px-5",
         "transition-all duration-200 hover:border-primary/30 hover:shadow-sm",
         "animate-in fade-in slide-in-from-bottom-2"
       )}
