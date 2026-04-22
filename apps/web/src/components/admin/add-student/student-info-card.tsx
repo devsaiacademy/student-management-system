@@ -60,7 +60,7 @@ export function StudentInfoCard({
         <CardTitle>Student Information</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-x-8 gap-y-0 md:grid-cols-2">
+        <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
           <div className="space-y-4">
             <TextField control={control} name="name" label="Student Name" />
             <TextField
