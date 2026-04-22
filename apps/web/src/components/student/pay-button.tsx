@@ -118,7 +118,7 @@ export function PayButton({ paymentId, studentId }: PayButtonProps) {
 
   return (
     <Button
-      className="h-8 rounded-md px-5 text-[12px] font-medium"
+      className="h-8 rounded-md px-5 text-xs font-medium"
       disabled={isOpening || isVerifying}
       onClick={() => createOrder.mutate({ paymentId })}
       size="sm"

@@ -34,7 +34,7 @@ export default function Loading() {
       <ScrollArea className="flex-1">
         <div className="px-10 pb-10 max-md:px-4">
           <div className="border-b border-border">
-            <span className="inline-block border-b-2 border-primary px-1 pb-2 text-[13px] font-medium text-primary">
+            <span className="inline-block border-b-2 border-primary px-1 pb-2 text-sm font-medium text-primary">
               Overview
             </span>
           </div>

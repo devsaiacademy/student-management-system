@@ -88,7 +88,7 @@ export function MarkAsUnpaid({
   return (
     <>
       <Button
-        className="h-8 rounded-md px-3 text-[12px] font-medium"
+        className="h-8 rounded-md px-3 text-xs font-medium"
         size="sm"
         variant="white"
         onClick={() => {
@@ -119,13 +119,13 @@ export function MarkAsUnpaid({
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-3 gap-3 text-sm">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Installment
                 </p>
                 <p className="mt-0.5 font-medium">{payment.label}</p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Amount
                 </p>
                 <p className="mt-0.5 font-medium">
@@ -133,7 +133,7 @@ export function MarkAsUnpaid({
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Due Date
                 </p>
                 <p className="mt-0.5 font-medium">
@@ -144,7 +144,7 @@ export function MarkAsUnpaid({
 
             <div className="space-y-2">
               <Label
-                className="text-[12px] font-medium"
+                className="text-xs font-medium"
                 htmlFor="mark-unpaid-reason"
               >
                 Reason{" "}

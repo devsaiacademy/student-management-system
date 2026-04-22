@@ -33,7 +33,7 @@ export function DatePickerField<Name extends FieldPath<CreateStudentInput>>({
           field.value instanceof Date ? field.value : undefined;
         return (
           <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
-            <FormLabel>{label}</FormLabel>
+            <FormLabel className="text-sm">{label}</FormLabel>
             <div>
               <Popover>
                 <PopoverTrigger
@@ -41,7 +41,7 @@ export function DatePickerField<Name extends FieldPath<CreateStudentInput>>({
                     <Button
                       variant="outline"
                       type="button"
-                      className="h-8 w-full justify-start rounded-[8px] border-input px-2.5 text-xs font-normal"
+                      className="h-8 w-full max-w-[300px] justify-start rounded-[8px] border-input px-2.5 text-sm font-normal"
                     >
                       {selectedDate
                         ? format(selectedDate, "dd/MM/yyyy")

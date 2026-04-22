@@ -5,6 +5,7 @@ import {
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import { ScrollArea } from "@student-management-system/ui/components/scroll-area";
+import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
@@ -13,6 +14,26 @@ import { trpc } from "@/utils/trpc";
 import { AdminHeader } from "./admin-header";
 import { AdminPagination } from "./pagination";
 import { StudentCard } from "./student-card";
+
+const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5", "s6"] as const;
+
+function StudentCardSkeleton() {
+  return (
+    <div className="flex items-start gap-3 rounded-[12px] border border-border bg-[#F5F5F5] px-4 py-4 sm:items-center sm:gap-4 sm:px-5">
+      <Skeleton className="size-10 shrink-0 rounded-full" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <Skeleton className="h-4 w-40 max-w-full rounded" />
+          <Skeleton className="h-3 w-24 rounded" />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type Student = {
   id: number;
@@ -95,6 +116,12 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
     return baseList;
   }, [baseList, searchQuery, searchResults.data]);
 
+  const isSearchLoading = searchQuery.length > 0 && searchResults.isFetching;
+  const isStatusLoading = isStatusFiltered && statusQuery.isFetching;
+  const isSourceLoading = isSourceFiltered && sourceQuery.isFetching;
+  const isQueryLoading =
+    isLoading || isSearchLoading || isStatusLoading || isSourceLoading;
+
   return (
     <div className="flex flex-1 flex-col">
       <AdminHeader
@@ -108,7 +135,9 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
 
       <ScrollArea className="max-h-[85vh] flex-1">
         <div className="flex flex-col gap-3 px-6 py-6">
-          {filteredStudents.length > 0 ? (
+          {isQueryLoading ? (
+            SKELETON_KEYS.map((key) => <StudentCardSkeleton key={key} />)
+          ) : filteredStudents.length > 0 ? (
             filteredStudents.map((student, index) => (
               <StudentCard index={index} key={student.id} student={student} />
             ))

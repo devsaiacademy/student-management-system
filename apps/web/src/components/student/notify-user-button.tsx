@@ -54,7 +54,7 @@ export function NotifyUserButton({
 
   return (
     <Button
-      className="h-8 rounded-md px-3 text-[12px] font-medium"
+      className="h-8 rounded-md px-3 text-xs font-medium"
       disabled={sendReminder.isPending || withinDebounce}
       onClick={() => sendReminder.mutate({ paymentId })}
       size="sm"

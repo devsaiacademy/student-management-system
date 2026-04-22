@@ -34,14 +34,14 @@ export function LabeledSelect<Name extends FieldPath<CreateStudentInput>>({
       name={name}
       render={({ field }) => (
         <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className="text-sm">{label}</FormLabel>
           <div>
             <FormControl>
               <Select
                 value={(field.value as string) ?? ""}
                 onValueChange={field.onChange}
               >
-                <SelectTrigger className="h-8 w-full rounded-[8px]">
+                <SelectTrigger className="h-8 w-full max-w-[300px] rounded-[8px] text-sm">
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent

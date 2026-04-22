@@ -70,7 +70,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-md px-2.5 py-0.5 text-[11px] font-medium",
+        "inline-flex w-fit items-center rounded-md px-2.5 py-0.5 text-xs font-medium",
         isPaid && "bg-surface-success text-surface-success-foreground",
         isOverdue && "bg-red-600 text-white",
         !(isPaid || isOverdue) &&
@@ -107,7 +107,7 @@ function StatusCell({
     <div className="flex flex-col items-start gap-1">
       <StatusBadge status={status} />
       {relative && (
-        <span className="whitespace-nowrap text-[10px] leading-tight text-muted-foreground">
+        <span className="whitespace-nowrap text-xs leading-tight text-muted-foreground">
           Notified {relative}
         </span>
       )}
@@ -144,7 +144,7 @@ function PaymentActions({
     return (
       <>
         <Button
-          className="h-8 rounded-md bg-muted px-4 text-[12px] font-medium text-muted-foreground hover:bg-muted/80"
+          className="h-8 rounded-md bg-muted px-4 text-xs font-medium text-muted-foreground hover:bg-muted/80"
           size="sm"
           variant="ghost"
         >
@@ -201,17 +201,17 @@ function MobileRow(props: PaymentActionsProps) {
       <div className="flex items-center gap-2">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate text-[14px] font-medium text-foreground">
+            <span className="truncate text-sm font-medium text-foreground">
               {label}
             </span>
             <StatusBadge status={payment.paymentStatus} />
           </div>
-          <span className="text-[12px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {formatCurrency(payment.amount)}
           </span>
           {payment.paymentStatus !== "paid" &&
             payment.metaData?.overdueNotifiedAt && (
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 Notified{" "}
                 {formatDistanceToNow(
                   Date.parse(payment.metaData.overdueNotifiedAt),
@@ -222,7 +222,7 @@ function MobileRow(props: PaymentActionsProps) {
         </div>
         {isPaid ? (
           <Button
-            className="h-8 rounded-md bg-muted px-4 text-[12px] font-medium text-muted-foreground hover:bg-muted/80"
+            className="h-8 rounded-md bg-muted px-4 text-xs font-medium text-muted-foreground hover:bg-muted/80"
             size="sm"
             variant="ghost"
           >
@@ -257,7 +257,7 @@ function MobileRow(props: PaymentActionsProps) {
         <div className="overflow-hidden">
           <div
             className={cn(
-              "mt-3 flex flex-col gap-2 pl-1 text-[13px] transition-opacity duration-200",
+              "mt-3 flex flex-col gap-2 pl-1 text-sm transition-opacity duration-200",
               open ? "opacity-100" : "opacity-0"
             )}
           >
@@ -325,7 +325,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
       >
         {HEADER_LABELS.map((label) => (
           <span
-            className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+            className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"
             key={label}
           >
             {label}
@@ -405,18 +405,18 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                     animationFillMode: "backwards",
                   }}
                 >
-                  <span className="text-[14px] text-foreground">{label}</span>
-                  <span className="text-[14px] text-foreground">
+                  <span className="text-sm text-foreground">{label}</span>
+                  <span className="text-sm text-foreground">
                     {payment.course}
                   </span>
-                  <span className="text-[14px] text-foreground">
+                  <span className="text-sm text-foreground">
                     {formatDate(payment.dueDate)}
                   </span>
                   <StatusCell
                     notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
                     status={payment.paymentStatus}
                   />
-                  <span className="text-[14px] text-foreground">
+                  <span className="text-sm text-foreground">
                     {formatCurrency(payment.amount)}
                   </span>
                   <div className="flex items-center justify-start gap-2">
