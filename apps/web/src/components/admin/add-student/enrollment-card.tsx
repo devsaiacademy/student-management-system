@@ -113,20 +113,20 @@ export function EnrollmentCard({
               label="Payment Plan"
               options={[
                 { value: "single", label: "Single" },
-                { value: "flexible", label: "Flexible" },
+                { value: "installment", label: "Installment" },
               ]}
               onValueChange={(value) => {
                 if (value === "single") {
                   setPaymentPlan("single");
                   form.setValue("emiMonths", null, { shouldValidate: true });
                 } else {
-                  setPaymentPlan("flexible");
+                  setPaymentPlan("installment");
                   form.setValue("emiMonths", 2, { shouldValidate: true });
                 }
               }}
             />
 
-            {paymentPlan === "flexible" && (
+            {paymentPlan === "installment" && (
               <FormField
                 control={form.control}
                 name="emiMonths"

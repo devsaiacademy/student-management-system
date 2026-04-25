@@ -78,6 +78,13 @@
       "when": 1776836107052,
       "tag": "0010_tutor_rename_and_overdue_drop_student_medium",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1777094711512,
+      "tag": "0011_rename_flexible_to_installment",
+      "breakpoints": true
     }
   ]
 }

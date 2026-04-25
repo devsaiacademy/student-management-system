@@ -80,10 +80,10 @@ export const createStudentSchema = z
     kitCost: z.number().int().min(0).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.paymentPlan === "flexible" && data.emiMonths === null) {
+    if (data.paymentPlan === "installment" && data.emiMonths === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "EMI duration is required for a flexible payment plan",
+        message: "EMI duration is required for an installment payment plan",
         path: ["emiMonths"],
       });
     }

@@ -269,7 +269,7 @@ export const studentsRouter = router({
               totalFees: input.totalFees,
               paymentPlan: input.paymentPlan,
               emiMonths:
-                input.paymentPlan === "flexible" ? input.emiMonths : null,
+                input.paymentPlan === "installment" ? input.emiMonths : null,
               startDate: input.startDate,
               kitProvided: input.kitProvided,
               kitCost: input.kitProvided ? (input.kitCost ?? 0) : null,
@@ -283,8 +283,8 @@ export const studentsRouter = router({
             });
           }
 
-          // Generate the payment schedule for this enrollment. For a
-          // flexible plan we create one row per EMI month; for a single
+          // Generate the payment schedule for this enrollment. For an
+          // installment plan we create one row per EMI month; for a single
           // plan we create one row covering the full fee. All rows start
           // as unpaid with a null paymentMethod — the method is only known
           // once the student actually pays.
@@ -293,7 +293,7 @@ export const studentsRouter = router({
           // installments and dump the remainder on the last row so the
           // sum equals totalFees exactly.
           const installmentCount =
-            input.paymentPlan === "flexible" && input.emiMonths
+            input.paymentPlan === "installment" && input.emiMonths
               ? input.emiMonths
               : 1;
           const baseInstallment = Math.floor(
