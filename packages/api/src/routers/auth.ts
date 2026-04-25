@@ -55,7 +55,8 @@ export const authRouter = router({
       });
 
       const hashedToken = data?.properties?.hashed_token;
-      if (error || !hashedToken) {
+      const emailOtp = data?.properties?.email_otp;
+      if (error || !hashedToken || !emailOtp) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: error?.message ?? "Failed to generate magic link",
@@ -70,8 +71,8 @@ export const authRouter = router({
       const { error: sendError } = await resend.emails.send({
         from: env.RESEND_FROM,
         to: input.email,
-        subject: "Your Otomatiks sign-in link",
-        react: MagicLinkEmail({ actionLink }),
+        subject: "Your Otomatiks sign-in code",
+        react: MagicLinkEmail({ actionLink, code: emailOtp }),
       });
 
       if (sendError) {

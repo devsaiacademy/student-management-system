@@ -1,7 +1,14 @@
-<h2>Confirm your signup</h2>
-<p>Follow this link to confirm your user:</p>
+<h2>Sign in to Otomatiks</h2>
+<p>Click the link below to finish signing in:</p>
 <p>
   <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email"
-    >Confirm your mail</a
+    >Sign in</a
   >
+</p>
+<p>Or enter this code in the app:</p>
+<p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; font-family: monospace;">
+  {{ .Token }}
+</p>
+<p style="color: #666; font-size: 13px;">
+  The link and code expire in 10 minutes and can only be used once.
 </p>

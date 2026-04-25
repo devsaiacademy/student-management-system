@@ -16,15 +16,16 @@ import { EmailLogo } from "./logo";
 
 interface MagicLinkEmailProps {
   actionLink: string;
+  code: string;
 }
 
 const BRAND_COLOR = "#0769AB";
 
-export function MagicLinkEmail({ actionLink }: MagicLinkEmailProps) {
+export function MagicLinkEmail({ actionLink, code }: MagicLinkEmailProps) {
   return (
     <Html lang="en">
       <Head />
-      <Preview>Your Otomatiks sign-in link</Preview>
+      <Preview>Your Otomatiks sign-in code</Preview>
       <Body
         style={{
           backgroundColor: "#f6f8fa",
@@ -57,8 +58,9 @@ export function MagicLinkEmail({ actionLink }: MagicLinkEmailProps) {
           </Heading>
 
           <Text style={{ color: "#444", fontSize: "15px", lineHeight: "22px" }}>
-            Click the button below to finish signing in. This link expires in
-            one hour and can only be used once.
+            Click the button below to finish signing in, or enter the code in
+            the app. The link and code expire in 10 minutes and can only be used
+            once.
           </Text>
 
           <Section style={{ margin: "28px 0" }}>
@@ -76,6 +78,33 @@ export function MagicLinkEmail({ actionLink }: MagicLinkEmailProps) {
             >
               Sign in
             </Button>
+          </Section>
+
+          <Text style={{ color: "#444", fontSize: "13px", lineHeight: "20px" }}>
+            Or enter this code in the app:
+          </Text>
+          <Section
+            style={{
+              backgroundColor: "#f6f8fa",
+              borderRadius: "6px",
+              padding: "16px",
+              textAlign: "center",
+              margin: "8px 0 24px",
+            }}
+          >
+            <Text
+              style={{
+                color: "#111",
+                fontFamily:
+                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                fontSize: "28px",
+                fontWeight: 700,
+                letterSpacing: "8px",
+                margin: 0,
+              }}
+            >
+              {code}
+            </Text>
           </Section>
 
           <Text style={{ color: "#666", fontSize: "13px", lineHeight: "20px" }}>
