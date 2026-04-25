@@ -1,0 +1,2 @@
+CREATE TYPE "public"."level" AS ENUM('Level 1', 'Level 1 - 2', 'Level 1 - 3', 'Level 1 - 4', 'Level 1 - 5', 'Level 1 - 6');--> statement-breakpoint
+ALTER TABLE "enrollments" ALTER COLUMN "level" SET DATA TYPE "public"."level" USING "level"::"public"."level";

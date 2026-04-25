@@ -10,7 +10,7 @@ import {
   pgPolicy,
 } from "drizzle-orm/pg-core";
 
-import { paymentPlanEnum } from "./enums";
+import { levelEnum, paymentPlanEnum } from "./enums";
 import { students } from "./students";
 
 export const enrollments = pgTable(
@@ -21,7 +21,7 @@ export const enrollments = pgTable(
     studentId: integer("student_id").notNull(),
 
     course: varchar("course", { length: 100 }).notNull(),
-    level: varchar("level", { length: 50 }).notNull(),
+    level: levelEnum("level").notNull(),
     duration: varchar("duration", { length: 50 }).notNull(),
     closedBy: varchar("closed_by", { length: 100 }).notNull(),
 
