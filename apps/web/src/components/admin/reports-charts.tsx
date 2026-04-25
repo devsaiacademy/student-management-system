@@ -47,6 +47,84 @@ const SOURCE_PIE_COLORS = [
   "#ec4899",
 ] as const;
 
+const RADIAN = Math.PI / 180;
+const LEADER_LINE_COLOR = "#9ca3af";
+const LABEL_TEXT_COLOR = "#111827";
+
+type PieLabelProps = {
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  outerRadius?: number;
+  fill?: string;
+  name?: string | number;
+  value?: number;
+  percent?: number;
+};
+
+function renderPieLabel({
+  cx,
+  cy,
+  midAngle,
+  outerRadius,
+  fill,
+  name,
+  value,
+  percent,
+}: PieLabelProps) {
+  if (
+    cx === undefined ||
+    cy === undefined ||
+    midAngle === undefined ||
+    outerRadius === undefined ||
+    !percent
+  ) {
+    return null;
+  }
+
+  const cos = Math.cos(-midAngle * RADIAN);
+  const sin = Math.sin(-midAngle * RADIAN);
+  const sx = cx + outerRadius * cos;
+  const sy = cy + outerRadius * sin;
+  const mx = cx + (outerRadius + 16) * cos;
+  const my = cy + (outerRadius + 16) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 14;
+  const ey = my;
+  const textAnchor = cos >= 0 ? "start" : "end";
+  const textOffset = cos >= 0 ? 4 : -4;
+
+  return (
+    <g>
+      <path
+        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+        fill="none"
+        stroke={LEADER_LINE_COLOR}
+      />
+      <circle
+        cx={ex}
+        cy={ey}
+        fill={LEADER_LINE_COLOR}
+        r={2}
+        stroke="none"
+      />
+      <text
+        dominantBaseline="middle"
+        fontSize={11}
+        textAnchor={textAnchor}
+        x={ex + textOffset}
+        y={ey}
+      >
+        <tspan fill={fill ?? LABEL_TEXT_COLOR} fontWeight={500}>
+          {String(name)}:{" "}
+        </tspan>
+        <tspan fill={LABEL_TEXT_COLOR}>
+          {value} ({(percent * 100).toFixed(1)}%)
+        </tspan>
+      </text>
+    </g>
+  );
+}
+
 const naturalCompare = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: "base",
@@ -80,6 +158,7 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
   const [view, setView] = useState<ChartView>("pie");
 
   const pieData = levels.filter((entry) => entry.count > 0);
+  const totalCount = levels.reduce((sum, entry) => sum + entry.count, 0);
 
   return (
     <Card>
@@ -113,7 +192,7 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
                 <XAxis dataKey="level" />
                 <YAxis
                   allowDecimals={false}
-                  domain={[0, (dataMax: number) => dataMax]}
+                  domain={[0, totalCount]}
                   label={{
                     angle: -90,
                     position: "insideLeft",
@@ -135,11 +214,10 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
                   cy="50%"
                   data={pieData}
                   dataKey="count"
-                  label={({ value, percent }) =>
-                    percent ? `${value} (${(percent * 100).toFixed(1)}%)` : ""
-                  }
+                  label={renderPieLabel}
+                  labelLine={false}
                   nameKey="level"
-                  outerRadius="75%"
+                  outerRadius="70%"
                 >
                   {pieData.map((entry, index) => (
                     <Cell
@@ -151,7 +229,11 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
                 <Tooltip
                   formatter={(value) => [`${value} students`, "Count"]}
                 />
-                <Legend />
+                <Legend
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color }}>{value}</span>
+                  )}
+                />
               </PieChart>
             )}
           </ResponsiveContainer>
@@ -165,6 +247,7 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
   const [view, setView] = useState<ChartView>("pie");
 
   const pieData = sources.filter((entry) => entry.count > 0);
+  const totalCount = sources.reduce((sum, entry) => sum + entry.count, 0);
 
   return (
     <Card>
@@ -205,7 +288,7 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
                 />
                 <YAxis
                   allowDecimals={false}
-                  domain={[0, (dataMax: number) => dataMax]}
+                  domain={[0, totalCount]}
                   label={{
                     angle: -90,
                     position: "insideLeft",
@@ -227,11 +310,10 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
                   cy="50%"
                   data={pieData}
                   dataKey="count"
-                  label={({ value, percent }) =>
-                    percent ? `${value} (${(percent * 100).toFixed(1)}%)` : ""
-                  }
+                  label={renderPieLabel}
+                  labelLine={false}
                   nameKey="source"
-                  outerRadius="75%"
+                  outerRadius="70%"
                 >
                   {pieData.map((entry, index) => (
                     <Cell
@@ -243,7 +325,11 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
                 <Tooltip
                   formatter={(value) => [`${value} students`, "Count"]}
                 />
-                <Legend />
+                <Legend
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color }}>{value}</span>
+                  )}
+                />
               </PieChart>
             )}
           </ResponsiveContainer>
