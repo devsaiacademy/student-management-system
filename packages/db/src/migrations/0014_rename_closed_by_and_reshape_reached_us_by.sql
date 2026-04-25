@@ -1,3 +1,4 @@
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'enrollments' AND column_name = 'enrolled_by') THEN EXECUTE 'ALTER TABLE "enrollments" RENAME COLUMN "enrolled_by" TO "closed_by"'; END IF; END $$;--> statement-breakpoint
 ALTER TABLE "students" ALTER COLUMN "reached_us_by" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "students" ALTER COLUMN "reached_us_by" SET DEFAULT 'Board / Walkin'::text;--> statement-breakpoint
 UPDATE "students" SET "reached_us_by" = 'Board / Walkin' WHERE "reached_us_by" IN ('Banner', 'Walkin');--> statement-breakpoint
