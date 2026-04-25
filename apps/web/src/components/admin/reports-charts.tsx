@@ -162,8 +162,13 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-        <CardTitle>LEVELS COUNT</CardTitle>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+        <div className="flex flex-col gap-1">
+          <CardTitle>LEVELS COUNT</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Total students: {totalCount}
+          </p>
+        </div>
         <ToggleGroup
           aria-label="Chart view"
           onValueChange={(values) => {
@@ -251,8 +256,13 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-        <CardTitle>STUDENT SOURCES</CardTitle>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+        <div className="flex flex-col gap-1">
+          <CardTitle>STUDENT SOURCES</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Total students: {totalCount}
+          </p>
+        </div>
         <ToggleGroup
           aria-label="Chart view"
           onValueChange={(values) => {
