@@ -6,7 +6,6 @@ import {
   CLOSED_BY_NAMES,
   REACHED_US_BY_OPTIONS,
   LEVELS,
-  STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import {
   Card,
@@ -94,13 +93,6 @@ export function EnrollmentCard({
               control={form.control}
               name="admissionDate"
               label="Admission Date"
-            />
-            <LabeledSelect
-              control={form.control}
-              name="studentStatus"
-              label="Student Status"
-              placeholder="Select a status"
-              options={STUDENT_STATUSES}
             />
           </div>
 

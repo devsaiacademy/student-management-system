@@ -1,1 +1,0 @@
-ALTER TABLE "enrollments" RENAME COLUMN "enrolled_by" TO "closed_by";

@@ -1,5 +1,5 @@
 {
-  "id": "120ad425-e1da-4d00-8138-187e9d857652",
+  "id": "bddab5d8-d52f-4e0f-ad80-f7a72c2c9256",
   "prevId": "18a45258-c12c-4603-8889-0d3411392cf2",
   "version": "7",
   "dialect": "postgresql",
@@ -751,7 +751,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'Banner'"
+          "default": "'Board / Walkin'"
         },
         "created_at": {
           "name": "created_at",
@@ -935,11 +935,13 @@
       "name": "reached_us_by",
       "schema": "public",
       "values": [
-        "Banner",
+        "Board / Walkin",
+        "G Adds",
+        "Meta Adds",
         "Referral",
+        "Call",
         "DM",
-        "GAdds",
-        "Walkin"
+        "Other Branches"
       ]
     },
     "public.student_progress_status": {
