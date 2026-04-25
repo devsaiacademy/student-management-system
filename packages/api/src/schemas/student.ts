@@ -2,7 +2,7 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
-  ENROLLED_BY_NAMES,
+  CLOSED_BY_NAMES,
   LEVELS,
   PAYMENT_PLANS,
   REACHED_US_BY_OPTIONS,
@@ -59,7 +59,7 @@ export const createStudentSchema = z
     course: z.enum(COURSES),
     duration: z.enum(DURATIONS),
     level: z.enum(LEVELS),
-    enrolledBy: z.enum(ENROLLED_BY_NAMES),
+    closedBy: z.enum(CLOSED_BY_NAMES),
 
     totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in rupees
     paymentPlan: z.enum(PAYMENT_PLANS),

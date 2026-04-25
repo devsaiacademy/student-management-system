@@ -265,7 +265,7 @@ export const studentsRouter = router({
               course: input.course,
               level: input.level,
               duration: input.duration,
-              enrolledBy: input.enrolledBy,
+              closedBy: input.closedBy,
               totalFees: input.totalFees,
               paymentPlan: input.paymentPlan,
               emiMonths:

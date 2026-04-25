@@ -60,14 +60,14 @@ export const LEVELS = [
 ] as const;
 export type Level = (typeof LEVELS)[number];
 
-export const ENROLLED_BY_NAMES = [
+export const CLOSED_BY_NAMES = [
   "Sai",
   "Priya",
   "Mahi",
   "Mohan",
   "Dinesh",
 ] as const;
-export type EnrolledByName = (typeof ENROLLED_BY_NAMES)[number];
+export type ClosedByName = (typeof CLOSED_BY_NAMES)[number];
 
 export const EMI_MONTHS_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 export type EmiMonthsOption = (typeof EMI_MONTHS_OPTIONS)[number];

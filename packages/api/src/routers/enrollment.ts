@@ -67,7 +67,7 @@ export const enrollmentRouter = router({
           emiMonths: enrollment.emiMonths,
           kitProvided: enrollment.kitProvided,
           kitCost: enrollment.kitCost,
-          enrolledBy: enrollment.enrolledBy,
+          closedBy: enrollment.closedBy,
         },
         progress: {
           paidCount,

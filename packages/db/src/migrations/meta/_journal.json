@@ -99,6 +99,13 @@
       "when": 1777097521802,
       "tag": "0013_rename_start_date_to_admission_date",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1777099963687,
+      "tag": "0014_rename_enrolled_by_to_closed_by",
+      "breakpoints": true
     }
   ]
 }

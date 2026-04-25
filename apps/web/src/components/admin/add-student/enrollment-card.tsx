@@ -3,7 +3,7 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
-  ENROLLED_BY_NAMES,
+  CLOSED_BY_NAMES,
   REACHED_US_BY_OPTIONS,
   LEVELS,
   STUDENT_STATUSES,
@@ -85,10 +85,10 @@ export function EnrollmentCard({
             />
             <LabeledSelect
               control={form.control}
-              name="enrolledBy"
-              label="Enrolled By"
-              placeholder="Enrolled By"
-              options={ENROLLED_BY_NAMES}
+              name="closedBy"
+              label="Closed By"
+              placeholder="Closed By"
+              options={CLOSED_BY_NAMES}
             />
             <DatePickerField
               control={form.control}
