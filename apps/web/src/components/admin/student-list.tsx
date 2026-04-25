@@ -17,6 +17,21 @@ import { StudentCard } from "./student-card";
 
 const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5", "s6"] as const;
 
+function FilteredCountFooter({ count }: { count: number }) {
+  const start = count === 0 ? 0 : 1;
+  return (
+    <footer className="flex min-h-[68px] shrink-0 items-center justify-end border-t border-border bg-background px-6 py-4">
+      <p className="text-sm text-muted-foreground">
+        Showing{" "}
+        <span className="font-medium text-foreground">
+          {start}-{count}
+        </span>{" "}
+        of <span className="font-medium text-foreground">{count}</span>
+      </p>
+    </footer>
+  );
+}
+
 function StudentCardSkeleton() {
   return (
     <div className="flex items-start gap-3 rounded-[12px] border border-border bg-background px-4 py-4 sm:items-center sm:gap-4 sm:px-5">
@@ -149,7 +164,11 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
         </div>
       </ScrollArea>
 
-      {isFiltering ? null : <AdminPagination />}
+      {isFiltering ? (
+        <FilteredCountFooter count={filteredStudents.length} />
+      ) : (
+        <AdminPagination />
+      )}
     </div>
   );
 }
