@@ -10,6 +10,7 @@ import {
 } from "@student-management-system/ui/components/input-otp";
 import { useMutation } from "@tanstack/react-query";
 import { gooeyToast } from "goey-toast";
+import { MoveLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -313,10 +314,11 @@ export default function Login() {
                   {resendLabel(secondsLeft, sendMagicLink.isPending)}
                 </Button>
                 <button
-                  className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:underline cursor-pointer"
                   onClick={handleUseDifferentEmail}
                   type="button"
                 >
+                  <MoveLeft className="size-4" />
                   Use a different email
                 </button>
               </div>
@@ -358,9 +360,10 @@ export default function Login() {
 
               <div className="mt-6 flex justify-center">
                 <Link
-                  className="text-sm text-muted-foreground underline underline-offset-4"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline underline-offset-4"
                   href="/"
                 >
+                  <MoveLeft className="size-4" />
                   Back to home
                 </Link>
               </div>
