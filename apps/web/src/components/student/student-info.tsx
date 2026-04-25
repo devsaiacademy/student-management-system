@@ -145,8 +145,8 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
               <span className="truncate">{data.email}</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <Phone aria-hidden className="size-3.5 shrink-0" />+91{" "}
-              {data.phoneNumber}
+              <Phone aria-hidden className="size-3.5 shrink-0" />
+              +91 {data.phoneNumber}
             </span>
             <span className="flex items-center gap-1.5">
               <Hash aria-hidden className="size-3.5 shrink-0" />

@@ -123,7 +123,7 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
     isLoading || isSearchLoading || isStatusLoading || isSourceLoading;
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <AdminHeader
         onSearchChange={setSearchQuery}
         onSourceChange={(value) => setSourceFilter(value ?? "all")}
@@ -133,7 +133,7 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
         statusFilter={statusFilter}
       />
 
-      <ScrollArea className="max-h-[85vh] flex-1">
+      <ScrollArea className="min-h-0 flex-1">
         <div className="flex flex-col gap-3 px-6 py-6">
           {isQueryLoading ? (
             SKELETON_KEYS.map((key) => <StudentCardSkeleton key={key} />)

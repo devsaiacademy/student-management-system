@@ -1,5 +1,6 @@
-import { Button } from "@student-management-system/ui/components/button";
+import { buttonVariants } from "@student-management-system/ui/components/button";
 import { cn } from "@student-management-system/ui/lib/utils";
+import type { VariantProps } from "class-variance-authority";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -38,8 +39,8 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean;
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">;
+  size?: VariantProps<typeof buttonVariants>["size"];
+} & React.ComponentProps<"a">;
 
 function PaginationLink({
   className,
@@ -48,19 +49,19 @@ function PaginationLink({
   ...props
 }: PaginationLinkProps) {
   return (
-    <Button
-      variant={isActive ? "default" : "ghost"}
-      size={size}
-      className={cn("rounded-[8px] text-sm font-medium", className)}
-      nativeButton={false}
-      render={
-        <a
-          aria-current={isActive ? "page" : undefined}
-          data-slot="pagination-link"
-          data-active={isActive}
-          {...props}
-        />
-      }
+    <a
+      aria-current={isActive ? "page" : undefined}
+      data-slot="pagination-link"
+      data-active={isActive}
+      className={cn(
+        buttonVariants({
+          variant: isActive ? "default" : "ghost",
+          size,
+        }),
+        "rounded-[8px] text-sm font-medium",
+        className
+      )}
+      {...props}
     />
   );
 }

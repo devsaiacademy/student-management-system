@@ -101,7 +101,7 @@ export function AdminPagination() {
   const isLast = currentPage >= totalPages;
 
   return (
-    <footer className="flex items-center bg-background px-6 py-4">
+    <footer className="flex min-h-[68px] shrink-0 items-center border-t border-border bg-background px-6 py-4">
       {/* Left spacer */}
       <div className="flex-1" />
 
