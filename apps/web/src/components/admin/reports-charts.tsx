@@ -109,7 +109,7 @@ function renderPieLabel({
       />
       <text
         dominantBaseline="middle"
-        fontSize={11}
+        fontSize={14}
         textAnchor={textAnchor}
         x={ex + textOffset}
         y={ey}
@@ -147,7 +147,7 @@ export function ReportsCharts({ levels, sources }: ReportsChartsProps) {
   const sortedSources = [...sources].sort((a, b) => b.count - a.count);
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+    <div className="flex flex-col gap-4 md:gap-6">
       <LevelsChartCard levels={sortedLevels} />
       <SourcesChartCard sources={sortedSources} />
     </div>
@@ -165,7 +165,7 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="flex flex-col gap-1">
           <CardTitle>LEVELS COUNT</CardTitle>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Total students: {totalCount}
           </p>
         </div>
@@ -189,7 +189,7 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
         </ToggleGroup>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px] sm:h-[360px] md:h-[400px]">
+        <div className="h-[340px] sm:h-[440px] md:h-[500px]">
           <ResponsiveContainer height="100%" width="100%">
             {view === "bar" ? (
               <BarChart data={levels}>
@@ -238,6 +238,7 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
                   formatter={(value, entry) => (
                     <span style={{ color: entry.color }}>{value}</span>
                   )}
+                  wrapperStyle={{ fontSize: 14 }}
                 />
               </PieChart>
             )}
@@ -259,7 +260,7 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="flex flex-col gap-1">
           <CardTitle>STUDENT SOURCES</CardTitle>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Total students: {totalCount}
           </p>
         </div>
@@ -283,7 +284,7 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
         </ToggleGroup>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px] sm:h-[360px] md:h-[400px]">
+        <div className="h-[340px] sm:h-[440px] md:h-[500px]">
           <ResponsiveContainer height="100%" width="100%">
             {view === "bar" ? (
               <BarChart data={sources} margin={{ bottom: 24 }}>
@@ -294,7 +295,7 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
                   height={60}
                   interval={0}
                   textAnchor="end"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 14 }}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -339,6 +340,7 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
                   formatter={(value, entry) => (
                     <span style={{ color: entry.color }}>{value}</span>
                   )}
+                  wrapperStyle={{ fontSize: 14 }}
                 />
               </PieChart>
             )}
