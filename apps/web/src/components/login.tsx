@@ -65,9 +65,9 @@ export default function Login() {
   const [verifying, setVerifying] = useState(false);
   const otpInputRef = useRef<HTMLInputElement>(null);
 
-  const sendMagicLink = useMutation({
+  const sendSignInEmail = useMutation({
     mutationFn: (targetEmail: string) =>
-      trpcClient.auth.sendMagicLink.mutate({
+      trpcClient.auth.sendSignInEmail.mutate({
         email: targetEmail,
         redirectTo: `${window.location.origin}/auth/callback`,
       }),
@@ -115,7 +115,7 @@ export default function Login() {
       });
       if (matches.length === 0) {
         toastInvalidEmail(
-          "You're email is not registered, contact admin for access."
+          "Your email is not registered, contact admin for access."
         );
         return false;
       }
@@ -142,7 +142,7 @@ export default function Login() {
       return;
     }
     try {
-      await sendMagicLink.mutateAsync(email);
+      await sendSignInEmail.mutateAsync(email);
       setCode("");
       setStage({
         kind: "verify",
@@ -163,7 +163,7 @@ export default function Login() {
       return;
     }
     try {
-      await sendMagicLink.mutateAsync(stage.email);
+      await sendSignInEmail.mutateAsync(stage.email);
       setCode("");
       setStage({
         kind: "verify",
@@ -197,8 +197,7 @@ export default function Login() {
       return;
     }
 
-    const message = error.message.toLowerCase();
-    if (message.includes("expired")) {
+    if (error.code === "otp_expired" || error.code === "otp_disabled") {
       gooeyToast.error("Code expired", {
         description: "Request a new code to continue.",
       });
@@ -306,15 +305,15 @@ export default function Login() {
               <div className="mt-6 flex flex-col items-center gap-3">
                 <Button
                   className="h-10 rounded-md px-4 text-sm"
-                  disabled={secondsLeft > 0 || sendMagicLink.isPending}
+                  disabled={secondsLeft > 0 || sendSignInEmail.isPending}
                   onClick={handleResend}
                   type="button"
                   variant="outline"
                 >
-                  {resendLabel(secondsLeft, sendMagicLink.isPending)}
+                  {resendLabel(secondsLeft, sendSignInEmail.isPending)}
                 </Button>
                 <button
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:underline"
                   onClick={handleUseDifferentEmail}
                   type="button"
                 >
@@ -347,12 +346,12 @@ export default function Login() {
 
                 <Button
                   className="w-full py-3 text-base font-semibold"
-                  disabled={sendMagicLink.isPending}
+                  disabled={sendSignInEmail.isPending}
                   size="lg"
                   type="submit"
                   variant="blue"
                 >
-                  {sendMagicLink.isPending
+                  {sendSignInEmail.isPending
                     ? "Sending code..."
                     : "Continue with Email"}
                 </Button>

@@ -9,7 +9,7 @@ import { protectedProcedure, publicProcedure, router } from "../index";
 import { isOtomatiksAdminEmail } from "../lib/admin-email";
 
 export const authRouter = router({
-  sendMagicLink: publicProcedure
+  sendSignInEmail: publicProcedure
     .input(
       z.object({
         email: z.email(),
