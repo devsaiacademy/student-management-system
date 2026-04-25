@@ -5,11 +5,13 @@ export const STUDENT_STATUSES = ["active", "in_active", "discontinue"] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
 export const REACHED_US_BY_OPTIONS = [
-  "Banner",
+  "Board / Walkin",
+  "G Adds",
+  "Meta Adds",
   "Referral",
+  "Call",
   "DM",
-  "GAdds",
-  "Walkin",
+  "Other Branches",
 ] as const;
 export type ReachedUsBy = (typeof REACHED_US_BY_OPTIONS)[number];
 

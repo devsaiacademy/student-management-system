@@ -41,7 +41,7 @@ export const students = pgTable(
       .notNull(),
 
     reachedUsBy: reachedUsByEnum("reached_us_by")
-      .default("Banner")
+      .default("Board / Walkin")
       .notNull(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
