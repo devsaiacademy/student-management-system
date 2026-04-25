@@ -1,6 +1,7 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
 import {
+  LEVELS,
   PAYMENT_METHODS,
   PAYMENT_PLANS,
   PAYMENT_STATUSES,
@@ -23,3 +24,5 @@ export const studentProgressStatusEnum = pgEnum(
   "student_progress_status",
   STUDENT_PROGRESS_STATUSES
 );
+
+export const levelEnum = pgEnum("level", LEVELS);

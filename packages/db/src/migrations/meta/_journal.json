@@ -106,6 +106,13 @@
       "when": 1777101241828,
       "tag": "0014_rename_closed_by_and_reshape_reached_us_by",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1777124649364,
+      "tag": "0015_enum_for_levels",
+      "breakpoints": true
     }
   ]
 }
