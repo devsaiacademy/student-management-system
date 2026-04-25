@@ -1,5 +1,8 @@
 import { db } from "@student-management-system/db";
-import { REACHED_US_BY_OPTIONS } from "@student-management-system/db/schema/constants";
+import {
+  LEVELS,
+  REACHED_US_BY_OPTIONS,
+} from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
 import { students } from "@student-management-system/db/schema/students";
 import { count } from "drizzle-orm";
@@ -7,8 +10,9 @@ import { count } from "drizzle-orm";
 import { protectedProcedure, router } from "../index";
 
 export const reportsRouter = router({
-  // Distinct enrollment levels with student counts for the LEVELS COUNT bar chart.
-  // One enrollment per student in practice, so this effectively counts students per level.
+  // Student counts per enrollment level. Includes all LEVELS values, with
+  // zero-count entries for levels with no enrollments so the chart axis stays
+  // stable and the pie view can compute a complete breakdown.
   getLevelsCount: protectedProcedure.query(async () => {
     const rows = await db
       .select({
@@ -18,9 +22,13 @@ export const reportsRouter = router({
       .from(enrollments)
       .groupBy(enrollments.level);
 
-    return rows.map((row) => ({
-      level: row.level,
-      count: Number(row.count),
+    const countsByLevel = new Map(
+      rows.map((row) => [row.level, Number(row.count)])
+    );
+
+    return LEVELS.map((level) => ({
+      level,
+      count: countsByLevel.get(level) ?? 0,
     }));
   }),
 
