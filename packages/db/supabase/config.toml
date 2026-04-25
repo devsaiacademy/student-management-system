@@ -219,15 +219,22 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 600
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# SMTP is disabled locally so emails land in Mailpit (http://localhost:54324).
+# In production, configure the same Resend SMTP block in the Supabase Cloud
+# dashboard (Auth → SMTP Settings):
+#   host:     smtp.resend.com
+#   port:     465
+#   user:     resend
+#   pass:     <RESEND_API_KEY>
+#   sender:   noreply@otomatiks.balajimariappan.com
+[auth.email.smtp]
+enabled = false
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "noreply@otomatiks.balajimariappan.com"
+sender_name = "Otomatiks"
 
 # Customize magic link email template to match remote Supabase
 [auth.email.template.magic_link]

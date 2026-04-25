@@ -1,16 +1,12 @@
 import { db } from "@student-management-system/db";
 import { students } from "@student-management-system/db/schema/students";
 import { userProfiles } from "@student-management-system/db/schema/user-profiles";
-import { env } from "@student-management-system/env/server";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { MagicLinkEmail } from "../emails/magic-link-email";
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { isOtomatiksAdminEmail } from "../lib/admin-email";
-import { resend } from "../lib/resend";
-import { supabaseAdmin } from "../lib/supabase-admin";
 
 export const authRouter = router({
   sendMagicLink: publicProcedure
@@ -21,64 +17,15 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Dev: keep Supabase's built-in flow so Mailpit delivery still works.
-      if (env.NODE_ENV !== "production") {
-        console.log(env.NODE_ENV);
-
-        const { error } = await ctx.supabase.auth.signInWithOtp({
-          email: input.email,
-          options: { emailRedirectTo: input.redirectTo },
-        });
-
-        if (error) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: error.message,
-          });
-        }
-
-        return { success: true };
-      }
-
-      // Prod: mint the link via Supabase admin, deliver it via Resend.
-      if (!(supabaseAdmin && resend)) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Email service not configured",
-        });
-      }
-
-      const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-        type: "magiclink",
+      const { error } = await ctx.supabase.auth.signInWithOtp({
         email: input.email,
-        options: { redirectTo: input.redirectTo },
+        options: { emailRedirectTo: input.redirectTo },
       });
 
-      const hashedToken = data?.properties?.hashed_token;
-      const emailOtp = data?.properties?.email_otp;
-      if (error || !hashedToken || !emailOtp) {
+      if (error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: error?.message ?? "Failed to generate magic link",
-        });
-      }
-
-      const actionUrl = new URL(input.redirectTo);
-      actionUrl.searchParams.set("token_hash", hashedToken);
-      actionUrl.searchParams.set("type", "email");
-      const actionLink = actionUrl.toString();
-
-      const { error: sendError } = await resend.emails.send({
-        from: env.RESEND_FROM,
-        to: input.email,
-        subject: "Your Otomatiks sign-in code",
-        react: MagicLinkEmail({ actionLink, code: emailOtp }),
-      });
-
-      if (sendError) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: sendError.message,
+          message: error.message,
         });
       }
 

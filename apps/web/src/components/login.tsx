@@ -10,6 +10,7 @@ import {
 } from "@student-management-system/ui/components/input-otp";
 import { useMutation } from "@tanstack/react-query";
 import { gooeyToast } from "goey-toast";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -303,10 +304,11 @@ export default function Login() {
 
               <div className="mt-6 flex flex-col items-center gap-3">
                 <Button
+                  className="h-10 rounded-md px-4 text-sm"
                   disabled={secondsLeft > 0 || sendMagicLink.isPending}
                   onClick={handleResend}
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                 >
                   {resendLabel(secondsLeft, sendMagicLink.isPending)}
                 </Button>
@@ -354,11 +356,14 @@ export default function Login() {
                 </Button>
               </form>
 
-              <p className="mt-6 text-center text-xs text-muted-foreground">
-                By continuing, you agree to our{" "}
-                <span className="font-semibold text-primary">Terms</span> and{" "}
-                <span className="font-semibold text-primary">Privacy</span>.
-              </p>
+              <div className="mt-6 flex justify-center">
+                <Link
+                  className="text-sm text-muted-foreground underline underline-offset-4"
+                  href="/"
+                >
+                  Back to home
+                </Link>
+              </div>
             </>
           )}
         </div>
