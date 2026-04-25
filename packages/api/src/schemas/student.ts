@@ -75,7 +75,7 @@ export const createStudentSchema = z
         .nullable()
     ),
 
-    startDate: z.coerce.date(),
+    admissionDate: z.coerce.date(),
     kitProvided: z.boolean(),
     kitCost: z.number().int().min(0).optional(),
   })

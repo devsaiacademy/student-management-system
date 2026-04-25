@@ -29,7 +29,7 @@ export const enrollments = pgTable(
     paymentPlan: paymentPlanEnum("payment_plan").notNull(),
     emiMonths: integer("emi_months"),
 
-    startDate: timestamp("start_date").notNull(),
+    admissionDate: timestamp("admission_date").notNull(),
     kitProvided: boolean("kit_provided").default(false).notNull(),
     kitCost: integer("kit_cost"),
 

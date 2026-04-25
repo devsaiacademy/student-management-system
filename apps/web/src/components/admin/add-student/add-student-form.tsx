@@ -39,7 +39,7 @@ const defaultValues: CreateStudentInput = {
   totalFees: "" as unknown as number,
   paymentPlan: "single",
   emiMonths: null,
-  startDate: new Date(),
+  admissionDate: new Date(),
   kitProvided: false,
   kitCost: undefined,
 };

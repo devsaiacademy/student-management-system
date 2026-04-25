@@ -73,7 +73,7 @@ export const enrollmentRouter = router({
           paidCount,
           totalCount: tuitionPayments.length,
           totalPaid,
-          startDate: enrollment.createdAt.toISOString(),
+          admissionDate: enrollment.createdAt.toISOString(),
           nextDueDate: nextUnpaid?.dueDate ?? null,
         },
         kit: kitPayment

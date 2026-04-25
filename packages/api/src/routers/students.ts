@@ -270,7 +270,7 @@ export const studentsRouter = router({
               paymentPlan: input.paymentPlan,
               emiMonths:
                 input.paymentPlan === "installment" ? input.emiMonths : null,
-              startDate: input.startDate,
+              admissionDate: input.admissionDate,
               kitProvided: input.kitProvided,
               kitCost: input.kitProvided ? (input.kitCost ?? 0) : null,
             })
@@ -313,7 +313,7 @@ export const studentsRouter = router({
                 emiNumber: installmentCount === 1 ? null : index + 1,
                 paymentStatus: "unpaid" as const,
                 dueDate: formatDateForPg(
-                  addMonthsClamped(input.startDate, index)
+                  addMonthsClamped(input.admissionDate, index)
                 ),
               };
             }
@@ -325,7 +325,7 @@ export const studentsRouter = router({
           // on the enrollment start date so the ledger reflects it without
           // ever showing as dues.
           if (input.kitProvided && typeof input.kitCost === "number") {
-            const startDateString = formatDateForPg(input.startDate);
+            const admissionDateString = formatDateForPg(input.admissionDate);
             paymentRows.push({
               studentId: created.id,
               enrollmentId: enrollment.id,
@@ -334,8 +334,8 @@ export const studentsRouter = router({
               emiNumber: null,
               paymentStatus:
                 input.kitCost === 0 ? ("paid" as const) : ("unpaid" as const),
-              dueDate: startDateString,
-              paidDate: input.kitCost === 0 ? startDateString : null,
+              dueDate: admissionDateString,
+              paidDate: input.kitCost === 0 ? admissionDateString : null,
             });
           }
 

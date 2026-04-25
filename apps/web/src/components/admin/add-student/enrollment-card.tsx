@@ -92,8 +92,8 @@ export function EnrollmentCard({
             />
             <DatePickerField
               control={form.control}
-              name="startDate"
-              label="Start Date"
+              name="admissionDate"
+              label="Admission Date"
             />
             <LabeledSelect
               control={form.control}
