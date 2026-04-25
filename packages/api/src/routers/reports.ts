@@ -1,5 +1,5 @@
 import { db } from "@student-management-system/db";
-import { STUDENT_SOURCES } from "@student-management-system/db/schema/constants";
+import { REACHED_US_BY_OPTIONS } from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
 import { students } from "@student-management-system/db/schema/students";
 import { count } from "drizzle-orm";
@@ -24,22 +24,22 @@ export const reportsRouter = router({
     }));
   }),
 
-  // Student counts per source. Includes all STUDENT_SOURCES values, with zero-count
+  // Student counts per source. Includes all REACHED_US_BY_OPTIONS values, with zero-count
   // entries for sources with no students so the X-axis stays stable.
   getSourcesCount: protectedProcedure.query(async () => {
     const rows = await db
       .select({
-        source: students.studentSource,
+        source: students.reachedUsBy,
         count: count(students.id),
       })
       .from(students)
-      .groupBy(students.studentSource);
+      .groupBy(students.reachedUsBy);
 
     const countsBySource = new Map(
       rows.map((row) => [row.source, Number(row.count)])
     );
 
-    return STUDENT_SOURCES.map((source) => ({
+    return REACHED_US_BY_OPTIONS.map((source) => ({
       source,
       count: countsBySource.get(source) ?? 0,
     }));

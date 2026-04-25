@@ -5,7 +5,7 @@ import {
   ENROLLED_BY_NAMES,
   LEVELS,
   PAYMENT_PLANS,
-  STUDENT_SOURCES,
+  REACHED_US_BY_OPTIONS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import z from "zod";
@@ -52,7 +52,7 @@ export const createStudentSchema = z
     fatherName: z.string().trim().max(100).optional(),
     fatherOccupation: z.string().trim().max(100).optional(),
 
-    studentSource: z.enum(STUDENT_SOURCES),
+    reachedUsBy: z.enum(REACHED_US_BY_OPTIONS),
     studentStatus: z.enum(STUDENT_STATUSES),
 
     // --- Enrollment (enrollments table) ---

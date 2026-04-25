@@ -1,6 +1,6 @@
 import { db } from "@student-management-system/db";
 import {
-  STUDENT_SOURCES,
+  REACHED_US_BY_OPTIONS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
@@ -64,7 +64,7 @@ export const studentsRouter = router({
           rollNumber: students.rollNumber,
           email: students.email,
           studentStatus: students.studentStatus,
-          studentSource: students.studentSource,
+          reachedUsBy: students.reachedUsBy,
         })
         .from(students)
         .orderBy(desc(students.createdAt))
@@ -107,7 +107,7 @@ export const studentsRouter = router({
   filterStudentsWithSource: protectedProcedure
     .input(
       z.object({
-        source: z.enum(STUDENT_SOURCES).nullable(),
+        source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
       })
     )
     .query(async ({ input }) => {
@@ -118,7 +118,7 @@ export const studentsRouter = router({
       const result =
         source === null
           ? await query
-          : await query.where(eq(students.studentSource, source));
+          : await query.where(eq(students.reachedUsBy, source));
       return result;
     }),
 
@@ -129,7 +129,7 @@ export const studentsRouter = router({
       z.object({
         search: z.string().nullable(),
         status: z.enum(STUDENT_STATUSES).nullable(),
-        source: z.enum(STUDENT_SOURCES).nullable(),
+        source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
       })
     )
     .query(async ({ input }) => {
@@ -152,7 +152,7 @@ export const studentsRouter = router({
             status ? eq(students.studentStatus, status) : undefined,
 
             //  filter by source
-            source ? eq(students.studentSource, source) : undefined
+            source ? eq(students.reachedUsBy, source) : undefined
           )
         );
     }),
@@ -171,7 +171,7 @@ export const studentsRouter = router({
           phoneNumber: students.phoneNumber,
           rollNumber: students.rollNumber,
           studentStatus: students.studentStatus,
-          studentSource: students.studentSource,
+          reachedUsBy: students.reachedUsBy,
           schoolName: students.schoolName,
           standard: students.standard,
           academicYear: students.academicYear,
@@ -247,7 +247,7 @@ export const studentsRouter = router({
               fatherName: input.fatherName || null,
               fatherOccupation: input.fatherOccupation || null,
               studentStatus: input.studentStatus,
-              studentSource: input.studentSource,
+              reachedUsBy: input.reachedUsBy,
             })
             .returning({ id: students.id });
 

@@ -4,14 +4,14 @@ export type PaymentPlan = (typeof PAYMENT_PLANS)[number];
 export const STUDENT_STATUSES = ["active", "in_active", "discontinue"] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
-export const STUDENT_SOURCES = [
+export const REACHED_US_BY_OPTIONS = [
   "Banner",
   "Referral",
   "DM",
   "GAdds",
   "Walkin",
 ] as const;
-export type StudentSource = (typeof STUDENT_SOURCES)[number];
+export type ReachedUsBy = (typeof REACHED_US_BY_OPTIONS)[number];
 
 export const PAYMENT_STATUSES = ["paid", "unpaid", "overdue"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];

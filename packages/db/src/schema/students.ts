@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { studentStatusEnum } from "./enums";
-import { studentSourceEnum } from "./enums";
+import { reachedUsByEnum } from "./enums";
 
 export const students = pgTable(
   "students",
@@ -40,7 +40,7 @@ export const students = pgTable(
       .default("active")
       .notNull(),
 
-    studentSource: studentSourceEnum("student_source")
+    reachedUsBy: reachedUsByEnum("reached_us_by")
       .default("Banner")
       .notNull(),
 

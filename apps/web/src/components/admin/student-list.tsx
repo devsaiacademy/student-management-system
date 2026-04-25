@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  STUDENT_SOURCES,
+  REACHED_US_BY_OPTIONS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import { ScrollArea } from "@student-management-system/ui/components/scroll-area";
@@ -41,11 +41,11 @@ type Student = {
   rollNumber: string;
   email: string;
   studentStatus: string;
-  studentSource: string;
+  reachedUsBy: string;
 };
 
 type StudentStatus = (typeof STUDENT_STATUSES)[number];
-type StudentSource = (typeof STUDENT_SOURCES)[number];
+type ReachedUsBy = (typeof REACHED_US_BY_OPTIONS)[number];
 
 type StudentListProps = {
   students: Student[];
@@ -71,7 +71,7 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
 
   const sourceQuery = useQuery(
     trpc.students.filterStudentsWithSource.queryOptions(
-      { source: isSourceFiltered ? (sourceFilter as StudentSource) : null },
+      { source: isSourceFiltered ? (sourceFilter as ReachedUsBy) : null },
       { enabled: isSourceFiltered }
     )
   );
@@ -81,7 +81,7 @@ export function StudentList({ students, isLoading = false }: StudentListProps) {
       {
         search: searchQuery || null,
         status: isStatusFiltered ? (statusFilter as StudentStatus) : null,
-        source: isSourceFiltered ? (sourceFilter as StudentSource) : null,
+        source: isSourceFiltered ? (sourceFilter as ReachedUsBy) : null,
       },
       {
         enabled: searchQuery.length > 0 || isSourceFiltered || isStatusFiltered,

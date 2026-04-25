@@ -30,7 +30,7 @@ const defaultValues: CreateStudentInput = {
   motherOccupation: "",
   fatherName: "",
   fatherOccupation: "",
-  studentSource: "Banner",
+  reachedUsBy: "Banner",
   studentStatus: "active",
   course: "Robotics",
   duration: "3 months",

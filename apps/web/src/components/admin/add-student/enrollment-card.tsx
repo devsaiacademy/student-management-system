@@ -4,7 +4,7 @@ import {
   DURATIONS,
   EMI_MONTHS_OPTIONS,
   ENROLLED_BY_NAMES,
-  STUDENT_SOURCES,
+  REACHED_US_BY_OPTIONS,
   LEVELS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
@@ -169,10 +169,10 @@ export function EnrollmentCard({
 
             <LabeledSelect
               control={form.control}
-              name="studentSource"
-              label="Enrolled via"
+              name="reachedUsBy"
+              label="Reached Us By"
               placeholder="Select Medium"
-              options={STUDENT_SOURCES}
+              options={REACHED_US_BY_OPTIONS}
             />
 
             <LabeledRadio
