@@ -7,7 +7,7 @@ export default async function WelcomePage() {
   const user = await trpc.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?role=parent");
   }
 
   const isAdmin = await trpc.auth.isAdmin();

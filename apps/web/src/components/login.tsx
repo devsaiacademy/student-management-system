@@ -117,7 +117,7 @@ export default function Login() {
           ) : (
             <>
               <h1 className="text-3xl font-extrabold text-foreground">
-                Log in
+                Log in as {role}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Use your account to continue.

@@ -4,8 +4,8 @@ import {
   PAYMENT_METHODS,
   PAYMENT_PLANS,
   PAYMENT_STATUSES,
+  REACHED_US_BY_OPTIONS,
   STUDENT_PROGRESS_STATUSES,
-  STUDENT_SOURCES,
   STUDENT_STATUSES,
 } from "./constants";
 
@@ -13,7 +13,7 @@ export const paymentPlanEnum = pgEnum("payment_plan", PAYMENT_PLANS);
 
 export const studentStatusEnum = pgEnum("student_status", STUDENT_STATUSES);
 
-export const studentSourceEnum = pgEnum("student_source", STUDENT_SOURCES);
+export const reachedUsByEnum = pgEnum("reached_us_by", REACHED_US_BY_OPTIONS);
 
 export const paymentStatusEnum = pgEnum("payment_status", PAYMENT_STATUSES);
 

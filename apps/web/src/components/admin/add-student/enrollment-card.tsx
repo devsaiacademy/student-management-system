@@ -3,10 +3,9 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
-  ENROLLED_BY_NAMES,
-  STUDENT_SOURCES,
+  CLOSED_BY_NAMES,
+  REACHED_US_BY_OPTIONS,
   LEVELS,
-  STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import {
   Card,
@@ -85,22 +84,15 @@ export function EnrollmentCard({
             />
             <LabeledSelect
               control={form.control}
-              name="enrolledBy"
-              label="Enrolled By"
-              placeholder="Enrolled By"
-              options={ENROLLED_BY_NAMES}
+              name="closedBy"
+              label="Closed By"
+              placeholder="Closed By"
+              options={CLOSED_BY_NAMES}
             />
             <DatePickerField
               control={form.control}
-              name="startDate"
-              label="Start Date"
-            />
-            <LabeledSelect
-              control={form.control}
-              name="studentStatus"
-              label="Student Status"
-              placeholder="Select a status"
-              options={STUDENT_STATUSES}
+              name="admissionDate"
+              label="Admission Date"
             />
           </div>
 
@@ -113,20 +105,20 @@ export function EnrollmentCard({
               label="Payment Plan"
               options={[
                 { value: "single", label: "Single" },
-                { value: "flexible", label: "Flexible" },
+                { value: "installment", label: "Installment" },
               ]}
               onValueChange={(value) => {
                 if (value === "single") {
                   setPaymentPlan("single");
                   form.setValue("emiMonths", null, { shouldValidate: true });
                 } else {
-                  setPaymentPlan("flexible");
+                  setPaymentPlan("installment");
                   form.setValue("emiMonths", 2, { shouldValidate: true });
                 }
               }}
             />
 
-            {paymentPlan === "flexible" && (
+            {paymentPlan === "installment" && (
               <FormField
                 control={form.control}
                 name="emiMonths"
@@ -169,10 +161,10 @@ export function EnrollmentCard({
 
             <LabeledSelect
               control={form.control}
-              name="studentSource"
-              label="Enrolled via"
+              name="reachedUsBy"
+              label="Reached Us By"
               placeholder="Select Medium"
-              options={STUDENT_SOURCES}
+              options={REACHED_US_BY_OPTIONS}
             />
 
             <LabeledRadio

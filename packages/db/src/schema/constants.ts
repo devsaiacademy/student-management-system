@@ -1,17 +1,19 @@
-export const PAYMENT_PLANS = ["single", "flexible"] as const;
+export const PAYMENT_PLANS = ["single", "installment"] as const;
 export type PaymentPlan = (typeof PAYMENT_PLANS)[number];
 
 export const STUDENT_STATUSES = ["active", "in_active", "discontinue"] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
-export const STUDENT_SOURCES = [
-  "Banner",
+export const REACHED_US_BY_OPTIONS = [
+  "Board / Walkin",
+  "G Adds",
+  "Meta Adds",
   "Referral",
+  "Call",
   "DM",
-  "GAdds",
-  "Walkin",
+  "Other Branches",
 ] as const;
-export type StudentSource = (typeof STUDENT_SOURCES)[number];
+export type ReachedUsBy = (typeof REACHED_US_BY_OPTIONS)[number];
 
 export const PAYMENT_STATUSES = ["paid", "unpaid", "overdue"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
@@ -60,14 +62,14 @@ export const LEVELS = [
 ] as const;
 export type Level = (typeof LEVELS)[number];
 
-export const ENROLLED_BY_NAMES = [
+export const CLOSED_BY_NAMES = [
   "Sai",
   "Priya",
   "Mahi",
   "Mohan",
   "Dinesh",
 ] as const;
-export type EnrolledByName = (typeof ENROLLED_BY_NAMES)[number];
+export type ClosedByName = (typeof CLOSED_BY_NAMES)[number];
 
 export const EMI_MONTHS_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 export type EmiMonthsOption = (typeof EMI_MONTHS_OPTIONS)[number];

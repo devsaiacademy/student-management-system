@@ -14,7 +14,7 @@ type StudentEnrollmentProps = {
   schoolName?: string;
   standard?: string;
   academicYear?: string;
-  enrolledBy?: string;
+  closedBy?: string;
 };
 
 const CARD_BG =
@@ -202,8 +202,8 @@ export function StudentEnrollment({
             <p className={SMALL_VALUE}>{planLabel}</p>
           </div>
           <div>
-            <p className={LABEL}>Starts</p>
-            <p className={SMALL_VALUE}>{formatDate(progress.startDate)}</p>
+            <p className={LABEL}>Admission Date</p>
+            <p className={SMALL_VALUE}>{formatDate(progress.admissionDate)}</p>
           </div>
 
           {isAdmin && schoolName && (
@@ -227,10 +227,10 @@ export function StudentEnrollment({
             </div>
           )}
 
-          {isAdmin && data.enrollment.enrolledBy && (
+          {isAdmin && data.enrollment.closedBy && (
             <div>
-              <p className={LABEL}>Enrolled By</p>
-              <p className={SMALL_VALUE}>{data.enrollment.enrolledBy}</p>
+              <p className={LABEL}>Closed By</p>
+              <p className={SMALL_VALUE}>{data.enrollment.closedBy}</p>
             </div>
           )}
         </div>

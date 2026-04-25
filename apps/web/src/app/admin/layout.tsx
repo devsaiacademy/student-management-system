@@ -25,7 +25,7 @@ export default async function AdminLayout({
   }
 
   if (!user || !isAdmin) {
-    redirect("/login");
+    redirect("/login?role=parent");
   }
 
   return (

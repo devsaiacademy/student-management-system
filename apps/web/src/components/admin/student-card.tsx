@@ -17,7 +17,7 @@ type StudentCardProps = {
     rollNumber: string;
     email: string;
     studentStatus: string;
-    studentSource: string;
+    reachedUsBy: string;
   };
   index: number;
 };
@@ -105,7 +105,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
             className="rounded-full border-0 bg-orange-100/80 px-3 py-0.5 text-xs font-medium text-orange-700"
             variant="outline"
           >
-            {student.studentSource}
+            {student.reachedUsBy}
           </Badge>
         </div>
       </div>

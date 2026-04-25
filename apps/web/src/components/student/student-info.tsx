@@ -120,7 +120,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
                 {status.label}
               </span>
               <span className="rounded-full bg-orange-100/80 px-2.5 py-0.5 text-xs font-medium text-orange-700">
-                {data.studentSource}
+                {data.reachedUsBy}
               </span>
               <span
                 className={cn(

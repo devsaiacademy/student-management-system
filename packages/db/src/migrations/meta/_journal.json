@@ -78,6 +78,34 @@
       "when": 1776836107052,
       "tag": "0010_tutor_rename_and_overdue_drop_student_medium",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1777094711512,
+      "tag": "0011_rename_flexible_to_installment",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1777096275789,
+      "tag": "0012_rename_student_source_to_reached_us_by",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1777097521802,
+      "tag": "0013_rename_start_date_to_admission_date",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1777101241828,
+      "tag": "0014_rename_closed_by_and_reshape_reached_us_by",
+      "breakpoints": true
     }
   ]
 }

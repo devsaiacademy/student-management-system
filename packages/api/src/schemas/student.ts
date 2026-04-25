@@ -2,10 +2,10 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
-  ENROLLED_BY_NAMES,
+  CLOSED_BY_NAMES,
   LEVELS,
   PAYMENT_PLANS,
-  STUDENT_SOURCES,
+  REACHED_US_BY_OPTIONS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import z from "zod";
@@ -52,14 +52,14 @@ export const createStudentSchema = z
     fatherName: z.string().trim().max(100).optional(),
     fatherOccupation: z.string().trim().max(100).optional(),
 
-    studentSource: z.enum(STUDENT_SOURCES),
+    reachedUsBy: z.enum(REACHED_US_BY_OPTIONS),
     studentStatus: z.enum(STUDENT_STATUSES),
 
     // --- Enrollment (enrollments table) ---
     course: z.enum(COURSES),
     duration: z.enum(DURATIONS),
     level: z.enum(LEVELS),
-    enrolledBy: z.enum(ENROLLED_BY_NAMES),
+    closedBy: z.enum(CLOSED_BY_NAMES),
 
     totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in rupees
     paymentPlan: z.enum(PAYMENT_PLANS),
@@ -75,15 +75,15 @@ export const createStudentSchema = z
         .nullable()
     ),
 
-    startDate: z.coerce.date(),
+    admissionDate: z.coerce.date(),
     kitProvided: z.boolean(),
     kitCost: z.number().int().min(0).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.paymentPlan === "flexible" && data.emiMonths === null) {
+    if (data.paymentPlan === "installment" && data.emiMonths === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "EMI duration is required for a flexible payment plan",
+        message: "EMI duration is required for an installment payment plan",
         path: ["emiMonths"],
       });
     }

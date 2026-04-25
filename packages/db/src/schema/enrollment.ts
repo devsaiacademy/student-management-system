@@ -23,13 +23,13 @@ export const enrollments = pgTable(
     course: varchar("course", { length: 100 }).notNull(),
     level: varchar("level", { length: 50 }).notNull(),
     duration: varchar("duration", { length: 50 }).notNull(),
-    enrolledBy: varchar("enrolled_by", { length: 100 }).notNull(),
+    closedBy: varchar("closed_by", { length: 100 }).notNull(),
 
     totalFees: integer("total_fees").notNull(),
     paymentPlan: paymentPlanEnum("payment_plan").notNull(),
     emiMonths: integer("emi_months"),
 
-    startDate: timestamp("start_date").notNull(),
+    admissionDate: timestamp("admission_date").notNull(),
     kitProvided: boolean("kit_provided").default(false).notNull(),
     kitCost: integer("kit_cost"),
 

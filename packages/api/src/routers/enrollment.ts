@@ -67,13 +67,13 @@ export const enrollmentRouter = router({
           emiMonths: enrollment.emiMonths,
           kitProvided: enrollment.kitProvided,
           kitCost: enrollment.kitCost,
-          enrolledBy: enrollment.enrolledBy,
+          closedBy: enrollment.closedBy,
         },
         progress: {
           paidCount,
           totalCount: tuitionPayments.length,
           totalPaid,
-          startDate: enrollment.createdAt.toISOString(),
+          admissionDate: enrollment.createdAt.toISOString(),
           nextDueDate: nextUnpaid?.dueDate ?? null,
         },
         kit: kitPayment

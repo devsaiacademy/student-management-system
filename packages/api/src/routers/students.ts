@@ -1,6 +1,6 @@
 import { db } from "@student-management-system/db";
 import {
-  STUDENT_SOURCES,
+  REACHED_US_BY_OPTIONS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
@@ -64,7 +64,7 @@ export const studentsRouter = router({
           rollNumber: students.rollNumber,
           email: students.email,
           studentStatus: students.studentStatus,
-          studentSource: students.studentSource,
+          reachedUsBy: students.reachedUsBy,
         })
         .from(students)
         .orderBy(desc(students.createdAt))
@@ -107,7 +107,7 @@ export const studentsRouter = router({
   filterStudentsWithSource: protectedProcedure
     .input(
       z.object({
-        source: z.enum(STUDENT_SOURCES).nullable(),
+        source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
       })
     )
     .query(async ({ input }) => {
@@ -118,7 +118,7 @@ export const studentsRouter = router({
       const result =
         source === null
           ? await query
-          : await query.where(eq(students.studentSource, source));
+          : await query.where(eq(students.reachedUsBy, source));
       return result;
     }),
 
@@ -129,7 +129,7 @@ export const studentsRouter = router({
       z.object({
         search: z.string().nullable(),
         status: z.enum(STUDENT_STATUSES).nullable(),
-        source: z.enum(STUDENT_SOURCES).nullable(),
+        source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
       })
     )
     .query(async ({ input }) => {
@@ -152,7 +152,7 @@ export const studentsRouter = router({
             status ? eq(students.studentStatus, status) : undefined,
 
             //  filter by source
-            source ? eq(students.studentSource, source) : undefined
+            source ? eq(students.reachedUsBy, source) : undefined
           )
         );
     }),
@@ -171,7 +171,7 @@ export const studentsRouter = router({
           phoneNumber: students.phoneNumber,
           rollNumber: students.rollNumber,
           studentStatus: students.studentStatus,
-          studentSource: students.studentSource,
+          reachedUsBy: students.reachedUsBy,
           schoolName: students.schoolName,
           standard: students.standard,
           academicYear: students.academicYear,
@@ -247,7 +247,7 @@ export const studentsRouter = router({
               fatherName: input.fatherName || null,
               fatherOccupation: input.fatherOccupation || null,
               studentStatus: input.studentStatus,
-              studentSource: input.studentSource,
+              reachedUsBy: input.reachedUsBy,
             })
             .returning({ id: students.id });
 
@@ -265,12 +265,12 @@ export const studentsRouter = router({
               course: input.course,
               level: input.level,
               duration: input.duration,
-              enrolledBy: input.enrolledBy,
+              closedBy: input.closedBy,
               totalFees: input.totalFees,
               paymentPlan: input.paymentPlan,
               emiMonths:
-                input.paymentPlan === "flexible" ? input.emiMonths : null,
-              startDate: input.startDate,
+                input.paymentPlan === "installment" ? input.emiMonths : null,
+              admissionDate: input.admissionDate,
               kitProvided: input.kitProvided,
               kitCost: input.kitProvided ? (input.kitCost ?? 0) : null,
             })
@@ -283,8 +283,8 @@ export const studentsRouter = router({
             });
           }
 
-          // Generate the payment schedule for this enrollment. For a
-          // flexible plan we create one row per EMI month; for a single
+          // Generate the payment schedule for this enrollment. For an
+          // installment plan we create one row per EMI month; for a single
           // plan we create one row covering the full fee. All rows start
           // as unpaid with a null paymentMethod — the method is only known
           // once the student actually pays.
@@ -293,7 +293,7 @@ export const studentsRouter = router({
           // installments and dump the remainder on the last row so the
           // sum equals totalFees exactly.
           const installmentCount =
-            input.paymentPlan === "flexible" && input.emiMonths
+            input.paymentPlan === "installment" && input.emiMonths
               ? input.emiMonths
               : 1;
           const baseInstallment = Math.floor(
@@ -313,7 +313,7 @@ export const studentsRouter = router({
                 emiNumber: installmentCount === 1 ? null : index + 1,
                 paymentStatus: "unpaid" as const,
                 dueDate: formatDateForPg(
-                  addMonthsClamped(input.startDate, index)
+                  addMonthsClamped(input.admissionDate, index)
                 ),
               };
             }
@@ -325,7 +325,7 @@ export const studentsRouter = router({
           // on the enrollment start date so the ledger reflects it without
           // ever showing as dues.
           if (input.kitProvided && typeof input.kitCost === "number") {
-            const startDateString = formatDateForPg(input.startDate);
+            const admissionDateString = formatDateForPg(input.admissionDate);
             paymentRows.push({
               studentId: created.id,
               enrollmentId: enrollment.id,
@@ -334,8 +334,8 @@ export const studentsRouter = router({
               emiNumber: null,
               paymentStatus:
                 input.kitCost === 0 ? ("paid" as const) : ("unpaid" as const),
-              dueDate: startDateString,
-              paidDate: input.kitCost === 0 ? startDateString : null,
+              dueDate: admissionDateString,
+              paidDate: input.kitCost === 0 ? admissionDateString : null,
             });
           }
 

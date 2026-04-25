@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  STUDENT_SOURCES,
+  REACHED_US_BY_OPTIONS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
 import { Input } from "@student-management-system/ui/components/input";
@@ -93,7 +93,7 @@ export function AdminHeader({
             sideOffset={6}
           >
             <SelectItem value="all">All Sources</SelectItem>
-            {STUDENT_SOURCES.map((source) => (
+            {REACHED_US_BY_OPTIONS.map((source) => (
               <SelectItem key={source} value={source}>
                 {source}
               </SelectItem>

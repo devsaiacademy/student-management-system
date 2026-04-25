@@ -28,7 +28,7 @@ export default async function StudentLayout({
   }
 
   if (!user || !isStudent) {
-    redirect("/login");
+    redirect("/login?role=parent");
   }
 
   return (

@@ -1,0 +1,1 @@
+ALTER TABLE "enrollments" RENAME COLUMN "start_date" TO "admission_date";
