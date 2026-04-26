@@ -13,6 +13,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { useIsMobile } from "@student-management-system/ui/hooks/use-mobile";
+
 import { ChartCard } from "./charts/chart-card";
 import { BAR_COLOR, PIE_PALETTE_6, PIE_PALETTE_7 } from "./charts/colors";
 import { renderPieLabel } from "./charts/pie-label";
@@ -108,6 +110,7 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
 }
 
 function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
+  const isWide = !useIsMobile();
   const pieData = sources.filter((entry) => entry.count > 0);
   const totalCount = sources.reduce((sum, entry) => sum + entry.count, 0);
 
@@ -117,11 +120,11 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
         <BarChart data={sources} margin={{ bottom: 24 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
-            angle={-20}
+            angle={isWide ? 0 : -20}
             dataKey="source"
-            height={60}
+            height={isWide ? 30 : 60}
             interval={0}
-            textAnchor="end"
+            textAnchor={isWide ? "middle" : "end"}
             tick={{ fontSize: 14 }}
           />
           <YAxis

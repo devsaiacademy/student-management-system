@@ -13,6 +13,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { useIsMobile } from "@student-management-system/ui/hooks/use-mobile";
+
 import { ChartCard } from "./charts/chart-card";
 import { STATUS_COLORS } from "./charts/colors";
 import { makePieLabel, renderPieLabel } from "./charts/pie-label";
@@ -43,6 +45,7 @@ function formatInr(value: number) {
 const renderRevenuePieLabel = makePieLabel(formatInr);
 
 export function PaymentCharts({ data }: { data: PaymentOverview }) {
+  const isWide = !useIsMobile();
   const statusData = [
     { name: "Paid", count: data.studentCounts.paid },
     { name: "Unpaid", count: data.studentCounts.unpaid },
@@ -111,6 +114,38 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
         title="STUDENT PAYMENT STATUS"
       />
       <ChartCard
+        bar={
+          <BarChart data={revenueData} margin={{ bottom: 24, left: 24 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              angle={isWide ? 0 : -20}
+              dataKey="name"
+              height={isWide ? 30 : 60}
+              interval={0}
+              textAnchor={isWide ? "middle" : "end"}
+              tick={{ fontSize: 14 }}
+            />
+            <YAxis
+              domain={[0, data.revenue.totalBv]}
+              label={{
+                angle: -90,
+                position: "insideLeft",
+                value: "Total Amount",
+              }}
+              tickFormatter={(value: number) => formatInr(value)}
+              width={90}
+            />
+            <Tooltip formatter={(value) => formatInr(Number(value))} />
+            <Bar dataKey="value" name="Amount" radius={[4, 4, 0, 0]}>
+              {revenueData.map((entry, index) => (
+                <Cell
+                  fill={REVENUE_COLORS[index % REVENUE_COLORS.length]}
+                  key={entry.name}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        }
         pie={
           <PieChart>
             <Pie
