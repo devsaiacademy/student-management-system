@@ -5,6 +5,7 @@ import {
   payments,
   type PaymentMetaData,
 } from "@student-management-system/db/schema/payment";
+import { students } from "@student-management-system/db/schema/students";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -21,7 +22,6 @@ const studentIdInput = z.object({ studentId: z.number().int().positive() });
 
 export const paymentsRouter = router({
   getPaymentOverview: protectedProcedure.query(async () => {
-    // Run all three aggregate queries in parallel
     const studentStatusSubquery = db
       .select({
         studentId: payments.studentId,
@@ -34,27 +34,26 @@ export const paymentsRouter = router({
       .groupBy(payments.studentId)
       .as("student_status");
 
-    const [bvResult, revenueResult, studentCountResult] = await Promise.all([
+    const [revenueResult, studentCountResult] = await Promise.all([
       db
         .select({
           totalBv:
-            sql<number>`coalesce(sum(${enrollments.totalFees}), 0)`.mapWith(
-              Number
-            ),
-        })
-        .from(enrollments),
-      db
-        .select({
+            sql<number>`coalesce(sum(${payments.amount}), 0)`.mapWith(Number),
           totalCr:
             sql<number>`coalesce(sum(case when ${payments.paymentStatus} = 'paid' then ${payments.amount} else 0 end), 0)`.mapWith(
               Number
             ),
           totalPending:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') and ${students.studentStatus} <> 'discontinue' then ${payments.amount} else 0 end), 0)`.mapWith(
+              Number
+            ),
+          totalDiscontinued:
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') and ${students.studentStatus} = 'discontinue' then ${payments.amount} else 0 end), 0)`.mapWith(
               Number
             ),
         })
-        .from(payments),
+        .from(payments)
+        .innerJoin(students, eq(payments.studentId, students.id)),
       db
         .select({
           paidStudents:
@@ -71,9 +70,10 @@ export const paymentsRouter = router({
 
     return {
       revenue: {
-        totalBv: bvResult[0]?.totalBv ?? 0,
+        totalBv: revenueResult[0]?.totalBv ?? 0,
         totalCr: revenueResult[0]?.totalCr ?? 0,
         totalPending: revenueResult[0]?.totalPending ?? 0,
+        totalDiscontinued: revenueResult[0]?.totalDiscontinued ?? 0,
       },
       studentCounts: {
         paid: studentCountResult[0]?.paidStudents ?? 0,

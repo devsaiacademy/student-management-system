@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@student-management-system/ui/components/card";
-import {
   Bar,
   BarChart,
   CartesianGrid,
@@ -14,17 +8,21 @@ import {
   Legend,
   Pie,
   PieChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+
+import { ChartCard } from "./charts/chart-card";
+import { STATUS_COLORS } from "./charts/colors";
+import { makePieLabel, renderPieLabel } from "./charts/pie-label";
 
 type PaymentOverview = {
   revenue: {
     totalBv: number;
     totalCr: number;
     totalPending: number;
+    totalDiscontinued: number;
   };
   studentCounts: {
     paid: number;
@@ -32,98 +30,118 @@ type PaymentOverview = {
   };
 };
 
-const BAR_COLORS = {
-  paid: "#0769AB",
-  unpaid: "#f59e0b",
-} as const;
+const REVENUE_COLORS = ["#0769AB", "#22c55e", "#f59e0b", "#ef4444"] as const;
 
-const PIE_COLORS = ["#0769AB", "#22c55e", "#f59e0b"] as const;
+function statusFill(name: string) {
+  return name === "Paid" ? STATUS_COLORS.paid : STATUS_COLORS.unpaid;
+}
+
+function formatInr(value: number) {
+  return `₹${value.toLocaleString("en-IN")}`;
+}
+
+const renderRevenuePieLabel = makePieLabel(formatInr);
 
 export function PaymentCharts({ data }: { data: PaymentOverview }) {
-  const barData = [
+  const statusData = [
     { name: "Paid", count: data.studentCounts.paid },
     { name: "Unpaid", count: data.studentCounts.unpaid },
   ];
+  const totalCount = statusData.reduce((sum, entry) => sum + entry.count, 0);
+  const statusPieData = statusData.filter((entry) => entry.count > 0);
 
-  const pieData = [
+  const revenueData = [
     { name: "TOTAL BV", value: data.revenue.totalBv },
     { name: "TOTAL CR", value: data.revenue.totalCr },
     { name: "PENDING", value: data.revenue.totalPending },
+    { name: "DISCONTINUED", value: data.revenue.totalDiscontinued },
   ];
+  const revenuePieData = revenueData.filter((entry) => entry.value > 0);
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Student Payment Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[280px] sm:h-[360px] md:h-[400px]">
-            <ResponsiveContainer height="100%" width="100%">
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis
-                  allowDecimals={false}
-                  label={{
-                    angle: -90,
-                    position: "insideLeft",
-                    value: "Student Count",
-                  }}
+    <div className="flex flex-col gap-4 md:gap-6">
+      <ChartCard
+        bar={
+          <BarChart data={statusData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis
+              allowDecimals={false}
+              domain={[0, totalCount]}
+              label={{
+                angle: -90,
+                position: "insideLeft",
+                value: "Total Count",
+              }}
+            />
+            <Tooltip />
+            <Bar dataKey="count" name="Student Count" radius={[4, 4, 0, 0]}>
+              {statusData.map((entry) => (
+                <Cell fill={statusFill(entry.name)} key={entry.name} />
+              ))}
+            </Bar>
+          </BarChart>
+        }
+        pie={
+          <PieChart>
+            <Pie
+              cx="50%"
+              cy="50%"
+              data={statusPieData}
+              dataKey="count"
+              label={renderPieLabel}
+              labelLine={false}
+              nameKey="name"
+              outerRadius="70%"
+            >
+              {statusPieData.map((entry) => (
+                <Cell fill={statusFill(entry.name)} key={entry.name} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(value) => [`${value} students`, "Count"]} />
+            <Legend
+              formatter={(value, entry) => (
+                <span style={{ color: entry.color }}>{value}</span>
+              )}
+              wrapperStyle={{ fontSize: 14 }}
+            />
+          </PieChart>
+        }
+        subtitle={`Total students: ${totalCount}`}
+        title="STUDENT PAYMENT STATUS"
+      />
+      <ChartCard
+        pie={
+          <PieChart>
+            <Pie
+              cx="50%"
+              cy="50%"
+              data={revenuePieData}
+              dataKey="value"
+              label={renderRevenuePieLabel}
+              labelLine={false}
+              nameKey="name"
+              outerRadius="70%"
+            >
+              {revenuePieData.map((entry, index) => (
+                <Cell
+                  fill={REVENUE_COLORS[index % REVENUE_COLORS.length]}
+                  key={entry.name}
                 />
-                <Tooltip />
-                <Bar dataKey="count" name="Student Count" radius={[4, 4, 0, 0]}>
-                  {barData.map((entry) => (
-                    <Cell
-                      fill={
-                        entry.name === "Paid"
-                          ? BAR_COLORS.paid
-                          : BAR_COLORS.unpaid
-                      }
-                      key={entry.name}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>PERCENT</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[280px] sm:h-[360px] md:h-[400px]">
-            <ResponsiveContainer height="100%" width="100%">
-              <PieChart>
-                <Pie
-                  cx="50%"
-                  cy="50%"
-                  data={pieData}
-                  dataKey="value"
-                  label={({ percent }) =>
-                    percent ? `${(percent * 100).toFixed(1)}%` : ""
-                  }
-                  nameKey="name"
-                  outerRadius="75%"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell fill={PIE_COLORS[index]} key={entry.name} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) =>
-                    `\u20B9${Number(value).toLocaleString("en-IN")}`
-                  }
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </Pie>
+            <Tooltip formatter={(value) => formatInr(Number(value))} />
+            <Legend
+              formatter={(value, entry) => (
+                <span style={{ color: entry.color }}>{value}</span>
+              )}
+              wrapperStyle={{ fontSize: 14 }}
+            />
+          </PieChart>
+        }
+        subtitle={`Total billed: ${formatInr(data.revenue.totalBv)}`}
+        title="REVENUE BREAKDOWN"
+      />
     </div>
   );
 }
