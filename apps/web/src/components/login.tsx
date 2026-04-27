@@ -16,6 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { SiteLogo } from "@/components/site-logo";
+import { TwinOrbit } from "@/components/twin-orbit";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { trpcClient } from "@/utils/trpc";
 
@@ -301,6 +302,13 @@ export default function Login() {
                   </InputOTPGroup>
                 </InputOTP>
               </div>
+
+              {verifying && (
+                <div className="mt-4 flex items-center justify-center gap-3 text-sm text-muted-foreground">
+                  <TwinOrbit className="size-1 text-primary" />
+                  <span>Verifying…</span>
+                </div>
+              )}
 
               <div className="mt-6 flex flex-col items-center gap-3">
                 <Button
