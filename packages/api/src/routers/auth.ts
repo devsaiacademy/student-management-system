@@ -68,6 +68,23 @@ export const authRouter = router({
     return ctx.user;
   }),
 
+  // One-shot login resolver for /welcome: collapses getUser + isAdmin +
+  // isStudentEmail into a single round-trip. Public so the unauth branch
+  // can redirect to /login without an UNAUTHORIZED throw.
+  resolveLogin: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.user) {
+      return { user: null, isAdmin: false, student: [] };
+    }
+    const [isAdmin, student] = await Promise.all([
+      Promise.resolve(isOtomatiksAdminEmail(ctx.user.email)),
+      db
+        .select({ id: students.id })
+        .from(students)
+        .where(eq(students.email, ctx.user.email)),
+    ]);
+    return { user: ctx.user, isAdmin, student };
+  }),
+
   // Public because a stale/expired session should still be able to log out
   // without first needing to prove it's valid.
   logout: publicProcedure.mutation(async ({ ctx }) => {
