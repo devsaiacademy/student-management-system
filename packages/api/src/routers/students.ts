@@ -39,7 +39,7 @@ const addMonthsClamped = (base: Date, months: number): Date => {
   const lastDayOfTargetMonth = new Date(
     result.getFullYear(),
     result.getMonth() + 1,
-    0
+    0,
   ).getDate();
   result.setDate(Math.min(originalDay, lastDayOfTargetMonth));
   return result;
@@ -50,7 +50,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         page: z.number().min(1),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { page } = input;
@@ -89,7 +89,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         status: z.enum(STUDENT_STATUSES).nullable(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { status } = input;
@@ -108,7 +108,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { source } = input;
@@ -130,7 +130,7 @@ export const studentsRouter = router({
         search: z.string().nullable(),
         status: z.enum(STUDENT_STATUSES).nullable(),
         source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { search, status, source } = input;
@@ -144,7 +144,7 @@ export const studentsRouter = router({
               ? or(
                   ilike(students.name, `%${search}%`),
                   ilike(students.email, `%${search}%`),
-                  ilike(students.rollNumber, `%${search}%`)
+                  ilike(students.rollNumber, `%${search}%`),
                 )
               : undefined,
 
@@ -152,8 +152,8 @@ export const studentsRouter = router({
             status ? eq(students.studentStatus, status) : undefined,
 
             //  filter by source
-            source ? eq(students.reachedUsBy, source) : undefined
-          )
+            source ? eq(students.reachedUsBy, source) : undefined,
+          ),
         );
     }),
 
@@ -209,7 +209,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { id } = input;
@@ -221,6 +221,33 @@ export const studentsRouter = router({
         .where(eq(students.id, id));
 
       return student;
+    }),
+
+  changeStudentStatus: studentProcedure
+    .input(
+      z.object({
+        studentId: z.number().int().positive(),
+        changeStatusTo: z.enum(STUDENT_STATUSES),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { studentId, changeStatusTo } = input;
+      assertStudentAccess(ctx, studentId);
+
+      const [updatedStudent] = await db
+        .update(students)
+        .set({ studentStatus: changeStatusTo })
+        .where(eq(students.id, studentId))
+        .returning({ id: students.id, studentStatus: students.studentStatus });
+
+      if (!updatedStudent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Student not found",
+        });
+      }
+
+      return updatedStudent;
     }),
 
   // Creates a student and their first enrollment atomically. If the
@@ -297,7 +324,7 @@ export const studentsRouter = router({
               ? input.emiMonths
               : 1;
           const baseInstallment = Math.floor(
-            input.totalFees / installmentCount
+            input.totalFees / installmentCount,
           );
           const remainder =
             input.totalFees - baseInstallment * installmentCount;
@@ -313,10 +340,10 @@ export const studentsRouter = router({
                 emiNumber: installmentCount === 1 ? null : index + 1,
                 paymentStatus: "unpaid" as const,
                 dueDate: formatDateForPg(
-                  addMonthsClamped(input.admissionDate, index)
+                  addMonthsClamped(input.admissionDate, index),
                 ),
               };
-            }
+            },
           );
 
           // A kit payment row is added whenever a kit is provided. For a

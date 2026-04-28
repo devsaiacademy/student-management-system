@@ -11,6 +11,8 @@ import { Hash, Mail, Phone } from "lucide-react";
 
 import { trpc } from "@/utils/trpc";
 
+import { ChangeStudentStatus } from "./changeStudentStatus";
+
 type StudentInfoProps = {
   isAdmin: boolean;
   studentId: number;
@@ -36,8 +38,8 @@ function getStatusBadge(status: string) {
     case "in_active":
       return {
         label: "Inactive",
-        className: "bg-slate-100 text-slate-600",
-        dot: "bg-slate-400",
+        className: "bg-surface-warning text-surface-warning-foreground",
+        dot: "bg-surface-warning-foreground",
       };
     case "discontinue":
       return {
@@ -56,7 +58,7 @@ function getStatusBadge(status: string) {
 
 export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const { data, isPending, isError } = useQuery(
-    trpc.students.getStudentInfo.queryOptions({ studentId })
+    trpc.students.getStudentInfo.queryOptions({ studentId }),
   );
 
   if (isPending) {
@@ -95,7 +97,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
 
   return (
     <div className="w-full rounded-2xl border border-border bg-white p-5 shadow-lg shadow-black/5 sm:p-6">
-      <div className="flex min-w-0 items-start gap-5">
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
         <Avatar className="size-16" size="lg">
           <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
             {initials}
@@ -110,7 +112,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
               <span
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
-                  status.className
+                  status.className,
                 )}
               >
                 <span
@@ -127,7 +129,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
                   "rounded-full px-2.5 py-0.5 text-xs font-medium",
                   data.kitProvided
                     ? "bg-blue-100/80 text-blue-700"
-                    : "bg-slate-100 text-slate-600"
+                    : "bg-slate-100 text-slate-600",
                 )}
               >
                 {data.kitProvided ? "Kit Provided" : "No Kit"}
@@ -154,6 +156,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
             </span>
           </div>
         </div>
+        <ChangeStudentStatus currentStudentStatus={data.studentStatus} id={data.id} />
       </div>
     </div>
   );
