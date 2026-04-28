@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { TwinOrbit } from "@/components/twin-orbit";
+import { FourBallOrbit } from "@/components/four-ball-orbit";
 import { trpcClient } from "@/utils/trpc";
 
 export function WelcomeRedirector() {
@@ -44,7 +44,7 @@ export function WelcomeRedirector() {
   return (
     <div className="flex min-h-screen items-center justify-center px-3 py-8">
       <div className="flex flex-col items-center gap-6 text-muted-foreground">
-        <TwinOrbit className="size-2 text-primary" />
+        <FourBallOrbit />
         <p className="text-sm">Verifying your account…</p>
       </div>
     </div>

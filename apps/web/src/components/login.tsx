@@ -16,7 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { SiteLogo } from "@/components/site-logo";
-import { TwinOrbit } from "@/components/twin-orbit";
+import { FourBallOrbit } from "@/components/four-ball-orbit";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { trpcClient } from "@/utils/trpc";
 
@@ -305,7 +305,7 @@ export default function Login() {
 
               {verifying && (
                 <div className="mt-4 flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                  <TwinOrbit className="size-1 text-primary" />
+                  <FourBallOrbit />
                   <span>Verifying…</span>
                 </div>
               )}
