@@ -124,7 +124,7 @@ function Sidebar({ className, children, ...props }: SidebarProps) {
         data-collapsible="icon"
         className={cn(
           "group/sidebar hidden h-svh shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex",
-          "w-[var(--sidebar-width)] transition-[width] duration-200 ease-linear",
+          "w-[var(--sidebar-width)] transition-[width] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
           "data-[state=collapsed]:w-[var(--sidebar-width-icon)]",
           className
         )}
@@ -137,7 +137,7 @@ function Sidebar({ className, children, ...props }: SidebarProps) {
         <DialogPrimitive.Portal>
           <DialogPrimitive.Backdrop
             className={cn(
-              "fixed inset-0 z-50 bg-black/40 duration-200 md:hidden",
+              "fixed inset-0 z-50 bg-black/40 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden",
               "data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
             )}
           />
@@ -146,7 +146,7 @@ function Sidebar({ className, children, ...props }: SidebarProps) {
             data-state="expanded"
             className={cn(
               "fixed inset-y-0 left-0 z-50 flex h-svh w-[var(--sidebar-width)] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg outline-none md:hidden",
-              "data-open:animate-in data-open:slide-in-from-left data-closed:animate-out data-closed:slide-out-to-left duration-200"
+              "data-open:animate-in data-open:slide-in-from-left data-closed:animate-out data-closed:slide-out-to-left duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
             )}
           >
             {isMobile ? (
