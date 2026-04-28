@@ -41,7 +41,7 @@ function getStatusBadge(status: string) {
     case "in_active":
       return {
         label: "Inactive",
-        className: "bg-slate-100 text-slate-600",
+        className: "bg-surface-warning text-surface-warning-foreground",
       };
     case "discontinue":
       return {

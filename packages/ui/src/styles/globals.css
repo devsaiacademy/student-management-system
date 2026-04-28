@@ -48,6 +48,8 @@
   --surface-info-foreground: var(--foreground);
   --surface-success: #e7f8ee;
   --surface-success-foreground: #1f9254;
+  --surface-warning: #fff7e8;
+  --surface-warning-foreground: #b76e00;
   --surface-destructive: #fdecec;
   --surface-destructive-foreground: #d0342c;
 }
@@ -91,6 +93,8 @@
   --surface-info-foreground: oklch(0.97 0.01 240);
   --surface-success: oklch(0.32 0.07 150);
   --surface-success-foreground: oklch(0.82 0.14 150);
+  --surface-warning: oklch(0.36 0.08 85);
+  --surface-warning-foreground: oklch(0.9 0.11 85);
   --surface-destructive: oklch(0.32 0.08 25);
   --surface-destructive-foreground: oklch(0.82 0.14 25);
 }
@@ -132,6 +136,8 @@
   --color-surface-info-foreground: var(--surface-info-foreground);
   --color-surface-success: var(--surface-success);
   --color-surface-success-foreground: var(--surface-success-foreground);
+  --color-surface-warning: var(--surface-warning);
+  --color-surface-warning-foreground: var(--surface-warning-foreground);
   --color-surface-destructive: var(--surface-destructive);
   --color-surface-destructive-foreground: var(--surface-destructive-foreground);
   --radius-sm: calc(var(--radius) - 4px);
