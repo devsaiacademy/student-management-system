@@ -4,7 +4,7 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { Button } from "@student-management-system/ui/components/button";
 import { useIsMobile } from "@student-management-system/ui/hooks/use-mobile";
 import { cn } from "@student-management-system/ui/lib/utils";
-import { PanelLeft } from "lucide-react";
+import { Menu, PanelLeft } from "lucide-react";
 import * as React from "react";
 
 const SIDEBAR_WIDTH = "220px";
@@ -196,7 +196,8 @@ function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerProps) {
       aria-label="Toggle sidebar"
       {...props}
     >
-      <PanelLeft />
+      <Menu className="md:hidden" />
+      <PanelLeft className="hidden md:inline" />
     </Button>
   );
 }
