@@ -37,8 +37,9 @@ export const paymentsRouter = router({
     const [revenueResult, studentCountResult] = await Promise.all([
       db
         .select({
-          totalBv:
-            sql<number>`coalesce(sum(${payments.amount}), 0)`.mapWith(Number),
+          totalBv: sql<number>`coalesce(sum(${payments.amount}), 0)`.mapWith(
+            Number
+          ),
           totalCr:
             sql<number>`coalesce(sum(case when ${payments.paymentStatus} = 'paid' then ${payments.amount} else 0 end), 0)`.mapWith(
               Number
@@ -241,6 +242,63 @@ export const paymentsRouter = router({
       }
 
       return { id: updated.id };
+    }),
+
+  createPayment: studentProcedure
+    .input(
+      z.object({
+        studentId: z.number().int().positive(),
+        amount: z.number().int().positive(),
+        dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+          message: "dueDate must be in YYYY-MM-DD format",
+        }),
+        description: z.string().trim().min(1).max(255),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can add payments",
+        });
+      }
+
+      const { studentId, amount, dueDate, description } = input;
+
+      const [latestEnrollment] = await db
+        .select({ id: enrollments.id })
+        .from(enrollments)
+        .where(eq(enrollments.studentId, studentId))
+        .orderBy(desc(enrollments.createdAt))
+        .limit(1);
+
+      if (!latestEnrollment) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Student has no enrollment to attach payment to",
+        });
+      }
+
+      const [inserted] = await db
+        .insert(payments)
+        .values({
+          studentId,
+          enrollmentId: latestEnrollment.id,
+          amount,
+          dueDate,
+          description,
+          paymentStatus: "unpaid",
+        })
+        .returning({ id: payments.id });
+
+      if (!inserted) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create payment",
+        });
+      }
+
+      return { id: inserted.id };
     }),
 
   sendPaymentReminder: studentProcedure

@@ -121,7 +121,7 @@ function getInstallmentLabel(payment: Payment, total: number) {
   }
   return payment.emiNumber
     ? `Payment ${payment.emiNumber} of ${total}`
-    : "Full Payment";
+    : `${payment.description || "Fullpayment "}`;
 }
 
 type PaymentActionsProps = {
