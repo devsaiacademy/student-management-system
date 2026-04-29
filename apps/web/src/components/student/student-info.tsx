@@ -156,7 +156,12 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
             </span>
           </div>
         </div>
-        <ChangeStudentStatus currentStudentStatus={data.studentStatus} id={data.id} />
+        {isAdmin && (
+          <ChangeStudentStatus
+            currentStudentStatus={data.studentStatus}
+            id={data.id}
+          />
+        )}
       </div>
     </div>
   );
