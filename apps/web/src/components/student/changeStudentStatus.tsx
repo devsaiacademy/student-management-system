@@ -4,6 +4,7 @@ import { type StudentStatus } from "@student-management-system/db/schema/constan
 import { Button } from "@student-management-system/ui/components/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gooeyToast } from "goey-toast";
+import { useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
@@ -33,6 +34,12 @@ const statusTransitions: Record<StudentStatus, StatusTransition[]> = {
   discontinue: [{ nextStatus: "active", label: "Mark as active" }],
 };
 
+const statusLabelByStatus: Record<StudentStatus, string> = {
+  active: "Active",
+  in_active: "Inactive",
+  discontinue: "Discontinued",
+};
+
 export function ChangeStudentStatus({
   currentStudentStatus,
   id,
@@ -42,22 +49,40 @@ export function ChangeStudentStatus({
 }) {
   const queryClient = useQueryClient();
   const nextStatuses = statusTransitions[currentStudentStatus] || [];
+
+  // Tracks which status the user clicked so we can avoid “both buttons updating”.
+  const [optimisticStatus, setOptimisticStatus] = useState<StudentStatus | null>(
+    null,
+  );
+
   const changeStatus = useMutation(
     trpc.students.changeStudentStatus.mutationOptions({
-      onSuccess: () => {
+      onMutate: ({ changeStatusTo }) => {
+        setOptimisticStatus(changeStatusTo);
+        // Intentionally do NOT do optimistic cache updates.
+        // We only show a loader for the clicked button and rely on invalidation for correctness.
+      },
+      onSuccess: (_data, variables) => {
+        const nextStatus = variables.changeStatusTo;
         gooeyToast.success("Student status updated", {
           showTimestamp: false,
           borderColor: "#E0E0E0",
           borderWidth: 1.5,
-          description: "The student's status was updated successfully.",
+          description: (
+            <div className="w-full text-center">
+              Student marked as {statusLabelByStatus[nextStatus]}.
+            </div>
+          ),
           timing: { displayDuration: 4000 },
         });
+        setOptimisticStatus(null);
         queryClient.invalidateQueries({
           queryKey: trpc.students.getStudentInfo.queryOptions({ studentId: id })
             .queryKey,
         });
       },
       onError: (error) => {
+        setOptimisticStatus(null);
         gooeyToast.error("Failed to update status", {
           showTimestamp: false,
           borderColor: "#E0E0E0",
@@ -82,7 +107,9 @@ export function ChangeStudentStatus({
           }
           disabled={changeStatus.isPending}
         >
-          {changeStatus.isPending ? "Updating..." : status.label}
+          {changeStatus.isPending && optimisticStatus === status.nextStatus
+            ? "Updating..."
+            : status.label}
         </Button>
       ))}
     </div>
