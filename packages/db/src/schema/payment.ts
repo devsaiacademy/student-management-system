@@ -29,6 +29,7 @@ export type PaymentMetaData = {
   overdueEmailStatus?: "sent" | "failed";
   overdueWhatsappStatus?: "sent" | "failed" | "skipped";
   overdueWhatsappError?: string;
+  overdueNotificationCount?: number;
 };
 
 export const payments = pgTable(

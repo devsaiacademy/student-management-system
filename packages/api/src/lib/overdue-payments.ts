@@ -28,7 +28,10 @@ type PaymentContext = {
   studentEmail: string;
   studentPhone: string;
   course: string;
+  notificationCount: number;
 };
+
+const REMINDER_INTERVAL_DAYS = 7;
 
 async function loadPaymentContext(
   paymentId: number
@@ -43,6 +46,7 @@ async function loadPaymentContext(
       studentEmail: students.email,
       studentPhone: students.phoneNumber,
       course: enrollments.course,
+      notificationCount: sql<number>`COALESCE((${payments.metaData}->>'overdueNotificationCount')::int, 0)`,
     })
     .from(payments)
     .innerJoin(students, eq(payments.studentId, students.id))
@@ -57,6 +61,7 @@ type NotificationOutcome = {
   emailStatus: "sent" | "failed";
   whatsappStatus: "sent" | "failed" | "skipped";
   whatsappError?: string;
+  notificationCount: number;
 };
 
 async function writeNotificationMetadata(
@@ -67,6 +72,7 @@ async function writeNotificationMetadata(
     overdueNotifiedAt: new Date().toISOString(),
     overdueEmailStatus: outcome.emailStatus,
     overdueWhatsappStatus: outcome.whatsappStatus,
+    overdueNotificationCount: outcome.notificationCount,
     ...(outcome.whatsappError
       ? { overdueWhatsappError: outcome.whatsappError.slice(0, 500) }
       : {}),
@@ -150,6 +156,7 @@ export async function sendOverdueEmail(
     emailStatus,
     whatsappStatus: whatsapp.ok ? "sent" : "failed",
     whatsappError: whatsapp.ok ? undefined : whatsapp.error,
+    notificationCount: ctx.notificationCount + 1,
   }).catch(() => {
     // Metadata write is best-effort.
   });
@@ -174,6 +181,24 @@ export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult>
     )
     .returning({ paymentId: payments.id });
 
+  // Pick up every overdue row that needs a (re-)notification: those never
+  // notified yet (just-flipped rows fall here, since metaData is NULL) AND
+  // those already overdue whose last notify was more than the reminder
+  // interval ago. Same query covers initial + weekly reminders.
+  const dueForNotify = await db
+    .select({ paymentId: payments.id })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.paymentStatus, "overdue"),
+        sql`(
+          ${payments.metaData}->>'overdueNotifiedAt' IS NULL
+          OR (${payments.metaData}->>'overdueNotifiedAt')::timestamptz
+             < NOW() - (${REMINDER_INTERVAL_DAYS} || ' days')::interval
+        )`
+      )
+    );
+
   const result: MarkOverdueResult = {
     flipped: flipped.length,
     emailsSent: 0,
@@ -181,7 +206,7 @@ export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult>
     failures: [],
   };
 
-  for (const { paymentId } of flipped) {
+  for (const { paymentId } of dueForNotify) {
     try {
       const { whatsappOk } = await sendOverdueEmail(paymentId);
       result.emailsSent += 1;
