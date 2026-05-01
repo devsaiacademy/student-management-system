@@ -14,7 +14,6 @@ export const env = createEnv({
     WHATSAPP_ACCESS_TOKEN: z.string().min(1),
     WHATSAPP_PHONE_NUMBER_ID: z.string().min(1),
     WHATSAPP_OVERDUE_TEMPLATE: z.string().min(1).default("payment_overdue_1"),
-    WHATSAPP_LANGUAGE_CODE: z.string().min(1).default("en_US"),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),

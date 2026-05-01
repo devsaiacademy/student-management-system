@@ -9,6 +9,7 @@ const WHATSAPP_API_VERSION = "v25.0";
 const HELLO_WORLD_TEMPLATE = "hello_world";
 const WHATSAPP_GRAPH_HOST = "https://graph.facebook.com";
 const COUNTRY_CODE = "+91";
+const TEMPLATE_LANGUAGE_CODE = "en_US";
 
 export type WhatsAppSendResult =
   | { ok: true; messageId: string }
@@ -44,7 +45,7 @@ export async function sendOverdueWhatsApp(
         type: "template",
         template: {
           name: env.WHATSAPP_OVERDUE_TEMPLATE,
-          language: { code: env.WHATSAPP_LANGUAGE_CODE },
+          language: { code: TEMPLATE_LANGUAGE_CODE },
           ...(env.WHATSAPP_OVERDUE_TEMPLATE === HELLO_WORLD_TEMPLATE
             ? {}
             : {
