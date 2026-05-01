@@ -10,10 +10,12 @@ import { and, eq, lt, sql } from "drizzle-orm";
 
 import { PaymentOverdueEmail } from "../emails/payment-overdue-email";
 import { resend } from "./resend";
+import { sendOverdueWhatsApp } from "./whatsapp";
 
 export type MarkOverdueResult = {
   flipped: number;
   emailsSent: number;
+  whatsappsSent: number;
   failures: Array<{ paymentId: number; error: string }>;
 };
 
@@ -24,8 +26,12 @@ type PaymentContext = {
   emiNumber: number | null;
   studentName: string;
   studentEmail: string;
+  studentPhone: string;
   course: string;
+  notificationCount: number;
 };
+
+const REMINDER_INTERVAL_DAYS = 7;
 
 async function loadPaymentContext(
   paymentId: number
@@ -38,7 +44,9 @@ async function loadPaymentContext(
       emiNumber: payments.emiNumber,
       studentName: students.name,
       studentEmail: students.email,
+      studentPhone: students.phoneNumber,
       course: enrollments.course,
+      notificationCount: sql<number>`COALESCE((${payments.metaData}->>'overdueNotificationCount')::int, 0)`,
     })
     .from(payments)
     .innerJoin(students, eq(payments.studentId, students.id))
@@ -49,13 +57,25 @@ async function loadPaymentContext(
   return row ?? null;
 }
 
+type NotificationOutcome = {
+  emailStatus: "sent" | "failed";
+  whatsappStatus: "sent" | "failed" | "skipped";
+  whatsappError?: string;
+  notificationCount: number;
+};
+
 async function writeNotificationMetadata(
   paymentId: number,
-  emailStatus: "sent" | "failed"
+  outcome: NotificationOutcome
 ): Promise<void> {
   const patch: PaymentMetaData = {
     overdueNotifiedAt: new Date().toISOString(),
-    overdueEmailStatus: emailStatus,
+    overdueEmailStatus: outcome.emailStatus,
+    overdueWhatsappStatus: outcome.whatsappStatus,
+    overdueNotificationCount: outcome.notificationCount,
+    ...(outcome.whatsappError
+      ? { overdueWhatsappError: outcome.whatsappError.slice(0, 500) }
+      : {}),
   };
 
   // Merge into existing jsonb instead of overwriting sibling audit fields.
@@ -97,11 +117,16 @@ async function sendEmail(
   }
 }
 
-// Sends a reminder/overdue email for a single payment and records the outcome
-// in the payment's jsonb metadata. Throws if the payment is missing or the
-// email provider rejects the send. Used by both the cron loop and the
-// admin-triggered `sendPaymentReminder` mutation.
-export async function sendOverdueEmail(paymentId: number): Promise<void> {
+// Sends a reminder/overdue email AND a parallel WhatsApp template message for
+// a single payment, recording both outcomes in the payment's jsonb metadata.
+// Email is the source-of-truth channel: this function throws if the email send
+// fails (so the admin-triggered `sendPaymentReminder` mutation can surface the
+// error). WhatsApp is best-effort — its failure is logged into metadata but
+// never thrown. The return value lets the cron loop tally successful WhatsApp
+// sends; on email failure the WhatsApp result is still persisted to metadata.
+export async function sendOverdueEmail(
+  paymentId: number
+): Promise<{ whatsappOk: boolean }> {
   const ctx = await loadPaymentContext(paymentId);
   if (!ctx) {
     throw new Error(`Payment ${paymentId} not found`);
@@ -110,15 +135,36 @@ export async function sendOverdueEmail(paymentId: number): Promise<void> {
   const today = new Date().toISOString().split("T")[0] ?? "";
   const isOverdue = ctx.dueDate < today;
 
+  let emailError: unknown;
+  let emailStatus: "sent" | "failed" = "failed";
   try {
     await sendEmail(ctx, isOverdue);
-    await writeNotificationMetadata(paymentId, "sent");
+    emailStatus = "sent";
   } catch (err) {
-    await writeNotificationMetadata(paymentId, "failed").catch(() => {
-      // Metadata write is best-effort.
-    });
-    throw err;
+    emailError = err;
   }
+
+  const whatsapp = await sendOverdueWhatsApp({
+    phoneNumber: ctx.studentPhone,
+    studentName: ctx.studentName,
+    amount: ctx.amount,
+    course: ctx.course,
+    dueDate: ctx.dueDate,
+  });
+
+  await writeNotificationMetadata(paymentId, {
+    emailStatus,
+    whatsappStatus: whatsapp.ok ? "sent" : "failed",
+    whatsappError: whatsapp.ok ? undefined : whatsapp.error,
+    notificationCount: ctx.notificationCount + 1,
+  }).catch(() => {
+    // Metadata write is best-effort.
+  });
+
+  if (emailError) {
+    throw emailError;
+  }
+  return { whatsappOk: whatsapp.ok };
 }
 
 export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult> {
@@ -135,17 +181,41 @@ export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult>
     )
     .returning({ paymentId: payments.id });
 
+  // Pick up every overdue row that needs a (re-)notification: those never
+  // notified yet (just-flipped rows fall here, since metaData is NULL) AND
+  // those already overdue whose last notify was more than the reminder
+  // interval ago. Same query covers initial + weekly reminders.
+  const dueForNotify = await db
+    .select({ paymentId: payments.id })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.paymentStatus, "overdue"),
+        sql`(
+          ${payments.metaData}->>'overdueNotifiedAt' IS NULL
+          OR (${payments.metaData}->>'overdueNotifiedAt')::timestamptz
+             < NOW() - (${REMINDER_INTERVAL_DAYS} || ' days')::interval
+        )`
+      )
+    );
+
   const result: MarkOverdueResult = {
     flipped: flipped.length,
     emailsSent: 0,
+    whatsappsSent: 0,
     failures: [],
   };
 
-  for (const { paymentId } of flipped) {
+  for (const { paymentId } of dueForNotify) {
     try {
-      await sendOverdueEmail(paymentId);
+      const { whatsappOk } = await sendOverdueEmail(paymentId);
       result.emailsSent += 1;
+      if (whatsappOk) {
+        result.whatsappsSent += 1;
+      }
     } catch (err) {
+      // Email failed — WhatsApp may still have run; its status is in metadata.
+      // Counter undercounts in this branch, which is acceptable for a metric.
       result.failures.push({
         paymentId,
         error: err instanceof Error ? err.message : String(err),

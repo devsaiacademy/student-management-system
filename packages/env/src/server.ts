@@ -11,6 +11,9 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().min(1),
     RESEND_FROM: z.email(),
     CRON_SECRET: z.string().min(1),
+    WHATSAPP_ACCESS_TOKEN: z.string().min(1),
+    WHATSAPP_PHONE_NUMBER_ID: z.string().min(1),
+    WHATSAPP_OVERDUE_TEMPLATE: z.string().min(1).default("payment_overdue_1"),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
