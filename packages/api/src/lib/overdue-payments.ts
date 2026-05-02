@@ -24,6 +24,7 @@ type PaymentContext = {
   amount: number;
   dueDate: string;
   emiNumber: number | null;
+  paymentDescription: string | null;
   studentName: string;
   studentEmail: string;
   studentPhone: string;
@@ -42,6 +43,7 @@ async function loadPaymentContext(
       amount: payments.amount,
       dueDate: payments.dueDate,
       emiNumber: payments.emiNumber,
+      paymentDescription: payments.description,
       studentName: students.name,
       studentEmail: students.email,
       studentPhone: students.phoneNumber,
@@ -146,7 +148,8 @@ export async function sendOverdueEmail(
 
   const whatsapp = await sendOverdueWhatsApp({
     phoneNumber: ctx.studentPhone,
-    studentName: ctx.studentName,
+    emiNumber: ctx.emiNumber,
+    description: ctx.paymentDescription,
     amount: ctx.amount,
     course: ctx.course,
     dueDate: ctx.dueDate,
