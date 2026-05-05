@@ -325,7 +325,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
       >
         {HEADER_LABELS.map((label) => (
           <span
-            className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+            className="text-xs font-semibold uppercase tracking-[0.08em] text-primary"
             key={label}
           >
             {label}
