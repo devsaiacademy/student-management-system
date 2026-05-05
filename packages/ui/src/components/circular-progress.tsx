@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@student-management-system/ui/lib/utils";
+import { useEffect, useRef, useState } from "react";
 
 type Tone = "primary" | "success" | "destructive" | "muted";
 
@@ -47,18 +50,37 @@ function CircularProgress({
   const tones = TONE_STYLES[tone];
   const percent = Math.round(clamped * 100);
 
+  const [animatedOffset, setAnimatedOffset] = useState(circumference);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) {
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setAnimatedOffset(circumference);
+        requestAnimationFrame(() => setAnimatedOffset(offset));
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [offset, circumference]);
+
   return (
     <div
-      data-slot="circular-progress"
-      role="progressbar"
-      aria-valuenow={percent}
-      aria-valuemin={0}
-      aria-valuemax={100}
       aria-label={label}
+      aria-valuemax={100}
+      aria-valuemin={0}
+      aria-valuenow={percent}
       className={cn(
         "relative inline-flex items-center justify-center",
         className
       )}
+      data-slot="circular-progress"
+      ref={containerRef}
+      role="progressbar"
       style={{ width: size, height: size }}
     >
       <svg
@@ -77,18 +99,18 @@ function CircularProgress({
           className={tones.track}
         />
         <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
           className={cn(
             tones.indicator,
-            "transition-[stroke-dashoffset] duration-500 ease-out"
+            "motion-safe:transition-[stroke-dashoffset] motion-safe:duration-500 motion-safe:ease-out"
           )}
+          cx={size / 2}
+          cy={size / 2}
+          fill="none"
+          r={radius}
+          strokeDasharray={circumference}
+          strokeDashoffset={animatedOffset}
+          strokeLinecap="round"
+          strokeWidth={strokeWidth}
         />
       </svg>
       {children ? (
