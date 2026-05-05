@@ -56,6 +56,11 @@ export const enrollmentRouter = router({
       const nextUnpaid = tuitionPayments.find(
         (p) => p.paymentStatus === "unpaid"
       );
+      const overduePayments = tuitionPayments.filter(
+        (p) => p.paymentStatus === "overdue"
+      );
+      const oldestOverdue = overduePayments[0];
+
       return {
         enrollment: {
           id: enrollment.id,
@@ -75,6 +80,8 @@ export const enrollmentRouter = router({
           totalPaid,
           admissionDate: enrollment.createdAt.toISOString(),
           nextDueDate: nextUnpaid?.dueDate ?? null,
+          hasOverdue: overduePayments.length > 0,
+          oldestOverdueDate: oldestOverdue?.dueDate ?? null,
         },
         kit: kitPayment
           ? {
