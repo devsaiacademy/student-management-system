@@ -9,7 +9,7 @@ import { type ReactNode, useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
-const CARD_BG = "rounded-2xl bg-white p-4 sm:p-5 md:p-6";
+const CARD_BG = "rounded-2xl bg-white p-4 shadow-sm sm:p-5 md:p-6";
 const LABEL =
   "text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground";
 const VALUE = "mt-1 break-words text-base font-semibold text-foreground";

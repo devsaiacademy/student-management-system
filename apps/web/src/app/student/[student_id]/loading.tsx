@@ -1,6 +1,6 @@
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 
-const CARD_BG = "rounded-2xl bg-white p-4 sm:p-5 md:p-6";
+const CARD_BG = "rounded-2xl bg-white p-4 shadow-sm sm:p-5 md:p-6";
 const PAYMENT_ROW_COUNT = 5;
 const RING_SIZE = 160;
 
@@ -16,7 +16,7 @@ function FieldSkeleton() {
 function InfoCardSkeleton() {
   return (
     <div className={CARD_BG}>
-      <div className="flex min-w-0 items-start gap-5">
+      <div className="flex min-w-0 items-start gap-5 pr-12 sm:pr-0">
         <Skeleton className="size-16 shrink-0 rounded-full" />
         <div className="flex min-w-0 flex-1 flex-col gap-2.5">
           <Skeleton className="h-6 w-40 max-w-full rounded" />
@@ -62,7 +62,7 @@ function RingCardSkeleton() {
 
 export default function Loading() {
   return (
-    <div className="min-h-full bg-neutral-50 px-4 pt-14 pb-10 sm:px-6 md:px-10 md:pt-8">
+    <div className="min-h-full bg-neutral-50 px-4 pt-3 pb-10 sm:px-6 md:px-10 md:pt-8">
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_280px_280px] xl:items-stretch">
         <div className="flex flex-col gap-4 sm:gap-6 xl:col-span-1">
           <InfoCardSkeleton />

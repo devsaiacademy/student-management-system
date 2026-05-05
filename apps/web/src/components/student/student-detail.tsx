@@ -23,7 +23,7 @@ export function StudentDetail({ isAdmin, studentId }: StudentDetailProps) {
   );
 
   return (
-    <div className="min-h-full bg-neutral-50 px-4 pt-14 pb-10 sm:px-6 md:px-10 md:pt-8">
+    <div className="min-h-full bg-neutral-50 px-4 pt-3 pb-10 sm:px-6 md:px-10 md:pt-8">
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_280px_280px] xl:items-stretch">
         <div className="flex flex-col gap-4 sm:gap-6 xl:col-span-1">
           <StudentInfo isAdmin={isAdmin} studentId={studentId} />

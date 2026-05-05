@@ -64,7 +64,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
 
   if (isPending) {
     return (
-      <div className="w-full rounded-2xl bg-white p-5 sm:p-6">
+      <div className="w-full rounded-2xl bg-white p-5 shadow-sm sm:p-6">
         <div className="flex min-w-0 items-start gap-5">
           <Skeleton className="size-16 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
@@ -101,9 +101,9 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const initials = getInitials(data.name);
 
   return (
-    <div className="w-full rounded-2xl bg-white p-5 sm:p-6">
+    <div className="w-full rounded-2xl bg-white p-5 shadow-sm sm:p-6">
       <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-        <div className="flex min-w-0 items-start gap-4 sm:contents">
+        <div className="flex min-w-0 items-start gap-4 pr-12 sm:contents sm:pr-0">
           <Avatar className="size-16" size="lg">
             <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
               {initials}
