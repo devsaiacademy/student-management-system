@@ -164,10 +164,13 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
           </div>
         </div>
         {isAdmin && (
-          <ChangeStudentStatus
-            currentStudentStatus={data.studentStatus}
-            id={data.id}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <ChangeStudentStatus
+              currentStudentStatus={data.studentStatus}
+              id={data.id}
+            />
+            <AddPayment studentId={data.id} />
+          </div>
         )}
       </div>
     </div>
