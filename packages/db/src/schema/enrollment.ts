@@ -26,6 +26,7 @@ export const enrollments = pgTable(
     closedBy: varchar("closed_by", { length: 100 }).notNull(),
 
     totalFees: integer("total_fees").notNull(),
+    initialAmount: integer("initial_amount").default(0).notNull(),
     paymentPlan: paymentPlanEnum("payment_plan").notNull(),
     emiMonths: integer("emi_months"),
 

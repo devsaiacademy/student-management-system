@@ -37,11 +37,12 @@ export const enrollmentRouter = router({
         .where(eq(payments.enrollmentId, enrollment.id))
         .orderBy(asc(payments.emiNumber), asc(payments.dueDate));
 
-      // Progress counters describe tuition only — the kit payment row has
-      // its own card and should not inflate "N of M paid" or "₹X paid so
-      // far". Kit rows are identified by description === "Kit".
+      // Progress counters describe tuition installments only. Both the
+      // kit row and the initial down-payment row have their own concerns
+      // and should not inflate "N of M paid" or "₹X paid so far". Rows
+      // are identified by description.
       const tuitionPayments = enrollmentPayments.filter(
-        (p) => p.description !== "Kit"
+        (p) => p.description !== "Kit" && p.description !== "Initial Payment"
       );
       const kitPayment = enrollmentPayments.find(
         (p) => p.description === "Kit"
