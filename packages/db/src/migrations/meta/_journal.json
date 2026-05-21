@@ -120,6 +120,13 @@
       "when": 1779301426913,
       "tag": "0016_initial_amount",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1779375618406,
+      "tag": "0017_rename_initial_amount_to_payment",
+      "breakpoints": true
     }
   ]
 }

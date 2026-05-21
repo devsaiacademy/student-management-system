@@ -294,7 +294,7 @@ export const studentsRouter = router({
               duration: input.duration,
               closedBy: input.closedBy,
               totalFees: input.totalFees,
-              initialAmount: input.initialAmount,
+              initialPayment: input.initialPayment,
               paymentPlan: input.paymentPlan,
               emiMonths:
                 input.paymentPlan === "installment" ? input.emiMonths : null,
@@ -317,12 +317,12 @@ export const studentsRouter = router({
           // as unpaid with a null paymentMethod — the method is only known
           // once the student actually pays.
           //
-          // If an `initialAmount` was collected upfront, it's recorded as a
+          // If an `initialPayment` was collected upfront, it's recorded as a
           // separate paid row on the admission date and deducted from the
           // total before the EMI math runs. The EMI rows then split the
           // remaining balance with the standard floor-divide-plus-remainder
           // pattern so the sum of every row equals totalFees exactly.
-          const remainingFees = input.totalFees - input.initialAmount;
+          const remainingFees = input.totalFees - input.initialPayment;
           const installmentCount =
             input.paymentPlan === "installment" && input.emiMonths
               ? input.emiMonths
@@ -350,14 +350,14 @@ export const studentsRouter = router({
           // Initial down-payment row: inserted as already-paid on the
           // admission date. paymentMethod stays null because the channel
           // wasn't recorded at enrollment time. Skipped entirely when
-          // initialAmount is 0 to keep the ledger identical to the
+          // initialPayment is 0 to keep the ledger identical to the
           // pre-feature behavior.
-          if (input.initialAmount > 0) {
+          if (input.initialPayment > 0) {
             const admissionDateString = formatDateForPg(input.admissionDate);
             paymentRows.unshift({
               studentId: created.id,
               enrollmentId: enrollment.id,
-              amount: input.initialAmount,
+              amount: input.initialPayment,
               description: "Initial Payment",
               emiNumber: null,
               paymentStatus: "paid" as const,

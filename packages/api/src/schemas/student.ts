@@ -62,7 +62,7 @@ export const createStudentSchema = z
     closedBy: z.enum(CLOSED_BY_NAMES),
 
     totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in rupees
-    initialAmount: z.preprocess(
+    initialPayment: z.preprocess(
       toNumberOrUndefined,
       z.number().int().min(0).default(0)
     ), // rupees paid upfront at enrollment; 0 means no down payment
@@ -91,11 +91,11 @@ export const createStudentSchema = z
         path: ["emiMonths"],
       });
     }
-    if (data.initialAmount >= data.totalFees) {
+    if (data.initialPayment >= data.totalFees) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Initial amount must be less than the total fees",
-        path: ["initialAmount"],
+        message: "Initial Payment must be less than the total fees",
+        path: ["initialPayment"],
       });
     }
     if (data.kitProvided && typeof data.kitCost !== "number") {

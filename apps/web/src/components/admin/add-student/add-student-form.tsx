@@ -37,7 +37,7 @@ const defaultValues: CreateStudentInput = {
   level: "Level 1",
   closedBy: "Mohan",
   totalFees: "" as unknown as number,
-  initialAmount: null,
+  initialPayment: undefined,
   paymentPlan: "single",
   emiMonths: null,
   admissionDate: new Date(),

@@ -98,7 +98,7 @@ export function EnrollmentCard({
 
           <div className="space-y-4">
             <FeesField control={form.control} />
-            <InitialAmountField control={form.control} />
+            <InitialPaymentField control={form.control} />
 
             <LabeledRadio
               control={form.control}
@@ -240,7 +240,7 @@ function KitCostField({
   );
 }
 
-function InitialAmountField({
+function InitialPaymentField({
   control,
 }: {
   control: UseFormReturn<CreateStudentInput>["control"];
@@ -248,10 +248,10 @@ function InitialAmountField({
   return (
     <FormField
       control={control}
-      name="initialAmount"
+      name="initialPayment"
       render={({ field }) => (
         <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
-          <FormLabel className="text-sm">Initial Amount</FormLabel>
+          <FormLabel className="text-sm">Initial Payment</FormLabel>
           <div>
             <FormControl>
               <Input
