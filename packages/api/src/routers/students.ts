@@ -39,7 +39,7 @@ const addMonthsClamped = (base: Date, months: number): Date => {
   const lastDayOfTargetMonth = new Date(
     result.getFullYear(),
     result.getMonth() + 1,
-    0,
+    0
   ).getDate();
   result.setDate(Math.min(originalDay, lastDayOfTargetMonth));
   return result;
@@ -50,7 +50,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         page: z.number().min(1),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { page } = input;
@@ -89,7 +89,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         status: z.enum(STUDENT_STATUSES).nullable(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { status } = input;
@@ -108,7 +108,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { source } = input;
@@ -130,7 +130,7 @@ export const studentsRouter = router({
         search: z.string().nullable(),
         status: z.enum(STUDENT_STATUSES).nullable(),
         source: z.enum(REACHED_US_BY_OPTIONS).nullable(),
-      }),
+      })
     )
     .query(async ({ input }) => {
       const { search, status, source } = input;
@@ -144,7 +144,7 @@ export const studentsRouter = router({
               ? or(
                   ilike(students.name, `%${search}%`),
                   ilike(students.email, `%${search}%`),
-                  ilike(students.rollNumber, `%${search}%`),
+                  ilike(students.rollNumber, `%${search}%`)
                 )
               : undefined,
 
@@ -152,8 +152,8 @@ export const studentsRouter = router({
             status ? eq(students.studentStatus, status) : undefined,
 
             //  filter by source
-            source ? eq(students.reachedUsBy, source) : undefined,
-          ),
+            source ? eq(students.reachedUsBy, source) : undefined
+          )
         );
     }),
 
@@ -209,7 +209,7 @@ export const studentsRouter = router({
     .input(
       z.object({
         id: z.number(),
-      }),
+      })
     )
     .query(async ({ ctx, input }) => {
       const { id } = input;
@@ -228,7 +228,7 @@ export const studentsRouter = router({
       z.object({
         studentId: z.number().int().positive(),
         changeStatusTo: z.enum(STUDENT_STATUSES),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const { studentId, changeStatusTo } = input;
@@ -294,6 +294,7 @@ export const studentsRouter = router({
               duration: input.duration,
               closedBy: input.closedBy,
               totalFees: input.totalFees,
+              initialPayment: input.initialPayment,
               paymentPlan: input.paymentPlan,
               emiMonths:
                 input.paymentPlan === "installment" ? input.emiMonths : null,
@@ -316,18 +317,18 @@ export const studentsRouter = router({
           // as unpaid with a null paymentMethod — the method is only known
           // once the student actually pays.
           //
-          // totalFees is stored in rupees (int). We floor-divide across
-          // installments and dump the remainder on the last row so the
-          // sum equals totalFees exactly.
+          // If an `initialPayment` was collected upfront, it's recorded as a
+          // separate paid row on the admission date and deducted from the
+          // total before the EMI math runs. The EMI rows then split the
+          // remaining balance with the standard floor-divide-plus-remainder
+          // pattern so the sum of every row equals totalFees exactly.
+          const remainingFees = input.totalFees - input.initialPayment;
           const installmentCount =
             input.paymentPlan === "installment" && input.emiMonths
               ? input.emiMonths
               : 1;
-          const baseInstallment = Math.floor(
-            input.totalFees / installmentCount,
-          );
-          const remainder =
-            input.totalFees - baseInstallment * installmentCount;
+          const baseInstallment = Math.floor(remainingFees / installmentCount);
+          const remainder = remainingFees - baseInstallment * installmentCount;
 
           const paymentRows: (typeof payments.$inferInsert)[] = Array.from(
             { length: installmentCount },
@@ -340,11 +341,30 @@ export const studentsRouter = router({
                 emiNumber: installmentCount === 1 ? null : index + 1,
                 paymentStatus: "unpaid" as const,
                 dueDate: formatDateForPg(
-                  addMonthsClamped(input.admissionDate, index),
+                  addMonthsClamped(input.admissionDate, index)
                 ),
               };
-            },
+            }
           );
+
+          // Initial down-payment row: inserted as already-paid on the
+          // admission date. paymentMethod stays null because the channel
+          // wasn't recorded at enrollment time. Skipped entirely when
+          // initialPayment is 0 to keep the ledger identical to the
+          // pre-feature behavior.
+          if (input.initialPayment > 0) {
+            const admissionDateString = formatDateForPg(input.admissionDate);
+            paymentRows.unshift({
+              studentId: created.id,
+              enrollmentId: enrollment.id,
+              amount: input.initialPayment,
+              description: "Initial Payment",
+              emiNumber: null,
+              paymentStatus: "paid" as const,
+              dueDate: admissionDateString,
+              paidDate: admissionDateString,
+            });
+          }
 
           // A kit payment row is added whenever a kit is provided. For a
           // paid kit (kitCost > 0) the row is created unpaid; for a

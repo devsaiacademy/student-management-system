@@ -98,6 +98,7 @@ export function EnrollmentCard({
 
           <div className="space-y-4">
             <FeesField control={form.control} />
+            <InitialPaymentField control={form.control} />
 
             <LabeledRadio
               control={form.control}
@@ -228,6 +229,49 @@ function KitCostField({
             </FormControl>
             <FormMessage className="mt-1" />
             {typeof field.value === "number" && field.value >= 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {toCurrency(field.value)}
+              </p>
+            )}
+          </div>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function InitialPaymentField({
+  control,
+}: {
+  control: UseFormReturn<CreateStudentInput>["control"];
+}) {
+  return (
+    <FormField
+      control={control}
+      name="initialPayment"
+      render={({ field }) => (
+        <FormItem className="grid grid-cols-[140px_1fr] items-center gap-x-3 gap-y-1 space-y-0">
+          <FormLabel className="text-sm">Initial Payment</FormLabel>
+          <div>
+            <FormControl>
+              <Input
+                className="max-w-[300px] rounded-[8px] text-sm"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Amount paid upfront (0 if none)"
+                value={typeof field.value === "number" ? field.value : ""}
+                onChange={(event) => {
+                  const rupees = event.target.value;
+                  field.onChange(rupees === "" ? undefined : Number(rupees));
+                }}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                name={field.name}
+              />
+            </FormControl>
+            <FormMessage className="mt-1" />
+            {typeof field.value === "number" && field.value > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
                 {toCurrency(field.value)}
               </p>

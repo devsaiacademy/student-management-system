@@ -62,6 +62,10 @@ export const createStudentSchema = z
     closedBy: z.enum(CLOSED_BY_NAMES),
 
     totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in rupees
+    initialPayment: z.preprocess(
+      toNumberOrUndefined,
+      z.number().int().min(0).default(0)
+    ), // rupees paid upfront at enrollment; 0 means no down payment
     paymentPlan: z.enum(PAYMENT_PLANS),
     emiMonths: z.preprocess(
       toNumberOrUndefined,
@@ -85,6 +89,13 @@ export const createStudentSchema = z
         code: z.ZodIssueCode.custom,
         message: "EMI duration is required for an installment payment plan",
         path: ["emiMonths"],
+      });
+    }
+    if (data.initialPayment >= data.totalFees) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Initial Payment must be less than the total fees",
+        path: ["initialPayment"],
       });
     }
     if (data.kitProvided && typeof data.kitCost !== "number") {

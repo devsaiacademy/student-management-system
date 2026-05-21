@@ -113,6 +113,20 @@
       "when": 1777124649364,
       "tag": "0015_enum_for_levels",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1779301426913,
+      "tag": "0016_initial_amount",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1779375618406,
+      "tag": "0017_rename_initial_amount_to_payment",
+      "breakpoints": true
     }
   ]
 }

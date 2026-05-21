@@ -1,0 +1,1 @@
+ALTER TABLE "enrollments" RENAME COLUMN "initial_amount" TO "initial_payment";
