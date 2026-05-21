@@ -263,7 +263,7 @@ function InitialAmountField({
                 value={typeof field.value === "number" ? field.value : ""}
                 onChange={(event) => {
                   const rupees = event.target.value;
-                  field.onChange(rupees === "" ? 0 : Number(rupees));
+                  field.onChange(rupees === "" ? undefined : Number(rupees));
                 }}
                 onBlur={field.onBlur}
                 ref={field.ref}
