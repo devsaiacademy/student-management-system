@@ -41,7 +41,7 @@ function EnrollmentCardSkeleton() {
     <div className={CARD_BG}>
       <Skeleton className="h-3 w-36 rounded" />
       <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-6 sm:mt-5 md:mt-6 md:gap-x-6 md:gap-y-7 xl:grid-cols-4">
-        {Array.from({ length: 9 }).map((_, index) => (
+        {Array.from({ length: 10 }).map((_, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
           <FieldSkeleton key={index} />
         ))}

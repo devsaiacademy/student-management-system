@@ -5,9 +5,11 @@ import {
   integer,
   varchar,
   timestamp,
+  date,
   boolean,
   foreignKey,
   pgPolicy,
+  check,
 } from "drizzle-orm/pg-core";
 
 import { levelEnum, paymentPlanEnum } from "./enums";
@@ -31,6 +33,10 @@ export const enrollments = pgTable(
     emiMonths: integer("emi_months"),
 
     admissionDate: timestamp("admission_date").notNull(),
+    // Day the student actually begins attending classes. Unknown at admission;
+    // set later through `enrollments.setJoiningDate`. Tuition + kit payment
+    // rows are generated and re-anchored from this date.
+    joiningDate: date("joining_date"),
     kitProvided: boolean("kit_provided").default(false).notNull(),
     kitCost: integer("kit_cost"),
 
@@ -46,6 +52,10 @@ export const enrollments = pgTable(
       foreignColumns: [students.id],
       name: "enrollments_student_id_fk",
     }).onDelete("cascade"),
+    check(
+      "joining_date_after_admission",
+      sql`joining_date IS NULL OR joining_date >= admission_date::date`
+    ),
     pgPolicy("enrollments_select_policy_student", {
       for: "select",
       to: "authenticated",

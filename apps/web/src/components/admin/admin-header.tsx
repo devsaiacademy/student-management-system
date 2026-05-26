@@ -15,6 +15,7 @@ import {
 import { Search } from "lucide-react";
 
 const STATUS_LABELS: Record<(typeof STUDENT_STATUSES)[number], string> = {
+  pending: "Pending",
   active: "Active",
   in_active: "Inactive",
   discontinue: "Discontinued",
