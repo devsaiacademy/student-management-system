@@ -94,6 +94,11 @@ export function EnrollmentCard({
               name="admissionDate"
               label="Admission Date"
             />
+            <DatePickerField
+              control={form.control}
+              name="joiningDate"
+              label="Joining Date"
+            />
           </div>
 
           <div className="space-y-4">

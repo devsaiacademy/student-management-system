@@ -41,6 +41,7 @@ const defaultValues: CreateStudentInput = {
   paymentPlan: "single",
   emiMonths: null,
   admissionDate: new Date(),
+  joiningDate: undefined,
   kitProvided: false,
   kitCost: undefined,
 };

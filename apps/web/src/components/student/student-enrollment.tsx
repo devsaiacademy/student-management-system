@@ -9,6 +9,8 @@ import { type ReactNode, useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
+import { JoiningDateAction } from "./joining-date-action";
+
 const CARD_BG = "rounded-2xl bg-white p-4 shadow-sm sm:p-5 md:p-6";
 const LABEL =
   "text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground";
@@ -209,7 +211,7 @@ export function EnrollmentDetailsCard({
   );
 
   if (isPending) {
-    const placeholderCount = isAdmin ? 9 : 6;
+    const placeholderCount = isAdmin ? 10 : 7;
     return (
       <div className={CARD_BG}>
         <Skeleton className="h-3 w-36 rounded" />
@@ -283,6 +285,22 @@ export function EnrollmentDetailsCard({
         <div>
           <p className={LABEL}>Admission Date</p>
           <p className={VALUE}>{formatDate(progress.admissionDate)}</p>
+        </div>
+        <div>
+          <p className={LABEL}>Joining Date</p>
+          {isAdmin ? (
+            <div className="mt-1">
+              <JoiningDateAction
+                admissionDate={progress.admissionDate}
+                enrollmentId={enrollment.id}
+                isLocked={progress.isJoiningDateLocked}
+                joiningDate={progress.joiningDate}
+                studentId={studentId}
+              />
+            </div>
+          ) : (
+            <p className={VALUE}>{formatDate(progress.joiningDate)}</p>
+          )}
         </div>
         {isAdmin && enrollment.closedBy && (
           <div>
