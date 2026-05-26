@@ -80,6 +80,16 @@ export const createStudentSchema = z
     ),
 
     admissionDate: z.coerce.date(),
+    // Optional at student creation. When provided, payment generation runs
+    // inline as part of `createStudent`. When omitted, the student is created
+    // in `pending` status and tuition+kit rows are inserted later via
+    // `enrollment.setJoiningDate`.
+    joiningDate: z
+      .preprocess(
+        (value) => (value === "" || value == null ? undefined : value),
+        z.coerce.date()
+      )
+      .optional(),
     kitProvided: z.boolean(),
     kitCost: z.number().int().min(0).optional(),
   })
@@ -104,6 +114,13 @@ export const createStudentSchema = z
         message:
           "Kit cost is required when a kit is provided (enter 0 if complementary)",
         path: ["kitCost"],
+      });
+    }
+    if (data.joiningDate && data.joiningDate < data.admissionDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Joining date cannot be before admission date",
+        path: ["joiningDate"],
       });
     }
   });

@@ -59,6 +59,18 @@ async function seed() {
     const sql = readFileSync(sqlPath, "utf-8");
 
     await pool.query(sql);
+
+    // Joining-date backfill: historical enrollments and the supabase-dumped
+    // seed both predate the `joining_date` column. For those rows the
+    // admission day was effectively the joining day, so copy the value
+    // across. Idempotent — only fills NULLs, leaves explicitly-set values
+    // alone.
+    await pool.query(
+      `UPDATE enrollments
+          SET joining_date = admission_date::date
+        WHERE joining_date IS NULL`
+    );
+
     console.log("Database seeded successfully");
   } catch (error) {
     console.error("Error seeding database:", error);

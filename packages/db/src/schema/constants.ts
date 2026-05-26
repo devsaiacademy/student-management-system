@@ -1,7 +1,12 @@
 export const PAYMENT_PLANS = ["single", "installment"] as const;
 export type PaymentPlan = (typeof PAYMENT_PLANS)[number];
 
-export const STUDENT_STATUSES = ["active", "in_active", "discontinue"] as const;
+export const STUDENT_STATUSES = [
+  "pending",
+  "active",
+  "in_active",
+  "discontinue",
+] as const;
 export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 
 export const REACHED_US_BY_OPTIONS = [

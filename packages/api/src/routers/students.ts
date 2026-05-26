@@ -16,34 +16,13 @@ import {
   router,
   studentProcedure,
 } from "../index";
+import {
+  buildTuitionAndKitRows,
+  formatDateForPg,
+} from "../lib/payment-schedule";
 import { createStudentSchema } from "../schemas/student";
 
 const LIMIT = 10;
-
-// Format a Date as "YYYY-MM-DD" — Drizzle `date` columns expect a string.
-const formatDateForPg = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-// Add `months` to `base`, clamping the day to the last day of the target
-// month so Jan 31 + 1 month → Feb 28/29 (instead of JS's native rollover
-// to Mar 3). Matches `date-fns` addMonths semantics.
-const addMonthsClamped = (base: Date, months: number): Date => {
-  const result = new Date(base);
-  const originalDay = result.getDate();
-  result.setDate(1);
-  result.setMonth(result.getMonth() + months);
-  const lastDayOfTargetMonth = new Date(
-    result.getFullYear(),
-    result.getMonth() + 1,
-    0
-  ).getDate();
-  result.setDate(Math.min(originalDay, lastDayOfTargetMonth));
-  return result;
-};
 
 export const studentsRouter = router({
   getAllStudents: protectedProcedure
@@ -250,14 +229,26 @@ export const studentsRouter = router({
       return updatedStudent;
     }),
 
-  // Creates a student and their first enrollment atomically. If the
-  // enrollment insert fails, the student insert is rolled back so we
-  // never end up with orphan students.
+  // Creates a student and their first enrollment atomically. The tuition
+  // payment schedule and the kit row anchor to `joiningDate`, which may not
+  // be known yet:
+  //   - If `joiningDate` is provided, payment rows are inserted in the same
+  //     transaction and the student is `active`.
+  //   - If `joiningDate` is omitted, only the optional Initial Payment row
+  //     (anchored to `admissionDate`) is inserted; the student is `pending`
+  //     until `enrollment.setJoiningDate` is called.
   createStudent: protectedProcedure
     .input(createStudentSchema)
     .mutation(async ({ input }) => {
       try {
         return await db.transaction(async (tx) => {
+          // Status is derived from joiningDate: a student without a known
+          // joining date is `pending` regardless of what the form sent. The
+          // form's `studentStatus` is otherwise honored.
+          const effectiveStatus = input.joiningDate
+            ? input.studentStatus
+            : ("pending" as const);
+
           const [created] = await tx
             .insert(students)
             .values({
@@ -273,7 +264,7 @@ export const studentsRouter = router({
               motherOccupation: input.motherOccupation || null,
               fatherName: input.fatherName || null,
               fatherOccupation: input.fatherOccupation || null,
-              studentStatus: input.studentStatus,
+              studentStatus: effectiveStatus,
               reachedUsBy: input.reachedUsBy,
             })
             .returning({ id: students.id });
@@ -299,6 +290,9 @@ export const studentsRouter = router({
               emiMonths:
                 input.paymentPlan === "installment" ? input.emiMonths : null,
               admissionDate: input.admissionDate,
+              joiningDate: input.joiningDate
+                ? formatDateForPg(input.joiningDate)
+                : null,
               kitProvided: input.kitProvided,
               kitCost: input.kitProvided ? (input.kitCost ?? 0) : null,
             })
@@ -311,50 +305,17 @@ export const studentsRouter = router({
             });
           }
 
-          // Generate the payment schedule for this enrollment. For an
-          // installment plan we create one row per EMI month; for a single
-          // plan we create one row covering the full fee. All rows start
-          // as unpaid with a null paymentMethod — the method is only known
-          // once the student actually pays.
-          //
-          // If an `initialPayment` was collected upfront, it's recorded as a
-          // separate paid row on the admission date and deducted from the
-          // total before the EMI math runs. The EMI rows then split the
-          // remaining balance with the standard floor-divide-plus-remainder
-          // pattern so the sum of every row equals totalFees exactly.
-          const remainingFees = input.totalFees - input.initialPayment;
-          const installmentCount =
-            input.paymentPlan === "installment" && input.emiMonths
-              ? input.emiMonths
-              : 1;
-          const baseInstallment = Math.floor(remainingFees / installmentCount);
-          const remainder = remainingFees - baseInstallment * installmentCount;
-
-          const paymentRows: (typeof payments.$inferInsert)[] = Array.from(
-            { length: installmentCount },
-            (_, index) => {
-              const isLast = index === installmentCount - 1;
-              return {
-                studentId: created.id,
-                enrollmentId: enrollment.id,
-                amount: baseInstallment + (isLast ? remainder : 0),
-                emiNumber: installmentCount === 1 ? null : index + 1,
-                paymentStatus: "unpaid" as const,
-                dueDate: formatDateForPg(
-                  addMonthsClamped(input.admissionDate, index)
-                ),
-              };
-            }
-          );
+          const paymentRows: (typeof payments.$inferInsert)[] = [];
 
           // Initial down-payment row: inserted as already-paid on the
-          // admission date. paymentMethod stays null because the channel
-          // wasn't recorded at enrollment time. Skipped entirely when
-          // initialPayment is 0 to keep the ledger identical to the
+          // admission date. Always anchored to admission (a deposit is paid
+          // at signup, not at joining). paymentMethod stays null because the
+          // channel wasn't recorded at enrollment time. Skipped entirely
+          // when initialPayment is 0 to keep the ledger identical to the
           // pre-feature behavior.
           if (input.initialPayment > 0) {
             const admissionDateString = formatDateForPg(input.admissionDate);
-            paymentRows.unshift({
+            paymentRows.push({
               studentId: created.id,
               enrollmentId: enrollment.id,
               amount: input.initialPayment,
@@ -366,27 +327,29 @@ export const studentsRouter = router({
             });
           }
 
-          // A kit payment row is added whenever a kit is provided. For a
-          // paid kit (kitCost > 0) the row is created unpaid; for a
-          // complementary kit (kitCost === 0) it's inserted as already paid
-          // on the enrollment start date so the ledger reflects it without
-          // ever showing as dues.
-          if (input.kitProvided && typeof input.kitCost === "number") {
-            const admissionDateString = formatDateForPg(input.admissionDate);
-            paymentRows.push({
-              studentId: created.id,
-              enrollmentId: enrollment.id,
-              amount: input.kitCost,
-              description: "Kit",
-              emiNumber: null,
-              paymentStatus:
-                input.kitCost === 0 ? ("paid" as const) : ("unpaid" as const),
-              dueDate: admissionDateString,
-              paidDate: input.kitCost === 0 ? admissionDateString : null,
-            });
+          // Tuition + kit rows only when the joining date is known. Otherwise
+          // the schedule is generated later by `enrollment.setJoiningDate`.
+          if (input.joiningDate) {
+            paymentRows.push(
+              ...buildTuitionAndKitRows(
+                {
+                  studentId: created.id,
+                  enrollmentId: enrollment.id,
+                  totalFees: input.totalFees,
+                  initialPayment: input.initialPayment,
+                  paymentPlan: input.paymentPlan,
+                  emiMonths: input.emiMonths,
+                  kitProvided: input.kitProvided,
+                  kitCost: input.kitProvided ? (input.kitCost ?? 0) : null,
+                },
+                input.joiningDate
+              )
+            );
           }
 
-          await tx.insert(payments).values(paymentRows);
+          if (paymentRows.length > 0) {
+            await tx.insert(payments).values(paymentRows);
+          }
 
           return { id: created.id };
         });

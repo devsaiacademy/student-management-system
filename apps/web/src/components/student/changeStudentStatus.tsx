@@ -14,6 +14,8 @@ type StatusTransition = {
 };
 
 const buttonStylesByStatus: Record<StudentStatus, string> = {
+  pending:
+    "h-8 rounded-md border-none bg-surface-warning px-3 text-xs text-surface-warning-foreground hover:brightness-95",
   active:
     "h-8 rounded-md border-none bg-surface-success px-3 text-xs text-surface-success-foreground hover:brightness-95",
   in_active:
@@ -22,7 +24,12 @@ const buttonStylesByStatus: Record<StudentStatus, string> = {
     "h-8 rounded-md border-none bg-surface-destructive px-3 text-xs text-surface-destructive-foreground hover:brightness-95",
 };
 
+// A `pending` student transitions to `active` automatically when an admin
+// sets the joining date — we don't expose a manual "activate without setting
+// joining date" path because it would leave the schedule unanchored. Only
+// the cancellation path is offered manually from pending.
 const statusTransitions: Record<StudentStatus, StatusTransition[]> = {
+  pending: [{ nextStatus: "discontinue", label: "Mark as discontinued" }],
   active: [
     { nextStatus: "in_active", label: "Mark as inactive" },
     { nextStatus: "discontinue", label: "Mark as discontinued" },
@@ -35,6 +42,7 @@ const statusTransitions: Record<StudentStatus, StatusTransition[]> = {
 };
 
 const statusLabelByStatus: Record<StudentStatus, string> = {
+  pending: "Pending",
   active: "Active",
   in_active: "Inactive",
   discontinue: "Discontinued",

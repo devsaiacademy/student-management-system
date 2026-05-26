@@ -127,6 +127,13 @@
       "when": 1779375618406,
       "tag": "0017_rename_initial_amount_to_payment",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1779813613213,
+      "tag": "0018_add_joining_date_and_pending_status",
+      "breakpoints": true
     }
   ]
 }
