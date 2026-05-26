@@ -30,6 +30,8 @@ export type PaymentMetaData = {
   overdueWhatsappStatus?: "sent" | "failed" | "skipped";
   overdueWhatsappError?: string;
   overdueNotificationCount?: number;
+  penalty?: number;
+  penaltyLog?: Array<{ at: string; delta: number }>;
 };
 
 export const payments = pgTable(

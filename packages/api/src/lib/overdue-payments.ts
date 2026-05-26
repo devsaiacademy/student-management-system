@@ -14,14 +14,19 @@ import { sendOverdueWhatsApp } from "./whatsapp";
 
 export type MarkOverdueResult = {
   flipped: number;
+  penaltiesApplied: number;
   emailsSent: number;
   whatsappsSent: number;
   failures: Array<{ paymentId: number; error: string }>;
 };
 
+const PENALTY_INR = 100;
+const PENALTY_INTERVAL_DAYS = 7;
+
 type PaymentContext = {
   paymentId: number;
   amount: number;
+  penalty: number;
   dueDate: string;
   emiNumber: number | null;
   paymentDescription: string | null;
@@ -33,6 +38,50 @@ type PaymentContext = {
 };
 
 const REMINDER_INTERVAL_DAYS = 7;
+
+// Adds ₹PENALTY_INR to every overdue row whose last penalty was applied more
+// than PENALTY_INTERVAL_DAYS ago (or never). The running total lives at
+// `metaData.penalty` and each application is logged as
+// `metaData.penaltyLog = [{ at, delta }, ...]`. No cap — penalty grows until
+// the row is paid (which flips it out of `overdue` and excludes it from the
+// WHERE filter on the next run).
+async function applyOverduePenalties(): Promise<number> {
+  const entry: PaymentMetaData["penaltyLog"] = [
+    { at: new Date().toISOString(), delta: PENALTY_INR },
+  ];
+
+  const rows = await db
+    .update(payments)
+    .set({
+      metaData: sql`
+        COALESCE(${payments.metaData}, '{}'::jsonb)
+        || jsonb_build_object(
+          'penalty',
+          COALESCE((${payments.metaData}->>'penalty')::int, 0) + ${PENALTY_INR}
+        )
+        || jsonb_build_object(
+          'penaltyLog',
+          COALESCE(${payments.metaData}->'penaltyLog', '[]'::jsonb) || ${JSON.stringify(entry)}::jsonb
+        )
+      `,
+    })
+    .where(
+      and(
+        eq(payments.paymentStatus, "overdue"),
+        sql`(
+          ${payments.metaData}->'penaltyLog' IS NULL
+          OR jsonb_array_length(COALESCE(${payments.metaData}->'penaltyLog', '[]'::jsonb)) = 0
+          OR (
+            (${payments.metaData}->'penaltyLog' -> (jsonb_array_length(${payments.metaData}->'penaltyLog') - 1) ->> 'at')::timestamptz
+            < NOW() - (${PENALTY_INTERVAL_DAYS} || ' days')::interval
+          )
+        )`
+      )
+    )
+    .returning({ paymentId: payments.id });
+
+  return rows.length;
+}
 
 async function loadPaymentContext(
   paymentId: number
@@ -48,6 +97,7 @@ async function loadPaymentContext(
       studentEmail: students.email,
       studentPhone: students.phoneNumber,
       course: enrollments.course,
+      penalty: sql<number>`COALESCE((${payments.metaData}->>'penalty')::int, 0)`,
       notificationCount: sql<number>`COALESCE((${payments.metaData}->>'overdueNotificationCount')::int, 0)`,
     })
     .from(payments)
@@ -107,6 +157,7 @@ async function sendEmail(
     react: PaymentOverdueEmail({
       studentName: ctx.studentName,
       amount: ctx.amount,
+      penalty: ctx.penalty,
       dueDate: ctx.dueDate,
       course: ctx.course,
       emiNumber: ctx.emiNumber ?? undefined,
@@ -150,7 +201,7 @@ export async function sendOverdueEmail(
     phoneNumber: ctx.studentPhone,
     emiNumber: ctx.emiNumber,
     description: ctx.paymentDescription,
-    amount: ctx.amount,
+    amount: ctx.amount + ctx.penalty,
     course: ctx.course,
     dueDate: ctx.dueDate,
   });
@@ -184,6 +235,11 @@ export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult>
     )
     .returning({ paymentId: payments.id });
 
+  // Run penalty step after the flip so newly-overdue rows pick up their first
+  // ₹100 in the same cron run. Notifications below read the updated metaData,
+  // so the email/WhatsApp body reflects the just-applied penalty.
+  const penaltiesApplied = await applyOverduePenalties();
+
   // Pick up every overdue row that needs a (re-)notification: those never
   // notified yet (just-flipped rows fall here, since metaData is NULL) AND
   // those already overdue whose last notify was more than the reminder
@@ -204,6 +260,7 @@ export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult>
 
   const result: MarkOverdueResult = {
     flipped: flipped.length,
+    penaltiesApplied,
     emailsSent: 0,
     whatsappsSent: 0,
     failures: [],

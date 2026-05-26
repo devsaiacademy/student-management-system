@@ -15,6 +15,7 @@ import { EmailLogo } from "./logo";
 interface PaymentOverdueEmailProps {
   studentName: string;
   amount: number;
+  penalty?: number;
   dueDate: string;
   course?: string;
   emiNumber?: number;
@@ -33,11 +34,13 @@ const currencyFormatter = new Intl.NumberFormat("en-IN", {
 export function PaymentOverdueEmail({
   studentName,
   amount,
+  penalty = 0,
   dueDate,
   course,
   emiNumber,
   isOverdue = true,
 }: PaymentOverdueEmailProps) {
+  const totalDue = amount + penalty;
   const installmentLabel = emiNumber ? `EMI ${emiNumber}` : "Payment";
   const courseLabel = course ? ` for ${course}` : "";
   const heading = isOverdue ? "Your payment is overdue" : "Payment reminder";
@@ -105,8 +108,21 @@ export function PaymentOverdueEmail({
                 margin: 0,
               }}
             >
-              Amount due: <strong>{currencyFormatter.format(amount)}</strong>
+              Amount due: <strong>{currencyFormatter.format(totalDue)}</strong>
             </Text>
+            {penalty > 0 ? (
+              <Text
+                style={{
+                  color: "#666",
+                  fontSize: "13px",
+                  lineHeight: "20px",
+                  margin: "4px 0 0",
+                }}
+              >
+                {currencyFormatter.format(amount)} + late fee{" "}
+                <strong>{currencyFormatter.format(penalty)}</strong>
+              </Text>
+            ) : null}
             <Text
               style={{
                 color: "#111",

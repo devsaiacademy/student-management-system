@@ -32,6 +32,7 @@ type Payment = {
   metaData: {
     overdueNotifiedAt?: string;
     overdueEmailStatus?: "sent" | "failed";
+    penalty?: number;
   } | null;
 };
 
@@ -126,6 +127,7 @@ function getInstallmentLabel(payment: Payment, total: number) {
 
 type PaymentActionsProps = {
   payment: Payment;
+  totalAmount: number;
   label: string;
   isPaid: boolean;
   isAdmin: boolean;
@@ -134,6 +136,7 @@ type PaymentActionsProps = {
 
 function PaymentActions({
   payment,
+  totalAmount,
   label,
   isPaid,
   isAdmin,
@@ -157,7 +160,7 @@ function PaymentActions({
             payment={{
               id: payment.id,
               label,
-              amount: payment.amount,
+              amount: totalAmount,
               dueDate: payment.dueDate,
             }}
             studentId={studentId}
@@ -177,7 +180,7 @@ function PaymentActions({
             payment={{
               id: payment.id,
               label,
-              amount: payment.amount,
+              amount: totalAmount,
               dueDate: payment.dueDate,
             }}
             studentId={studentId}
@@ -194,7 +197,8 @@ function PaymentActions({
 }
 
 function MobileRow(props: PaymentActionsProps) {
-  const { payment, label, isPaid, isAdmin, studentId } = props;
+  const { payment, totalAmount, label, isPaid, isAdmin, studentId } = props;
+  const penalty = payment.metaData?.penalty ?? 0;
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-border py-3">
@@ -207,8 +211,14 @@ function MobileRow(props: PaymentActionsProps) {
             <StatusBadge status={payment.paymentStatus} />
           </div>
           <span className="text-xs text-muted-foreground">
-            {formatCurrency(payment.amount)}
+            {formatCurrency(totalAmount)}
           </span>
+          {penalty > 0 && !isPaid && (
+            <span className="text-xs text-muted-foreground">
+              {formatCurrency(payment.amount)} + {formatCurrency(penalty)} late
+              fee
+            </span>
+          )}
           {payment.paymentStatus !== "paid" &&
             payment.metaData?.overdueNotifiedAt && (
               <span className="text-xs text-muted-foreground">
@@ -279,7 +289,7 @@ function MobileRow(props: PaymentActionsProps) {
                   payment={{
                     id: payment.id,
                     label,
-                    amount: payment.amount,
+                    amount: totalAmount,
                     dueDate: payment.dueDate,
                   }}
                   studentId={studentId}
@@ -299,7 +309,7 @@ function MobileRow(props: PaymentActionsProps) {
                   payment={{
                     id: payment.id,
                     label,
-                    amount: payment.amount,
+                    amount: totalAmount,
                     dueDate: payment.dueDate,
                   }}
                   studentId={studentId}
@@ -391,6 +401,8 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
           return data.map((payment, index) => {
             const isPaid = payment.paymentStatus === "paid";
             const label = getInstallmentLabel(payment, installmentTotal);
+            const penalty = payment.metaData?.penalty ?? 0;
+            const totalAmount = payment.amount + penalty;
 
             return (
               <div key={payment.id}>
@@ -416,9 +428,17 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                     notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
                     status={payment.paymentStatus}
                   />
-                  <span className="text-sm text-foreground">
-                    {formatCurrency(payment.amount)}
-                  </span>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm text-foreground">
+                      {formatCurrency(totalAmount)}
+                    </span>
+                    {penalty > 0 && !isPaid && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatCurrency(payment.amount)} +{" "}
+                        {formatCurrency(penalty)} late fee
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center justify-start gap-2">
                     <PaymentActions
                       isAdmin={isAdmin}
@@ -426,6 +446,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                       label={label}
                       payment={payment}
                       studentId={studentId}
+                      totalAmount={totalAmount}
                     />
                   </div>
                 </div>
@@ -436,6 +457,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                     label={label}
                     payment={payment}
                     studentId={studentId}
+                    totalAmount={totalAmount}
                   />
                 </div>
               </div>
