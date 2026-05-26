@@ -51,6 +51,7 @@ export const razorpayRouter = router({
         .select({
           paymentId: payments.id,
           amount: payments.amount,
+          metaData: payments.metaData,
           currency: payments.currency,
           paymentStatus: payments.paymentStatus,
           studentId: payments.studentId,
@@ -84,8 +85,16 @@ export const razorpayRouter = router({
         });
       }
 
+      // Total owed = base amount + accumulated late-fee penalty (added by the
+      // overdue cron, stored in metaData.penalty). `?? 0` covers rows that
+      // never went overdue.
+      const totalAmount = row.amount + (row.metaData?.penalty ?? 0);
+      const amountInPaise = totalAmount * 100;
+
       // Dedupe: if the previous Pay click left an unused order within the 15-min
-      // Razorpay TTL, reuse it instead of burning a fresh order on the gateway.
+      // Razorpay TTL, reuse it — but only if its amount still matches today's
+      // total. If the cron added another ₹100 since the order was created, we
+      // must mint a fresh order so the student is charged the current penalty.
       if (row.existingRazorpayOrderId) {
         const reuseCutoff = new Date(
           Date.now() - REUSE_WINDOW_MINUTES * 60 * 1000
@@ -106,7 +115,7 @@ export const razorpayRouter = router({
           )
           .limit(1);
 
-        if (existing) {
+        if (existing && existing.amount === amountInPaise) {
           return {
             razorpayOrderId: existing.razorpayOrderId,
             amount: existing.amount,
@@ -121,8 +130,6 @@ export const razorpayRouter = router({
           };
         }
       }
-
-      const amountInPaise = row.amount * 100;
 
       const order = await razorpay.orders.create({
         amount: amountInPaise,
