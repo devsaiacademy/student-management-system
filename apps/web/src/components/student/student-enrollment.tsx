@@ -412,7 +412,7 @@ function getKitVariant(data: {
   enrollment: { kitCost: number | null };
   kit: {
     amount: number;
-    paymentStatus: "paid" | "unpaid" | "overdue";
+    paymentStatus: "paid" | "unpaid" | "overdue" | "partially_paid";
     dueDate: string;
   } | null;
 }): KitVariant | null {

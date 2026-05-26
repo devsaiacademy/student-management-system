@@ -10,6 +10,11 @@ type NotifyUserButtonProps = {
   paymentId: number;
   studentId: number;
   notifiedAt: string | null;
+  // Optional custom trigger; defaults to the standard "Notify" button.
+  renderTrigger?: (
+    notify: () => void,
+    state: { isPending: boolean; isDebounced: boolean }
+  ) => React.ReactNode;
 };
 
 const DEBOUNCE_MS = 60_000;
@@ -18,6 +23,7 @@ export function NotifyUserButton({
   paymentId,
   studentId,
   notifiedAt,
+  renderTrigger,
 }: NotifyUserButtonProps) {
   const queryClient = useQueryClient();
 
@@ -52,11 +58,24 @@ export function NotifyUserButton({
     })
   );
 
+  const handleNotify = () => sendReminder.mutate({ paymentId });
+
+  if (renderTrigger) {
+    return (
+      <>
+        {renderTrigger(handleNotify, {
+          isPending: sendReminder.isPending,
+          isDebounced: withinDebounce,
+        })}
+      </>
+    );
+  }
+
   return (
     <Button
       className="h-8 rounded-md px-3 text-xs font-medium"
       disabled={sendReminder.isPending || withinDebounce}
-      onClick={() => sendReminder.mutate({ paymentId })}
+      onClick={handleNotify}
       size="sm"
       variant="white"
     >

@@ -38,6 +38,13 @@ type MarkAsPaidProps = {
   payment: Payment;
   formatCurrency: (amount: number) => string;
   formatDate: (value: string) => string;
+  // Optional custom trigger. When omitted AND `open` is not supplied, the
+  // standard "Mark Paid" button is rendered. Use `renderTrigger` for an inline
+  // trigger, or `open`/`onOpenChange` to control the dialog from outside
+  // (e.g. when the trigger lives in a dropdown that would unmount it).
+  renderTrigger?: (open: () => void) => React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function MarkAsPaid({
@@ -45,10 +52,20 @@ export function MarkAsPaid({
   payment,
   formatCurrency,
   formatDate,
+  renderTrigger,
+  open: controlledOpen,
+  onOpenChange,
 }: MarkAsPaidProps) {
   const queryClient = useQueryClient();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const dialogOpen = controlledOpen ?? internalOpen;
+  const setDialogOpen = (next: boolean) => {
+    if (controlledOpen === undefined) {
+      setInternalOpen(next);
+    }
+    onOpenChange?.(next);
+  };
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [reason, setReason] = useState<string>("");
 
@@ -99,20 +116,26 @@ export function MarkAsPaid({
     });
   };
 
+  const openDialog = () => {
+    setPaymentMethod("");
+    setReason("");
+    setDialogOpen(true);
+  };
+
   return (
     <>
-      <Button
-        className="h-8 rounded-md px-3 text-xs font-medium"
-        size="sm"
-        variant="white"
-        onClick={() => {
-          setPaymentMethod("");
-          setReason("");
-          setDialogOpen(true);
-        }}
-      >
-        Mark Paid
-      </Button>
+      {renderTrigger ? (
+        renderTrigger(openDialog)
+      ) : (
+        <Button
+          className="h-8 rounded-md px-3 text-xs font-medium"
+          size="sm"
+          variant="white"
+          onClick={openDialog}
+        >
+          Mark Paid
+        </Button>
+      )}
 
       <Dialog
         open={dialogOpen}

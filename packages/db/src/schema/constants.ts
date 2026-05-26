@@ -20,7 +20,12 @@ export const REACHED_US_BY_OPTIONS = [
 ] as const;
 export type ReachedUsBy = (typeof REACHED_US_BY_OPTIONS)[number];
 
-export const PAYMENT_STATUSES = ["paid", "unpaid", "overdue"] as const;
+export const PAYMENT_STATUSES = [
+  "paid",
+  "unpaid",
+  "overdue",
+  "partially_paid",
+] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
 export const PAYMENT_METHODS = ["cash", "razorpay", "upi", "others"] as const;

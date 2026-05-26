@@ -106,6 +106,8 @@ export const paymentsRouter = router({
           enrollmentId: payments.enrollmentId,
           course: enrollments.course,
           amount: payments.amount,
+          amountPaid: payments.amountPaid,
+          partialPaymentEnabled: payments.partialPaymentEnabled,
           description: payments.description,
           emiNumber: payments.emiNumber,
           dueDate: payments.dueDate,
@@ -131,7 +133,10 @@ export const paymentsRouter = router({
       const { paymentId, paymentMethod, reason } = input;
 
       const [owner] = await db
-        .select({ studentId: payments.studentId })
+        .select({
+          studentId: payments.studentId,
+          amountPaid: payments.amountPaid,
+        })
         .from(payments)
         .where(eq(payments.id, paymentId))
         .limit(1);
@@ -144,6 +149,19 @@ export const paymentsRouter = router({
       }
 
       assertStudentAccess(ctx, owner.studentId);
+
+      // Block when a Razorpay partial chunk has already been collected — the
+      // admin would otherwise stamp the row as paid via cash/upi without
+      // accounting for the chunk that's already in the Razorpay account.
+      // Resolution: refund the chunk in Razorpay first, or let the student
+      // finish via the Pay button.
+      if (owner.amountPaid > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A partial payment has already been collected via Razorpay. Refund it in the Razorpay dashboard before marking this installment paid manually.",
+        });
+      }
 
       const metaData: PaymentMetaData = {
         markedPaidBy: ctx.user.email,
@@ -162,7 +180,11 @@ export const paymentsRouter = router({
         .where(
           and(
             eq(payments.id, paymentId),
-            inArray(payments.paymentStatus, ["unpaid", "overdue"])
+            inArray(payments.paymentStatus, [
+              "unpaid",
+              "overdue",
+              "partially_paid",
+            ])
           )
         )
         .returning({ id: payments.id });

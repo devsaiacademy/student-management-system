@@ -7,11 +7,12 @@ import { razorpayOrders } from "@student-management-system/db/schema/razorpay-or
 import { students } from "@student-management-system/db/schema/students";
 import { env } from "@student-management-system/env/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import Razorpay from "razorpay";
 import { z } from "zod";
 
 import { assertStudentAccess, router, studentProcedure } from "../index";
+import { syncOrderPaymentState } from "../lib/razorpay-webhook";
 
 const razorpay = new Razorpay({
   key_id: env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -51,6 +52,8 @@ export const razorpayRouter = router({
         .select({
           paymentId: payments.id,
           amount: payments.amount,
+          amountPaid: payments.amountPaid,
+          partialPaymentEnabled: payments.partialPaymentEnabled,
           metaData: payments.metaData,
           currency: payments.currency,
           paymentStatus: payments.paymentStatus,
@@ -131,6 +134,11 @@ export const razorpayRouter = router({
         }
       }
 
+      // Per-row admin toggle. When OFF we mint a plain full-amount order
+      // (legacy behavior). When ON we add partial_payment + a 10% first-min
+      // floor (Razorpay requires integer paise ≥ 100).
+      const partialEnabled = row.partialPaymentEnabled;
+
       const order = await razorpay.orders.create({
         amount: amountInPaise,
         currency: row.currency,
@@ -141,6 +149,13 @@ export const razorpayRouter = router({
           enrollmentId: row.enrollmentId,
           emiNumber: row.emiNumber ?? 0,
         },
+        ...(partialEnabled && {
+          partial_payment: true,
+          first_payment_min_amount: Math.max(
+            100,
+            Math.floor(amountInPaise / 10)
+          ),
+        }),
       });
 
       await db.transaction(async (tx) => {
@@ -213,45 +228,77 @@ export const razorpayRouter = router({
 
       assertStudentAccess(ctx, order.studentId);
 
-      const result = await db.transaction(async (tx) => {
-        // Idempotent: only the first successful verify flips status to 'paid'.
-        // Replays (and a subsequent webhook) see 0 rows and short-circuit.
-        const [updatedOrder] = await tx
-          .update(razorpayOrders)
-          .set({
-            status: "paid",
-            razorpayPaymentId: razorpay_payment_id,
-            razorpaySignature: razorpay_signature,
-          })
-          .where(
-            and(
-              eq(razorpayOrders.razorpayOrderId, razorpay_order_id),
-              sql`${razorpayOrders.status} <> 'paid'`
-            )
-          )
-          .returning({ id: razorpayOrders.id });
+      // Stamp the signature for audit, then sync from Razorpay's authoritative
+      // order state. The sync handles both partial chunks and full settlement
+      // (idempotent across replays + webhook races).
+      await db
+        .update(razorpayOrders)
+        .set({ razorpaySignature: razorpay_signature })
+        .where(eq(razorpayOrders.razorpayOrderId, razorpay_order_id));
 
-        if (!updatedOrder) {
-          return { alreadyPaid: true } as const;
-        }
+      await syncOrderPaymentState(razorpay_order_id, razorpay_payment_id);
 
-        await tx
-          .update(payments)
-          .set({
-            paymentStatus: "paid",
-            paymentMethod: "razorpay",
-            paidDate: new Date().toISOString().split("T")[0],
-          })
-          .where(
-            and(
-              eq(payments.razorpayOrderId, updatedOrder.id),
-              eq(payments.paymentStatus, "unpaid")
-            )
-          );
+      return { success: true };
+    }),
 
-        return { alreadyPaid: false } as const;
-      });
+  // Admin-only per-row toggle. Locked once a chunk has landed because
+  // Razorpay won't let us flip partial_payment on an in-flight order.
+  setPartialEnabled: studentProcedure
+    .input(
+      z.object({
+        paymentId: z.number().int().positive(),
+        enabled: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can change this setting",
+        });
+      }
 
-      return { success: true, ...result };
+      const [row] = await db
+        .select({
+          amountPaid: payments.amountPaid,
+          paymentStatus: payments.paymentStatus,
+        })
+        .from(payments)
+        .where(eq(payments.id, input.paymentId))
+        .limit(1);
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found",
+        });
+      }
+
+      if (row.paymentStatus === "paid") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot change partial setting on a paid installment",
+        });
+      }
+
+      if (row.amountPaid > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Partial setting is locked once a chunk has been paid. Cancel and refund in Razorpay first.",
+        });
+      }
+
+      await db
+        .update(payments)
+        .set({
+          partialPaymentEnabled: input.enabled,
+          // Drop any cached order so the next Pay click mints a fresh one
+          // with the new flag (otherwise the reuse branch returns the old order).
+          razorpayOrderId: null,
+        })
+        .where(eq(payments.id, input.paymentId));
+
+      return { enabled: input.enabled };
     }),
 });

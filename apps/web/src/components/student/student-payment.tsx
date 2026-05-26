@@ -10,9 +10,7 @@ import { useEffect, useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
-import { MarkAsPaid } from "./mark-as-paid";
-import { MarkAsUnpaid } from "./mark-as-unpaid";
-import { NotifyUserButton } from "./notify-user-button";
+import { PaymentActionsMenu } from "../admin/payment-actions-menu";
 import { PayButton } from "./pay-button";
 
 type StudentPaymentProps = {
@@ -25,6 +23,8 @@ type Payment = {
   course: string;
   dueDate: string;
   amount: number;
+  amountPaid: number;
+  partialPaymentEnabled: boolean;
   paymentStatus: string;
   paymentMethod: string | null;
   emiNumber: number | null;
@@ -68,17 +68,25 @@ function formatCurrency(amount: number) {
 function StatusBadge({ status }: { status: string }) {
   const isPaid = status === "paid";
   const isOverdue = status === "overdue";
+  const isPartial = status === "partially_paid";
   return (
     <span
       className={cn(
         "inline-flex w-fit items-center rounded-md px-2.5 py-0.5 text-xs font-medium",
         isPaid && "bg-surface-success text-surface-success-foreground",
         isOverdue && "bg-red-600 text-white",
-        !(isPaid || isOverdue) &&
+        isPartial && "bg-amber-100 text-amber-900",
+        !(isPaid || isOverdue || isPartial) &&
           "bg-surface-destructive text-surface-destructive-foreground"
       )}
     >
-      {isPaid ? "Paid" : isOverdue ? "Overdue" : "Unpaid"}
+      {isPaid
+        ? "Paid"
+        : isOverdue
+          ? "Overdue"
+          : isPartial
+            ? "Partially paid"
+            : "Unpaid"}
     </span>
   );
 }
@@ -94,9 +102,11 @@ function useRefreshingNow(intervalMs: number) {
 function StatusCell({
   status,
   notifiedAt,
+  partialAllowed,
 }: {
   status: string;
   notifiedAt: string | null;
+  partialAllowed: boolean;
 }) {
   useRefreshingNow(30_000);
   const showNotified = status !== "paid" && notifiedAt;
@@ -107,6 +117,11 @@ function StatusCell({
   return (
     <div className="flex flex-col items-start gap-1">
       <StatusBadge status={status} />
+      {partialAllowed && status !== "partially_paid" && status !== "paid" && (
+        <span className="whitespace-nowrap text-xs leading-tight text-blue-700">
+          Part payment allowed
+        </span>
+      )}
       {relative && (
         <span className="whitespace-nowrap text-xs leading-tight text-muted-foreground">
           Notified {relative}
@@ -154,16 +169,13 @@ function PaymentActions({
           View
         </Button>
         {canRevert && (
-          <MarkAsUnpaid
+          <PaymentActionsMenu
             formatCurrency={formatCurrency}
             formatDate={formatDate}
-            payment={{
-              id: payment.id,
-              label,
-              amount: totalAmount,
-              dueDate: payment.dueDate,
-            }}
+            label={label}
+            payment={payment}
             studentId={studentId}
+            totalAmount={totalAmount}
           />
         )}
       </>
@@ -173,24 +185,14 @@ function PaymentActions({
     <>
       <PayButton paymentId={payment.id} studentId={studentId} />
       {isAdmin && (
-        <>
-          <MarkAsPaid
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-            payment={{
-              id: payment.id,
-              label,
-              amount: totalAmount,
-              dueDate: payment.dueDate,
-            }}
-            studentId={studentId}
-          />
-          <NotifyUserButton
-            notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
-            paymentId={payment.id}
-            studentId={studentId}
-          />
-        </>
+        <PaymentActionsMenu
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          label={label}
+          payment={payment}
+          studentId={studentId}
+          totalAmount={totalAmount}
+        />
       )}
     </>
   );
@@ -213,6 +215,19 @@ function MobileRow(props: PaymentActionsProps) {
           <span className="text-xs text-muted-foreground">
             {formatCurrency(totalAmount)}
           </span>
+          {payment.amountPaid > 0 && !isPaid && (
+            <span className="text-xs font-medium text-amber-700">
+              {formatCurrency(payment.amountPaid)} paid of{" "}
+              {formatCurrency(totalAmount)}
+            </span>
+          )}
+          {payment.partialPaymentEnabled &&
+            payment.paymentStatus !== "partially_paid" &&
+            !isPaid && (
+              <span className="text-xs font-medium text-blue-700">
+                Part payment allowed
+              </span>
+            )}
           {penalty > 0 && !isPaid && (
             <span className="text-xs text-muted-foreground">
               {formatCurrency(payment.amount)} + {formatCurrency(penalty)} late
@@ -282,37 +297,26 @@ function MobileRow(props: PaymentActionsProps) {
               </span>
             </div>
             {!isPaid && isAdmin && (
-              <div className="mt-1 flex flex-wrap gap-2">
-                <MarkAsPaid
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <PaymentActionsMenu
                   formatCurrency={formatCurrency}
                   formatDate={formatDate}
-                  payment={{
-                    id: payment.id,
-                    label,
-                    amount: totalAmount,
-                    dueDate: payment.dueDate,
-                  }}
+                  label={label}
+                  payment={payment}
                   studentId={studentId}
-                />
-                <NotifyUserButton
-                  notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
-                  paymentId={payment.id}
-                  studentId={studentId}
+                  totalAmount={totalAmount}
                 />
               </div>
             )}
             {isPaid && isAdmin && payment.paymentMethod !== "razorpay" && (
               <div className="mt-1 flex flex-wrap gap-2">
-                <MarkAsUnpaid
+                <PaymentActionsMenu
                   formatCurrency={formatCurrency}
                   formatDate={formatDate}
-                  payment={{
-                    id: payment.id,
-                    label,
-                    amount: totalAmount,
-                    dueDate: payment.dueDate,
-                  }}
+                  label={label}
+                  payment={payment}
                   studentId={studentId}
+                  totalAmount={totalAmount}
                 />
               </div>
             )}
@@ -426,12 +430,19 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                   </span>
                   <StatusCell
                     notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
+                    partialAllowed={payment.partialPaymentEnabled}
                     status={payment.paymentStatus}
                   />
                   <div className="flex flex-col items-start">
                     <span className="text-sm text-foreground">
                       {formatCurrency(totalAmount)}
                     </span>
+                    {payment.amountPaid > 0 && !isPaid && (
+                      <span className="text-xs font-medium text-amber-700">
+                        {formatCurrency(payment.amountPaid)} paid of{" "}
+                        {formatCurrency(totalAmount)}
+                      </span>
+                    )}
                     {penalty > 0 && !isPaid && (
                       <span className="text-xs text-muted-foreground">
                         {formatCurrency(payment.amount)} +{" "}

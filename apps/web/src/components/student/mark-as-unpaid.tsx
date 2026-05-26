@@ -29,6 +29,9 @@ type MarkAsUnpaidProps = {
   payment: Payment;
   formatCurrency: (amount: number) => string;
   formatDate: (value: string) => string;
+  renderTrigger?: (open: () => void) => React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function MarkAsUnpaid({
@@ -36,9 +39,19 @@ export function MarkAsUnpaid({
   payment,
   formatCurrency,
   formatDate,
+  renderTrigger,
+  open: controlledOpen,
+  onOpenChange,
 }: MarkAsUnpaidProps) {
   const queryClient = useQueryClient();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const dialogOpen = controlledOpen ?? internalOpen;
+  const setDialogOpen = (next: boolean) => {
+    if (controlledOpen === undefined) {
+      setInternalOpen(next);
+    }
+    onOpenChange?.(next);
+  };
   const [reason, setReason] = useState<string>("");
 
   const REASON_MAX_LENGTH = 500;
@@ -85,19 +98,25 @@ export function MarkAsUnpaid({
     });
   };
 
+  const openDialog = () => {
+    setReason("");
+    setDialogOpen(true);
+  };
+
   return (
     <>
-      <Button
-        className="h-8 rounded-md px-3 text-xs font-medium"
-        size="sm"
-        variant="white"
-        onClick={() => {
-          setReason("");
-          setDialogOpen(true);
-        }}
-      >
-        Mark Unpaid
-      </Button>
+      {renderTrigger ? (
+        renderTrigger(openDialog)
+      ) : (
+        <Button
+          className="h-8 rounded-md px-3 text-xs font-medium"
+          size="sm"
+          variant="white"
+          onClick={openDialog}
+        >
+          Mark Unpaid
+        </Button>
+      )}
 
       <Dialog
         open={dialogOpen}
