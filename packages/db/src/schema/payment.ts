@@ -33,6 +33,13 @@ export type PaymentMetaData = {
   overdueNotificationCount?: number;
   penalty?: number;
   penaltyLog?: Array<{ at: string; delta: number }>;
+  // Append-only ledger of Razorpay partial-payment chunks received against
+  // this installment. razorpayPaymentId dedupes replays (webhook + verify).
+  partialPaymentLog?: Array<{
+    at: string;
+    amount: number;
+    razorpayPaymentId?: string;
+  }>;
 };
 
 export const payments = pgTable(

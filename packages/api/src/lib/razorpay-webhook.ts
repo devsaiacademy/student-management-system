@@ -1,7 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { db } from "@student-management-system/db";
-import { payments } from "@student-management-system/db/schema/payment";
+import {
+  payments,
+  type PaymentMetaData,
+} from "@student-management-system/db/schema/payment";
 import { razorpayOrders } from "@student-management-system/db/schema/razorpay-order";
 import { env } from "@student-management-system/env/server";
 import { and, eq, sql } from "drizzle-orm";
@@ -82,6 +85,46 @@ export async function syncOrderPaymentState(
       return;
     }
 
+    // Read current state so we can compute the delta + dedupe the log entry
+    // by razorpayPaymentId before writing the new metaData.
+    const [current] = await tx
+      .select({
+        id: payments.id,
+        amountPaid: payments.amountPaid,
+        paymentStatus: payments.paymentStatus,
+        metaData: payments.metaData,
+      })
+      .from(payments)
+      .where(eq(payments.razorpayOrderId, localOrder.id))
+      .limit(1);
+
+    if (!current || current.paymentStatus === "paid") {
+      return;
+    }
+
+    const delta = amountPaidRupees - current.amountPaid;
+    const existingLog = current.metaData?.partialPaymentLog ?? [];
+    const alreadyLogged =
+      razorpayPaymentId !== null &&
+      existingLog.some((e) => e.razorpayPaymentId === razorpayPaymentId);
+
+    const nextLog =
+      delta > 0 && !alreadyLogged
+        ? [
+            ...existingLog,
+            {
+              at: new Date().toISOString(),
+              amount: delta,
+              ...(razorpayPaymentId ? { razorpayPaymentId } : {}),
+            },
+          ]
+        : existingLog;
+
+    const nextMetaData: PaymentMetaData = {
+      ...(current.metaData ?? {}),
+      partialPaymentLog: nextLog,
+    };
+
     if (isFullyPaid) {
       await tx
         .update(payments)
@@ -90,26 +133,18 @@ export async function syncOrderPaymentState(
           paymentStatus: "paid",
           paymentMethod: "razorpay",
           paidDate: new Date().toISOString().split("T")[0],
+          metaData: nextMetaData,
         })
-        .where(
-          and(
-            eq(payments.razorpayOrderId, localOrder.id),
-            sql`${payments.paymentStatus} <> 'paid'`
-          )
-        );
+        .where(eq(payments.id, current.id));
     } else if (amountPaidPaise > 0) {
       await tx
         .update(payments)
         .set({
           amountPaid: amountPaidRupees,
           paymentStatus: "partially_paid",
+          metaData: nextMetaData,
         })
-        .where(
-          and(
-            eq(payments.razorpayOrderId, localOrder.id),
-            sql`${payments.paymentStatus} <> 'paid'`
-          )
-        );
+        .where(eq(payments.id, current.id));
     }
   });
 }
