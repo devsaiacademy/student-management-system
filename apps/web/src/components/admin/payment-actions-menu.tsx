@@ -7,12 +7,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@student-management-system/ui/components/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gooeyToast } from "goey-toast";
-import { ChevronDown } from "lucide-react";
+import {
+  Bell,
+  CheckCircle2,
+  ChevronDown,
+  Coins,
+  XCircle,
+} from "lucide-react";
 import { useState } from "react";
 
 import { trpc } from "@/utils/trpc";
@@ -49,19 +54,14 @@ export function PaymentActionsMenu({
   formatDate,
 }: PaymentActionsMenuProps) {
   const queryClient = useQueryClient();
-  const [partialOptimistic, setPartialOptimistic] = useState(
-    payment.partialPaymentEnabled
-  );
 
-  // Dialogs are owned here (not inside the menu) so they don't unmount when
-  // the menu closes on item click.
+  // Dialogs are owned here so they survive when the menu closes on click.
   const [markPaidOpen, setMarkPaidOpen] = useState(false);
   const [markUnpaidOpen, setMarkUnpaidOpen] = useState(false);
 
   const setPartial = useMutation(
     trpc.razorpay.setPartialEnabled.mutationOptions({
       onSuccess: ({ enabled }) => {
-        setPartialOptimistic(enabled);
         queryClient.invalidateQueries({
           queryKey: trpc.payments.getStudentPayments.queryOptions({ studentId })
             .queryKey,
@@ -77,7 +77,6 @@ export function PaymentActionsMenu({
         );
       },
       onError: (error) => {
-        setPartialOptimistic((prev) => !prev);
         gooeyToast.error("Couldn't update", {
           showTimestamp: false,
           borderColor: "#E0E0E0",
@@ -105,21 +104,22 @@ export function PaymentActionsMenu({
         <DropdownMenuTrigger
           render={
             <Button
-              aria-label="More actions"
+              aria-label="Actions"
               className="h-8 rounded-md px-3 text-xs font-medium"
               size="sm"
               variant="white"
             >
-              More
+              Actions
               <ChevronDown aria-hidden className="ml-1 size-3.5" />
             </Button>
           }
         />
         <DropdownMenuPortal>
-          <DropdownMenuContent align="end" className="min-w-40">
+          <DropdownMenuContent align="end" className="min-w-44">
             {!isPaid && (
               <>
                 <DropdownMenuItem onClick={() => setMarkPaidOpen(true)}>
+                  <CheckCircle2 color="#16a34a" />
                   Mark Paid
                 </DropdownMenuItem>
                 <NotifyUserButton
@@ -130,6 +130,7 @@ export function PaymentActionsMenu({
                       disabled={state.isPending || state.isDebounced}
                       onClick={notify}
                     >
+                      <Bell color="#eab308" />
                       {state.isPending
                         ? "Sending…"
                         : state.isDebounced
@@ -139,27 +140,44 @@ export function PaymentActionsMenu({
                   )}
                   studentId={studentId}
                 />
-                <DropdownMenuSeparator />
                 <DropdownMenuCheckboxItem
-                  checked={partialOptimistic}
+                  checked={payment.partialPaymentEnabled}
                   closeOnClick={false}
                   disabled={partialLocked || setPartial.isPending}
                   onCheckedChange={(next) => {
-                    setPartialOptimistic(next);
                     setPartial.mutate({
                       paymentId: payment.id,
                       enabled: next,
                     });
                   }}
                 >
+                  <Coins
+                    className={setPartial.isPending ? "animate-spin" : ""}
+                    color="#f97316"
+                  />
                   Allow partial payment
                 </DropdownMenuCheckboxItem>
               </>
             )}
             {canRevert && (
-              <DropdownMenuItem onClick={() => setMarkUnpaidOpen(true)}>
-                Mark Unpaid
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem onClick={() => setMarkUnpaidOpen(true)}>
+                  <XCircle color="#dc2626" />
+                  Mark Unpaid
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled>
+                  <Bell color="#eab308" />
+                  Notify
+                </DropdownMenuItem>
+                <DropdownMenuCheckboxItem
+                  checked={payment.partialPaymentEnabled}
+                  closeOnClick={false}
+                  disabled
+                >
+                  <Coins color="#f97316" />
+                  Allow partial payment
+                </DropdownMenuCheckboxItem>
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenuPortal>

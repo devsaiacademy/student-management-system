@@ -170,7 +170,7 @@ function DropdownMenuCheckboxItem({
       checked={checked}
       {...props}
     >
-      <span className="flex-1">{children}</span>
+      <span className="flex flex-1 items-center gap-2">{children}</span>
       <span
         className="pointer-events-none ml-2 flex size-4 items-center justify-center"
         data-slot="dropdown-menu-checkbox-item-indicator"
