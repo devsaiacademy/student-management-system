@@ -117,9 +117,9 @@ function StatusCell({
   return (
     <div className="flex flex-col items-start gap-1">
       <StatusBadge status={status} />
-      {partialAllowed && status !== "partially_paid" && status !== "paid" && (
+      {partialAllowed && status !== "paid" && (
         <span className="whitespace-nowrap text-xs leading-tight text-blue-700">
-          Part payment allowed
+          Partial payment enabled
         </span>
       )}
       {relative && (
@@ -223,13 +223,11 @@ function MobileRow(props: PaymentActionsProps) {
               {formatCurrency(totalAmount)}
             </span>
           )}
-          {payment.partialPaymentEnabled &&
-            payment.paymentStatus !== "partially_paid" &&
-            !isPaid && (
-              <span className="text-xs font-medium text-blue-700">
-                Part payment allowed
-              </span>
-            )}
+          {payment.partialPaymentEnabled && !isPaid && (
+            <span className="text-xs font-medium text-blue-700">
+              Partial payment enabled
+            </span>
+          )}
           {penalty > 0 && !isPaid && (
             <span className="text-xs text-muted-foreground">
               {formatCurrency(payment.amount)} + {formatCurrency(penalty)} late
