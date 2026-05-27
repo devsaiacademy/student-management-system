@@ -7,7 +7,7 @@ import { razorpayOrders } from "@student-management-system/db/schema/razorpay-or
 import { students } from "@student-management-system/db/schema/students";
 import { env } from "@student-management-system/env/server";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import Razorpay from "razorpay";
 import { z } from "zod";
 
@@ -88,17 +88,24 @@ export const razorpayRouter = router({
         });
       }
 
-      // Total owed = base amount + accumulated late-fee penalty (added by the
-      // overdue cron, stored in metaData.penalty). `?? 0` covers rows that
-      // never went overdue.
+      // Owed today = base + penalty − chunks already collected. Each Pay
+      // click mints a fresh Razorpay order for this remaining amount, so the
+      // checkout opens with "Pay ₹{remaining}" instead of asking the customer
+      // to choose Part Payment and type the remainder themselves.
       const totalAmount = row.amount + (row.metaData?.penalty ?? 0);
-      const amountInPaise = totalAmount * 100;
+      const remaining = totalAmount - row.amountPaid;
+      if (remaining <= 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "This installment has no balance remaining",
+        });
+      }
+      const amountInPaise = remaining * 100;
 
-      // Dedupe: if the previous Pay click left an unused order within the 15-min
-      // Razorpay TTL, reuse it — but only if its amount still matches today's
-      // total. If the cron added another ₹100 since the order was created, we
-      // must mint a fresh order so the student is charged the current penalty.
-      if (row.existingRazorpayOrderId) {
+      // Reuse only the initial-click dedupe (no chunks yet, within 15 min,
+      // same amount). Once a chunk has landed we always mint a fresh order
+      // for the new remaining; reusing would re-present the full balance.
+      if (row.existingRazorpayOrderId && row.amountPaid === 0) {
         const reuseCutoff = new Date(
           Date.now() - REUSE_WINDOW_MINUTES * 60 * 1000
         );
@@ -107,18 +114,20 @@ export const razorpayRouter = router({
             razorpayOrderId: razorpayOrders.razorpayOrderId,
             amount: razorpayOrders.amount,
             currency: razorpayOrders.currency,
+            status: razorpayOrders.status,
+            createdAt: razorpayOrders.createdAt,
           })
           .from(razorpayOrders)
-          .where(
-            and(
-              eq(razorpayOrders.id, row.existingRazorpayOrderId),
-              eq(razorpayOrders.status, "created"),
-              gt(razorpayOrders.createdAt, reuseCutoff)
-            )
-          )
+          .where(eq(razorpayOrders.id, row.existingRazorpayOrderId))
           .limit(1);
 
-        if (existing && existing.amount === amountInPaise) {
+        const canReuse =
+          existing &&
+          existing.status === "created" &&
+          existing.createdAt > reuseCutoff &&
+          existing.amount === amountInPaise;
+
+        if (canReuse) {
           return {
             razorpayOrderId: existing.razorpayOrderId,
             amount: existing.amount,
@@ -281,13 +290,8 @@ export const razorpayRouter = router({
         });
       }
 
-      if (row.amountPaid > 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message:
-            "Partial setting is locked once a chunk has been paid. Cancel and refund in Razorpay first.",
-        });
-      }
+      // No mid-flow lock — each Pay click mints a fresh Razorpay order, so
+      // the next order can pick up the new flag regardless of prior chunks.
 
       await db
         .update(payments)

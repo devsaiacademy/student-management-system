@@ -89,7 +89,6 @@ export function PaymentActionsMenu({
   );
 
   const isPaid = payment.paymentStatus === "paid";
-  const partialLocked = payment.amountPaid > 0;
   const canRevert = isPaid && payment.paymentMethod !== "razorpay";
   const paymentForDialogs = {
     id: payment.id,
@@ -143,7 +142,7 @@ export function PaymentActionsMenu({
                 <DropdownMenuCheckboxItem
                   checked={payment.partialPaymentEnabled}
                   closeOnClick={false}
-                  disabled={partialLocked || setPartial.isPending}
+                  disabled={setPartial.isPending}
                   onCheckedChange={(next) => {
                     setPartial.mutate({
                       paymentId: payment.id,

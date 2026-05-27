@@ -54,30 +54,40 @@ function extractPaymentId(body: RazorpayWebhookBody): string | null {
   return body.payload?.payment?.entity?.id ?? null;
 }
 
-// Sync the local payments row with Razorpay's authoritative amount_paid on
-// the order. Idempotent: re-running with the same data yields the same row.
-// Drives both partial and full settlement transitions.
+// Credit a single Razorpay payment (chunk) against the local payments row.
+// Idempotent: dedupe by razorpayPaymentId via metaData.partialPaymentLog.
+// Each Pay click mints a fresh order for the *remaining* amount, so we ADD
+// each chunk to payments.amountPaid rather than overwriting with one order's
+// cumulative figure.
 export async function syncOrderPaymentState(
   razorpayOrderIdStr: string,
   razorpayPaymentId: string | null
 ) {
-  const remoteOrder = (await razorpay.orders.fetch(razorpayOrderIdStr)) as {
+  // No specific chunk to credit (e.g. order.paid event w/o a payment id) →
+  // just refresh the order's status and return.
+  if (!razorpayPaymentId) {
+    const remoteOrder = (await razorpay.orders.fetch(razorpayOrderIdStr)) as {
+      status: string;
+    };
+    await db
+      .update(razorpayOrders)
+      .set({ status: remoteOrder.status })
+      .where(eq(razorpayOrders.razorpayOrderId, razorpayOrderIdStr));
+    return;
+  }
+
+  // Pull the chunk amount directly from the payment entity. order.amount_paid
+  // is cumulative for THAT order; we want this specific chunk's amount.
+  const remotePayment = (await razorpay.payments.fetch(razorpayPaymentId)) as {
     amount: number | string;
-    amount_paid: number | string;
-    status: string;
   };
-  const amountPaidPaise = Number(remoteOrder.amount_paid);
-  const totalPaise = Number(remoteOrder.amount);
-  const amountPaidRupees = Math.floor(amountPaidPaise / 100);
-  const isFullyPaid = amountPaidPaise >= totalPaise && totalPaise > 0;
+  const chunkPaise = Number(remotePayment.amount);
+  const chunkRupees = Math.floor(chunkPaise / 100);
 
   await db.transaction(async (tx) => {
     const [localOrder] = await tx
       .update(razorpayOrders)
-      .set({
-        status: isFullyPaid ? "paid" : remoteOrder.status,
-        ...(razorpayPaymentId ? { razorpayPaymentId } : {}),
-      })
+      .set({ razorpayPaymentId })
       .where(eq(razorpayOrders.razorpayOrderId, razorpayOrderIdStr))
       .returning({ id: razorpayOrders.id });
 
@@ -85,11 +95,10 @@ export async function syncOrderPaymentState(
       return;
     }
 
-    // Read current state so we can compute the delta + dedupe the log entry
-    // by razorpayPaymentId before writing the new metaData.
     const [current] = await tx
       .select({
         id: payments.id,
+        amount: payments.amount,
         amountPaid: payments.amountPaid,
         paymentStatus: payments.paymentStatus,
         metaData: payments.metaData,
@@ -102,23 +111,25 @@ export async function syncOrderPaymentState(
       return;
     }
 
-    const delta = amountPaidRupees - current.amountPaid;
     const existingLog = current.metaData?.partialPaymentLog ?? [];
-    const alreadyLogged =
-      razorpayPaymentId !== null &&
-      existingLog.some((e) => e.razorpayPaymentId === razorpayPaymentId);
+    if (existingLog.some((e) => e.razorpayPaymentId === razorpayPaymentId)) {
+      // Already credited (replayed webhook or duplicate verify).
+      return;
+    }
 
-    const nextLog =
-      delta > 0 && !alreadyLogged
-        ? [
-            ...existingLog,
-            {
-              at: new Date().toISOString(),
-              amount: delta,
-              ...(razorpayPaymentId ? { razorpayPaymentId } : {}),
-            },
-          ]
-        : existingLog;
+    const nextLog = [
+      ...existingLog,
+      {
+        at: new Date().toISOString(),
+        amount: chunkRupees,
+        razorpayPaymentId,
+      },
+    ];
+
+    const penalty = current.metaData?.penalty ?? 0;
+    const totalDue = current.amount + penalty;
+    const newAmountPaid = current.amountPaid + chunkRupees;
+    const isFullyPaid = newAmountPaid >= totalDue;
 
     const nextMetaData: PaymentMetaData = {
       ...(current.metaData ?? {}),
@@ -129,18 +140,23 @@ export async function syncOrderPaymentState(
       await tx
         .update(payments)
         .set({
-          amountPaid: amountPaidRupees,
+          amountPaid: newAmountPaid,
           paymentStatus: "paid",
           paymentMethod: "razorpay",
           paidDate: new Date().toISOString().split("T")[0],
           metaData: nextMetaData,
         })
         .where(eq(payments.id, current.id));
-    } else if (amountPaidPaise > 0) {
+
+      await tx
+        .update(razorpayOrders)
+        .set({ status: "paid" })
+        .where(eq(razorpayOrders.id, localOrder.id));
+    } else {
       await tx
         .update(payments)
         .set({
-          amountPaid: amountPaidRupees,
+          amountPaid: newAmountPaid,
           paymentStatus: "partially_paid",
           metaData: nextMetaData,
         })

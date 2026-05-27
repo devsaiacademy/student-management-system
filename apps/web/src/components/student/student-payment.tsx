@@ -213,7 +213,9 @@ function MobileRow(props: PaymentActionsProps) {
             <StatusBadge status={payment.paymentStatus} />
           </div>
           <span className="text-xs text-muted-foreground">
-            {formatCurrency(totalAmount)}
+            {payment.amountPaid > 0 && !isPaid
+              ? formatCurrency(totalAmount - payment.amountPaid)
+              : formatCurrency(totalAmount)}
           </span>
           {payment.amountPaid > 0 && !isPaid && (
             <span className="text-xs font-medium text-amber-700">
@@ -435,7 +437,9 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                   />
                   <div className="flex flex-col items-start">
                     <span className="text-sm text-foreground">
-                      {formatCurrency(totalAmount)}
+                      {payment.amountPaid > 0 && !isPaid
+                        ? formatCurrency(totalAmount - payment.amountPaid)
+                        : formatCurrency(totalAmount)}
                     </span>
                     {payment.amountPaid > 0 && !isPaid && (
                       <span className="text-xs font-medium text-amber-700">
