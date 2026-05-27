@@ -1,6 +1,10 @@
 import { PaymentCharts } from "@/components/admin/payment-charts";
 import { createTRPCServerCaller } from "@/utils/trpc-server";
 
+// Always render fresh — partial chunks land via webhook outside the request
+// lifecycle, so a cached server render would show stale totals.
+export const dynamic = "force-dynamic";
+
 export default async function PaymentsPage() {
   const trpc = await createTRPCServerCaller();
   const data = await trpc.payments.getPaymentOverview();

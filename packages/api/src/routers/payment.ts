@@ -26,7 +26,7 @@ export const paymentsRouter = router({
       .select({
         studentId: payments.studentId,
         hasUnpaid:
-          sql<boolean>`bool_or(${payments.paymentStatus} IN ('unpaid', 'overdue'))`.as(
+          sql<boolean>`bool_or(${payments.paymentStatus} IN ('unpaid', 'overdue', 'partially_paid'))`.as(
             "has_unpaid"
           ),
       })
@@ -40,16 +40,22 @@ export const paymentsRouter = router({
           totalBv: sql<number>`coalesce(sum(${payments.amount}), 0)`.mapWith(
             Number
           ),
+          // Collected = full amount for fully-paid rows + accumulated chunks
+          // for partially-paid (or otherwise in-progress) rows. amount_paid
+          // is 0 for untouched rows so this also covers plain unpaid rows.
           totalCr:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} = 'paid' then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} = 'paid' then ${payments.amount} else ${payments.amountPaid} end), 0)`.mapWith(
               Number
             ),
+          // Pending = remaining balance (amount - amount_paid) for non-paid
+          // rows belonging to active students. Includes partially_paid rows
+          // so a half-paid installment shows the half still due.
           totalPending:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') and ${students.studentStatus} <> 'discontinue' then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue', 'partially_paid') and ${students.studentStatus} <> 'discontinue' then ${payments.amount} - ${payments.amountPaid} else 0 end), 0)`.mapWith(
               Number
             ),
           totalDiscontinued:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') and ${students.studentStatus} = 'discontinue' then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue', 'partially_paid') and ${students.studentStatus} = 'discontinue' then ${payments.amount} - ${payments.amountPaid} else 0 end), 0)`.mapWith(
               Number
             ),
         })
