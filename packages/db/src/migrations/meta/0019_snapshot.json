@@ -1,69 +1,9 @@
 {
-  "id": "bd74f259-3121-42d5-9622-fbf080809364",
+  "id": "e3740063-1db8-4ca2-a225-53d5c45289a0",
   "prevId": "8df82e78-eccd-4dda-9289-cdf70f9fc9e3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.app_settings": {
-      "name": "app_settings",
-      "schema": "",
-      "columns": {
-        "key": {
-          "name": "key",
-          "type": "varchar(100)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "value": {
-          "name": "value",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {
-        "app_settings_select_policy": {
-          "name": "app_settings_select_policy",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
-          "using": "true"
-        },
-        "app_settings_insert_policy": {
-          "name": "app_settings_insert_policy",
-          "as": "PERMISSIVE",
-          "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
-          "withCheck": "public.current_user_role() = 'admin'"
-        },
-        "app_settings_update_policy": {
-          "name": "app_settings_update_policy",
-          "as": "PERMISSIVE",
-          "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
-          "using": "public.current_user_role() = 'admin'"
-        }
-      },
-      "checkConstraints": {},
-      "isRLSEnabled": true
-    },
     "public.enrollments": {
       "name": "enrollments",
       "schema": "",
@@ -277,6 +217,20 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "amount_paid": {
+          "name": "amount_paid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "partial_payment_enabled": {
+          "name": "partial_payment_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "description": {
           "name": "description",
@@ -1019,7 +973,8 @@
       "values": [
         "paid",
         "unpaid",
-        "overdue"
+        "overdue",
+        "partially_paid"
       ]
     },
     "public.reached_us_by": {
