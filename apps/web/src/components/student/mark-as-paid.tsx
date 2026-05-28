@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@student-management-system/ui/components/dialog";
+import { Input } from "@student-management-system/ui/components/input";
 import { Label } from "@student-management-system/ui/components/label";
 import {
   Select,
@@ -30,6 +31,10 @@ type Payment = {
   id: number;
   label: string;
   amount: number;
+  // Chunks already collected via Razorpay against this installment. When
+  // present, the dialog shows the remaining (amount − amountPaid) and
+  // captures only that as the manual collection.
+  amountPaid?: number;
   dueDate: string;
 };
 
@@ -68,8 +73,18 @@ export function MarkAsPaid({
   };
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [reason, setReason] = useState<string>("");
+  // Empty string when untouched so we can detect "no value" and fall back to
+  // the remaining default. Stored as string for input fidelity.
+  const [amountInput, setAmountInput] = useState<string>("");
 
   const REASON_MAX_LENGTH = 500;
+
+  const remaining = payment.amount - (payment.amountPaid ?? 0);
+  const enteredAmount = amountInput === "" ? remaining : Number(amountInput);
+  const amountInvalid =
+    !Number.isFinite(enteredAmount) ||
+    enteredAmount <= 0 ||
+    enteredAmount > remaining;
 
   const markPaid = useMutation(
     trpc.payments.markPaymentAsPaid.mutationOptions({
@@ -93,6 +108,7 @@ export function MarkAsPaid({
         setDialogOpen(false);
         setPaymentMethod("");
         setReason("");
+        setAmountInput("");
       },
       onError: (error) => {
         gooeyToast.error("Failed to mark payment", {
@@ -107,11 +123,12 @@ export function MarkAsPaid({
   );
 
   const handleConfirm = () => {
-    if (!paymentMethod) return;
+    if (!paymentMethod || amountInvalid) return;
     const trimmedReason = reason.trim();
     markPaid.mutate({
       paymentId: payment.id,
       paymentMethod: paymentMethod as ManualPaymentMethod,
+      amount: enteredAmount,
       ...(trimmedReason ? { reason: trimmedReason } : {}),
     });
   };
@@ -119,6 +136,7 @@ export function MarkAsPaid({
   const openDialog = () => {
     setPaymentMethod("");
     setReason("");
+    setAmountInput("");
     setDialogOpen(true);
   };
 
@@ -144,6 +162,7 @@ export function MarkAsPaid({
           if (!open) {
             setPaymentMethod("");
             setReason("");
+            setAmountInput("");
           }
         }}
       >
@@ -166,11 +185,18 @@ export function MarkAsPaid({
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Amount
+                  {(payment.amountPaid ?? 0) > 0 ? "Remaining" : "Amount"}
                 </p>
                 <p className="mt-0.5 font-medium">
-                  {formatCurrency(payment.amount)}
+                  {formatCurrency(
+                    payment.amount - (payment.amountPaid ?? 0)
+                  )}
                 </p>
+                {(payment.amountPaid ?? 0) > 0 && (
+                  <p className="mt-0.5 text-[11px] text-amber-700">
+                    {formatCurrency(payment.amountPaid ?? 0)} already paid
+                  </p>
+                )}
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -180,6 +206,29 @@ export function MarkAsPaid({
                   {formatDate(payment.dueDate)}
                 </p>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                className="text-xs font-medium"
+                htmlFor="mark-paid-amount"
+              >
+                Amount Received <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="mark-paid-amount"
+                inputMode="numeric"
+                max={remaining}
+                min={1}
+                onChange={(e) => setAmountInput(e.target.value)}
+                placeholder={String(remaining)}
+                type="number"
+                value={amountInput}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Up to {formatCurrency(remaining)} remaining. Defaults to the
+                full remaining if blank.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -239,7 +288,7 @@ export function MarkAsPaid({
               variant="blue"
               size="sm"
               onClick={handleConfirm}
-              disabled={!paymentMethod || markPaid.isPending}
+              disabled={!paymentMethod || amountInvalid || markPaid.isPending}
             >
               {markPaid.isPending ? "Updating..." : "Confirm"}
             </Button>

@@ -94,6 +94,7 @@ export function PaymentActionsMenu({
     id: payment.id,
     label,
     amount: totalAmount,
+    amountPaid: payment.amountPaid,
     dueDate: payment.dueDate,
   };
 
@@ -118,7 +119,10 @@ export function PaymentActionsMenu({
             {!isPaid && (
               <>
                 <DropdownMenuItem onClick={() => setMarkPaidOpen(true)}>
-                  <CheckCircle2 color="#16a34a" />
+                  <CheckCircle2
+                    className="group-hover/dropdown-menu-item:[animation:pop_0.5s_ease-in-out]"
+                    color="#16a34a"
+                  />
                   Mark Paid
                 </DropdownMenuItem>
                 <NotifyUserButton
@@ -129,7 +133,10 @@ export function PaymentActionsMenu({
                       disabled={state.isPending || state.isDebounced}
                       onClick={notify}
                     >
-                      <Bell color="#eab308" />
+                      <Bell
+                        className="origin-top group-hover/dropdown-menu-item:[animation:wiggle_0.5s_ease-in-out]"
+                        color="#eab308"
+                      />
                       {state.isPending
                         ? "Sending…"
                         : state.isDebounced
@@ -151,7 +158,7 @@ export function PaymentActionsMenu({
                   }}
                 >
                   <Coins
-                    className={setPartial.isPending ? "animate-spin" : ""}
+                    className="group-hover/dropdown-menu-item:[animation:flip-coin_0.6s_ease-in-out]"
                     color="#f97316"
                   />
                   Allow partial payment
@@ -161,11 +168,17 @@ export function PaymentActionsMenu({
             {canRevert && (
               <>
                 <DropdownMenuItem onClick={() => setMarkUnpaidOpen(true)}>
-                  <XCircle color="#dc2626" />
+                  <XCircle
+                    className="group-hover/dropdown-menu-item:animate-[pop_0.5s_ease-in-out]"
+                    color="#dc2626"
+                  />
                   Mark Unpaid
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled>
-                  <Bell color="#eab308" />
+                  <Bell
+                    className="origin-top transition-transform duration-300 group-hover/dropdown-menu-item:-rotate-12"
+                    color="#eab308"
+                  />
                   Notify
                 </DropdownMenuItem>
                 <DropdownMenuCheckboxItem
@@ -173,7 +186,10 @@ export function PaymentActionsMenu({
                   closeOnClick={false}
                   disabled
                 >
-                  <Coins color="#f97316" />
+                  <Coins
+                    className="group-hover/dropdown-menu-item:animate-[flip-coin_0.6s_ease-in-out]"
+                    color="#f97316"
+                  />
                   Allow partial payment
                 </DropdownMenuCheckboxItem>
               </>

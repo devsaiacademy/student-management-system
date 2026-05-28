@@ -132,16 +132,22 @@ export const paymentsRouter = router({
       z.object({
         paymentId: z.number().int().positive(),
         paymentMethod: z.enum(PAYMENT_METHODS),
+        // Offline chunk amount the admin is recording. When this is less
+        // than the remaining balance the row flips to partially_paid; when
+        // equal it flips to paid.
+        amount: z.number().int().positive(),
         reason: z.string().trim().max(500).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { paymentId, paymentMethod, reason } = input;
+      const { paymentId, paymentMethod, amount, reason } = input;
 
       const [owner] = await db
         .select({
           studentId: payments.studentId,
+          amount: payments.amount,
           amountPaid: payments.amountPaid,
+          metaData: payments.metaData,
         })
         .from(payments)
         .where(eq(payments.id, paymentId))
@@ -156,31 +162,46 @@ export const paymentsRouter = router({
 
       assertStudentAccess(ctx, owner.studentId);
 
-      // Block when a Razorpay partial chunk has already been collected — the
-      // admin would otherwise stamp the row as paid via cash/upi without
-      // accounting for the chunk that's already in the Razorpay account.
-      // Resolution: refund the chunk in Razorpay first, or let the student
-      // finish via the Pay button.
-      if (owner.amountPaid > 0) {
+      const penalty = owner.metaData?.penalty ?? 0;
+      const totalDue = owner.amount + penalty;
+      const remaining = Math.max(0, totalDue - owner.amountPaid);
+
+      if (amount > remaining) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            "A partial payment has already been collected via Razorpay. Refund it in the Razorpay dashboard before marking this installment paid manually.",
+          message: `Amount exceeds remaining balance of ${remaining}`,
         });
       }
 
+      const newAmountPaid = owner.amountPaid + amount;
+      const isFullyPaid = newAmountPaid >= totalDue;
+
+      const existingLog = owner.metaData?.partialPaymentLog ?? [];
+      const nextLog = [
+        ...existingLog,
+        {
+          at: new Date().toISOString(),
+          amount,
+        },
+      ];
+
       const metaData: PaymentMetaData = {
+        ...(owner.metaData ?? {}),
         markedPaidBy: ctx.user.email,
         markedPaidAt: new Date().toISOString(),
         ...(reason ? { markedPaidReason: reason } : {}),
+        partialPaymentLog: nextLog,
       };
 
       const [updated] = await db
         .update(payments)
         .set({
-          paymentStatus: "paid",
+          paymentStatus: isFullyPaid ? "paid" : "partially_paid",
           paymentMethod,
-          paidDate: new Date().toISOString().split("T")[0],
+          paidDate: isFullyPaid
+            ? new Date().toISOString().split("T")[0]
+            : null,
+          amountPaid: newAmountPaid,
           metaData,
         })
         .where(
