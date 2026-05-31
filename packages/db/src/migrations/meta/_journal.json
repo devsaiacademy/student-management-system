@@ -134,6 +134,13 @@
       "when": 1779813613213,
       "tag": "0018_add_joining_date_and_pending_status",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1779904051350,
+      "tag": "0019_partial_payments_per_row",
+      "breakpoints": true
     }
   ]
 }

@@ -10,9 +10,7 @@ import { useEffect, useState } from "react";
 
 import { trpc } from "@/utils/trpc";
 
-import { MarkAsPaid } from "./mark-as-paid";
-import { MarkAsUnpaid } from "./mark-as-unpaid";
-import { NotifyUserButton } from "./notify-user-button";
+import { PaymentActionsMenu } from "../admin/payment-actions-menu";
 import { PayButton } from "./pay-button";
 
 type StudentPaymentProps = {
@@ -20,11 +18,13 @@ type StudentPaymentProps = {
   studentId: number;
 };
 
-type Payment = {
+export type Payment = {
   id: number;
   course: string;
   dueDate: string;
   amount: number;
+  amountPaid: number;
+  partialPaymentEnabled: boolean;
   paymentStatus: string;
   paymentMethod: string | null;
   emiNumber: number | null;
@@ -37,19 +37,17 @@ type Payment = {
 };
 
 const ROW_GRID =
-  "grid grid-cols-[1.3fr_1.5fr_1fr_0.9fr_0.9fr_1.2fr] items-center gap-4 px-2";
-
-const HEADER_LABELS = [
-  "Installment",
-  "Course",
-  "Due Date",
-  "Status",
-  "Amount",
-] as const;
+  "grid grid-cols-[1.5fr_1fr_0.9fr_0.9fr_1.2fr] items-center gap-4 px-4";
 
 const SKELETON_ROW_COUNT = 4;
 
-function formatDate(value: string) {
+const STATUS_LABELS: Record<string, string> = {
+  paid: "Paid",
+  overdue: "Overdue",
+  partially_paid: "Partially paid",
+};
+
+export function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -57,7 +55,7 @@ function formatDate(value: string) {
   });
 }
 
-function formatCurrency(amount: number) {
+export function formatCurrency(amount: number) {
   return amount.toLocaleString("en-IN", {
     style: "currency",
     currency: "INR",
@@ -65,20 +63,22 @@ function formatCurrency(amount: number) {
   });
 }
 
-function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: string }) {
   const isPaid = status === "paid";
   const isOverdue = status === "overdue";
+  const isPartial = status === "partially_paid";
   return (
     <span
       className={cn(
         "inline-flex w-fit items-center rounded-md px-2.5 py-0.5 text-xs font-medium",
         isPaid && "bg-surface-success text-surface-success-foreground",
         isOverdue && "bg-red-600 text-white",
-        !(isPaid || isOverdue) &&
+        isPartial && "bg-amber-100 text-amber-900",
+        !(isPaid || isOverdue || isPartial) &&
           "bg-surface-destructive text-surface-destructive-foreground"
       )}
     >
-      {isPaid ? "Paid" : isOverdue ? "Overdue" : "Unpaid"}
+      {STATUS_LABELS[status] ?? "Unpaid"}
     </span>
   );
 }
@@ -94,9 +94,13 @@ function useRefreshingNow(intervalMs: number) {
 function StatusCell({
   status,
   notifiedAt,
+  partialAllowed,
+  showDetails,
 }: {
   status: string;
   notifiedAt: string | null;
+  partialAllowed: boolean;
+  showDetails: boolean;
 }) {
   useRefreshingNow(30_000);
   const showNotified = status !== "paid" && notifiedAt;
@@ -107,7 +111,12 @@ function StatusCell({
   return (
     <div className="flex flex-col items-start gap-1">
       <StatusBadge status={status} />
-      {relative && (
+      {showDetails && partialAllowed && status !== "paid" && (
+        <span className="whitespace-nowrap text-xs leading-tight text-blue-700">
+          Partial payment enabled
+        </span>
+      )}
+      {showDetails && relative && (
         <span className="whitespace-nowrap text-xs leading-tight text-muted-foreground">
           Notified {relative}
         </span>
@@ -116,7 +125,40 @@ function StatusCell({
   );
 }
 
-function getInstallmentLabel(payment: Payment, total: number) {
+function DetailsToggle({
+  on,
+  onChange,
+}: {
+  on: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      aria-label="Show all details"
+      aria-pressed={on}
+      className="ml-2 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+      onClick={() => onChange(!on)}
+      type="button"
+    >
+      Show all info
+      <span
+        className={cn(
+          "relative inline-block h-3.5 w-7 rounded-full transition-colors",
+          on ? "bg-primary" : "bg-muted"
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 block size-2.5 rounded-full bg-white shadow-sm transition-transform",
+            on ? "translate-x-[14px]" : "translate-x-0.5"
+          )}
+        />
+      </span>
+    </button>
+  );
+}
+
+export function getInstallmentLabel(payment: Payment, total: number) {
   if (payment.description === "Kit") {
     return "Kit";
   }
@@ -132,15 +174,20 @@ type PaymentActionsProps = {
   isPaid: boolean;
   isAdmin: boolean;
   studentId: number;
+  // When false, the secondary Actions dropdown is hidden — only the primary
+  // Pay (or View) control renders. Defaults to true to keep existing call
+  // sites (mobile expanded section, etc.) working.
+  showSecondary?: boolean;
 };
 
-function PaymentActions({
+export function PaymentActions({
   payment,
   totalAmount,
   label,
   isPaid,
   isAdmin,
   studentId,
+  showSecondary = true,
 }: PaymentActionsProps) {
   if (isPaid) {
     const canRevert = isAdmin && payment.paymentMethod !== "razorpay";
@@ -153,17 +200,14 @@ function PaymentActions({
         >
           View
         </Button>
-        {canRevert && (
-          <MarkAsUnpaid
+        {showSecondary && canRevert && (
+          <PaymentActionsMenu
             formatCurrency={formatCurrency}
             formatDate={formatDate}
-            payment={{
-              id: payment.id,
-              label,
-              amount: totalAmount,
-              dueDate: payment.dueDate,
-            }}
+            label={label}
+            payment={payment}
             studentId={studentId}
+            totalAmount={totalAmount}
           />
         )}
       </>
@@ -172,36 +216,34 @@ function PaymentActions({
   return (
     <>
       <PayButton paymentId={payment.id} studentId={studentId} />
-      {isAdmin && (
-        <>
-          <MarkAsPaid
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-            payment={{
-              id: payment.id,
-              label,
-              amount: totalAmount,
-              dueDate: payment.dueDate,
-            }}
-            studentId={studentId}
-          />
-          <NotifyUserButton
-            notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
-            paymentId={payment.id}
-            studentId={studentId}
-          />
-        </>
+      {showSecondary && isAdmin && (
+        <PaymentActionsMenu
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          label={label}
+          payment={payment}
+          studentId={studentId}
+          totalAmount={totalAmount}
+        />
       )}
     </>
   );
 }
 
-function MobileRow(props: PaymentActionsProps) {
-  const { payment, totalAmount, label, isPaid, isAdmin, studentId } = props;
+function MobileRow(props: PaymentActionsProps & { showDetails: boolean }) {
+  const {
+    payment,
+    totalAmount,
+    label,
+    isPaid,
+    isAdmin,
+    studentId,
+    showDetails,
+  } = props;
   const penalty = payment.metaData?.penalty ?? 0;
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-border py-3">
+    <div className="border-b border-border bg-white p-4 last:border-b-0">
       <div className="flex items-center gap-2">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="flex flex-wrap items-center gap-2">
@@ -211,15 +253,29 @@ function MobileRow(props: PaymentActionsProps) {
             <StatusBadge status={payment.paymentStatus} />
           </div>
           <span className="text-xs text-muted-foreground">
-            {formatCurrency(totalAmount)}
+            {payment.amountPaid > 0 && !isPaid
+              ? formatCurrency(totalAmount - payment.amountPaid)
+              : formatCurrency(totalAmount)}
           </span>
-          {penalty > 0 && !isPaid && (
+          {showDetails && payment.amountPaid > 0 && !isPaid && (
+            <span className="text-xs font-medium text-amber-700">
+              {formatCurrency(payment.amountPaid)} paid of{" "}
+              {formatCurrency(totalAmount)}
+            </span>
+          )}
+          {showDetails && payment.partialPaymentEnabled && !isPaid && (
+            <span className="text-xs font-medium text-blue-700">
+              Partial payment enabled
+            </span>
+          )}
+          {showDetails && penalty > 0 && !isPaid && (
             <span className="text-xs text-muted-foreground">
               {formatCurrency(payment.amount)} + {formatCurrency(penalty)} late
               fee
             </span>
           )}
-          {payment.paymentStatus !== "paid" &&
+          {showDetails &&
+            payment.paymentStatus !== "paid" &&
             payment.metaData?.overdueNotifiedAt && (
               <span className="text-xs text-muted-foreground">
                 Notified{" "}
@@ -282,37 +338,26 @@ function MobileRow(props: PaymentActionsProps) {
               </span>
             </div>
             {!isPaid && isAdmin && (
-              <div className="mt-1 flex flex-wrap gap-2">
-                <MarkAsPaid
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <PaymentActionsMenu
                   formatCurrency={formatCurrency}
                   formatDate={formatDate}
-                  payment={{
-                    id: payment.id,
-                    label,
-                    amount: totalAmount,
-                    dueDate: payment.dueDate,
-                  }}
+                  label={label}
+                  payment={payment}
                   studentId={studentId}
-                />
-                <NotifyUserButton
-                  notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
-                  paymentId={payment.id}
-                  studentId={studentId}
+                  totalAmount={totalAmount}
                 />
               </div>
             )}
             {isPaid && isAdmin && payment.paymentMethod !== "razorpay" && (
               <div className="mt-1 flex flex-wrap gap-2">
-                <MarkAsUnpaid
+                <PaymentActionsMenu
                   formatCurrency={formatCurrency}
                   formatDate={formatDate}
-                  payment={{
-                    id: payment.id,
-                    label,
-                    amount: totalAmount,
-                    dueDate: payment.dueDate,
-                  }}
+                  label={label}
+                  payment={payment}
                   studentId={studentId}
+                  totalAmount={totalAmount}
                 />
               </div>
             )}
@@ -327,21 +372,35 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
   const { data, isPending, isError } = useQuery(
     trpc.payments.getStudentPayments.queryOptions({ studentId })
   );
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
-    <div>
+    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
       <div
-        className={cn(ROW_GRID, "hidden border-b border-border py-4 md:grid")}
+        className={cn(
+          ROW_GRID,
+          "hidden border-b border-border bg-muted/40 py-3 md:grid"
+        )}
       >
-        {HEADER_LABELS.map((label) => (
-          <span
-            className="text-xs font-semibold uppercase tracking-[0.08em] text-primary"
-            key={label}
-          >
-            {label}
-          </span>
-        ))}
-        <span />
+        <span className="text-xs font-medium text-muted-foreground">
+          Course
+        </span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Due Date
+        </span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Status
+        </span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Amount
+        </span>
+        <span className="flex justify-end">
+          <DetailsToggle on={showDetails} onChange={setShowDetails} />
+        </span>
+      </div>
+
+      <div className="flex justify-end border-b border-border bg-muted/40 px-4 py-2 md:hidden">
+        <DetailsToggle on={showDetails} onChange={setShowDetails} />
       </div>
 
       {isPending && (
@@ -350,12 +409,11 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
             <div
               className={cn(
                 ROW_GRID,
-                "hidden border-b border-border py-5 md:grid"
+                "hidden border-b border-border bg-white py-5 last:border-b-0 md:grid"
               )}
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
               key={`desktop-${index}`}
             >
-              <Skeleton className="h-4 w-28 rounded" />
               <Skeleton className="h-4 w-32 rounded" />
               <Skeleton className="h-4 w-24 rounded" />
               <Skeleton className="h-5 w-14 rounded-md" />
@@ -365,7 +423,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
           ))}
           {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
             <div
-              className="flex flex-col gap-2 border-b border-border py-4 md:hidden"
+              className="flex flex-col gap-2 border-b border-border bg-white p-4 last:border-b-0 md:hidden"
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
               key={`mobile-${index}`}
             >
@@ -398,7 +456,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
           const installmentTotal = data.filter(
             (p) => p.description !== "Kit"
           ).length;
-          return data.map((payment, index) => {
+          return data.map((payment) => {
             const isPaid = payment.paymentStatus === "paid";
             const label = getInstallmentLabel(payment, installmentTotal);
             const penalty = payment.metaData?.penalty ?? 0;
@@ -406,48 +464,53 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
 
             return (
               <div key={payment.id}>
-                <div
-                  className={cn(
-                    ROW_GRID,
-                    "hidden border-b border-border py-5 transition-colors duration-150 hover:bg-muted/30 md:grid",
-                    "animate-in fade-in slide-in-from-bottom-1"
-                  )}
-                  style={{
-                    animationDelay: `${index * 80}ms`,
-                    animationFillMode: "backwards",
-                  }}
-                >
-                  <span className="text-sm text-foreground">{label}</span>
-                  <span className="text-sm text-foreground">
-                    {payment.course}
-                  </span>
-                  <span className="text-sm text-foreground">
-                    {formatDate(payment.dueDate)}
-                  </span>
-                  <StatusCell
-                    notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
-                    status={payment.paymentStatus}
-                  />
-                  <div className="flex flex-col items-start">
+                <div className="hidden border-b border-border bg-white last:border-b-0 hover:bg-muted/30 md:block">
+                  <p className="px-4 pt-4 text-sm font-semibold text-foreground">
+                    {label}
+                  </p>
+                  <div className={cn(ROW_GRID, "py-3")}>
                     <span className="text-sm text-foreground">
-                      {formatCurrency(totalAmount)}
+                      {payment.course}
                     </span>
-                    {penalty > 0 && !isPaid && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatCurrency(payment.amount)} +{" "}
-                        {formatCurrency(penalty)} late fee
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-start gap-2">
-                    <PaymentActions
-                      isAdmin={isAdmin}
-                      isPaid={isPaid}
-                      label={label}
-                      payment={payment}
-                      studentId={studentId}
-                      totalAmount={totalAmount}
+                    <span className="text-sm text-foreground">
+                      {formatDate(payment.dueDate)}
+                    </span>
+                    <StatusCell
+                      notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
+                      partialAllowed={payment.partialPaymentEnabled}
+                      showDetails={showDetails}
+                      status={payment.paymentStatus}
                     />
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm text-foreground">
+                        {payment.amountPaid > 0 && !isPaid
+                          ? formatCurrency(totalAmount - payment.amountPaid)
+                          : formatCurrency(totalAmount)}
+                      </span>
+                      {showDetails && payment.amountPaid > 0 && !isPaid && (
+                        <span className="text-xs font-medium text-amber-700">
+                          {formatCurrency(payment.amountPaid)} paid of{" "}
+                          {formatCurrency(totalAmount)}
+                        </span>
+                      )}
+                      {showDetails && penalty > 0 && !isPaid && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatCurrency(payment.amount)} +{" "}
+                          {formatCurrency(penalty)} late fee
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-start gap-2">
+                      <PaymentActions
+                        isAdmin={isAdmin}
+                        isPaid={isPaid}
+                        label={label}
+                        payment={payment}
+                        showSecondary={showDetails}
+                        studentId={studentId}
+                        totalAmount={totalAmount}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="md:hidden">
@@ -456,6 +519,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                     isPaid={isPaid}
                     label={label}
                     payment={payment}
+                    showDetails={showDetails}
                     studentId={studentId}
                     totalAmount={totalAmount}
                   />

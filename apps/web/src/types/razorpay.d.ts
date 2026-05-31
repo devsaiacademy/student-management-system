@@ -20,6 +20,8 @@ export type RazorpayCheckoutOptions = {
   order_id: string;
   amount: number;
   currency: string;
+  partial_payment?: boolean;
+  first_payment_min_amount?: string | number;
   name: string;
   description?: string;
   image?: string;

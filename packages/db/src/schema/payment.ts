@@ -7,6 +7,7 @@ import {
   timestamp,
   date,
   jsonb,
+  boolean,
   foreignKey,
   pgPolicy,
 } from "drizzle-orm/pg-core";
@@ -32,6 +33,13 @@ export type PaymentMetaData = {
   overdueNotificationCount?: number;
   penalty?: number;
   penaltyLog?: Array<{ at: string; delta: number }>;
+  // Append-only ledger of Razorpay partial-payment chunks received against
+  // this installment. razorpayPaymentId dedupes replays (webhook + verify).
+  partialPaymentLog?: Array<{
+    at: string;
+    amount: number;
+    razorpayPaymentId?: string;
+  }>;
 };
 
 export const payments = pgTable(
@@ -44,6 +52,16 @@ export const payments = pgTable(
     razorpayOrderId: integer("razorpay_order_id"),
 
     amount: integer("amount").notNull(),
+    // Running total of partial chunks collected against this installment.
+    // 0 when payment is fully unpaid or fully paid in one shot. When status
+    // is "partially_paid", 0 < amount_paid < amount.
+    amountPaid: integer("amount_paid").notNull().default(0),
+    // Per-row admin toggle. When true, the Razorpay order created for this
+    // payment is opened with `partial_payment: true`. Locked once any chunk
+    // lands (amount_paid > 0) because Razorpay can't toggle it mid-flight.
+    partialPaymentEnabled: boolean("partial_payment_enabled")
+      .notNull()
+      .default(false),
     description: varchar("description", { length: 255 }),
     currency: varchar("currency", { length: 3 }).default("INR").notNull(),
 

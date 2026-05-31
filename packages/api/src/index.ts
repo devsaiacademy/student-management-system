@@ -19,6 +19,16 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
+// Admin-only procedure: requires a logged-in Otomatiks-domain email.
+// Mirrors the shape used by `isAdmin` in the auth router so the rule lives
+// in one place.
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!isOtomatiksAdminEmail(ctx.user.email)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
+  }
+  return next({ ctx });
+});
+
 // Resolves the caller's student identity from their authenticated email.
 // Admins bypass the lookup and may access any student row; non-admin
 // callers must have a matching `students` row. Resolvers that receive a

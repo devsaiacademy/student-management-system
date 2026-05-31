@@ -41,6 +41,7 @@ export const enrollmentRouter = router({
       const enrollmentPayments = await db
         .select({
           amount: payments.amount,
+          amountPaid: payments.amountPaid,
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
           description: payments.description,
@@ -63,9 +64,15 @@ export const enrollmentRouter = router({
       const paidCount = tuitionPayments.filter(
         (p) => p.paymentStatus === "paid"
       ).length;
-      const totalPaid = tuitionPayments
-        .filter((p) => p.paymentStatus === "paid")
-        .reduce((sum, p) => sum + p.amount, 0);
+      // Roll up: full amount for paid rows, partial chunks for in-progress
+      // rows. amountPaid tracks each row's running total (0 when untouched,
+      // == amount when fully paid).
+      const totalPaid = tuitionPayments.reduce(
+        (sum, p) =>
+          sum +
+          (p.paymentStatus === "paid" ? p.amount : (p.amountPaid ?? 0)),
+        0
+      );
       const nextUnpaid = tuitionPayments.find(
         (p) => p.paymentStatus === "unpaid"
       );
@@ -112,6 +119,7 @@ export const enrollmentRouter = router({
         kit: kitPayment
           ? {
               amount: kitPayment.amount,
+              amountPaid: kitPayment.amountPaid ?? 0,
               paymentStatus: kitPayment.paymentStatus,
               dueDate: kitPayment.dueDate,
             }

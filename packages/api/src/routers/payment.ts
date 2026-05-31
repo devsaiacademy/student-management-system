@@ -11,6 +11,7 @@ import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
+  adminProcedure,
   assertStudentAccess,
   protectedProcedure,
   router,
@@ -26,7 +27,7 @@ export const paymentsRouter = router({
       .select({
         studentId: payments.studentId,
         hasUnpaid:
-          sql<boolean>`bool_or(${payments.paymentStatus} IN ('unpaid', 'overdue'))`.as(
+          sql<boolean>`bool_or(${payments.paymentStatus} IN ('unpaid', 'overdue', 'partially_paid'))`.as(
             "has_unpaid"
           ),
       })
@@ -40,16 +41,22 @@ export const paymentsRouter = router({
           totalBv: sql<number>`coalesce(sum(${payments.amount}), 0)`.mapWith(
             Number
           ),
+          // Collected = full amount for fully-paid rows + accumulated chunks
+          // for partially-paid (or otherwise in-progress) rows. amount_paid
+          // is 0 for untouched rows so this also covers plain unpaid rows.
           totalCr:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} = 'paid' then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} = 'paid' then ${payments.amount} else ${payments.amountPaid} end), 0)`.mapWith(
               Number
             ),
+          // Pending = remaining balance (amount - amount_paid) for non-paid
+          // rows belonging to active students. Includes partially_paid rows
+          // so a half-paid installment shows the half still due.
           totalPending:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') and ${students.studentStatus} <> 'discontinue' then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue', 'partially_paid') and ${students.studentStatus} <> 'discontinue' then ${payments.amount} - ${payments.amountPaid} else 0 end), 0)`.mapWith(
               Number
             ),
           totalDiscontinued:
-            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue') and ${students.studentStatus} = 'discontinue' then ${payments.amount} else 0 end), 0)`.mapWith(
+            sql<number>`coalesce(sum(case when ${payments.paymentStatus} IN ('unpaid', 'overdue', 'partially_paid') and ${students.studentStatus} = 'discontinue' then ${payments.amount} - ${payments.amountPaid} else 0 end), 0)`.mapWith(
               Number
             ),
         })
@@ -106,6 +113,8 @@ export const paymentsRouter = router({
           enrollmentId: payments.enrollmentId,
           course: enrollments.course,
           amount: payments.amount,
+          amountPaid: payments.amountPaid,
+          partialPaymentEnabled: payments.partialPaymentEnabled,
           description: payments.description,
           emiNumber: payments.emiNumber,
           dueDate: payments.dueDate,
@@ -124,60 +133,117 @@ export const paymentsRouter = router({
       z.object({
         paymentId: z.number().int().positive(),
         paymentMethod: z.enum(PAYMENT_METHODS),
+        // Offline chunk amount the admin is recording. When this is less
+        // than the remaining balance the row flips to partially_paid; when
+        // equal it flips to paid.
+        amount: z.number().int().positive(),
         reason: z.string().trim().max(500).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { paymentId, paymentMethod, reason } = input;
+      const { paymentId, paymentMethod, amount, reason } = input;
 
-      const [owner] = await db
-        .select({ studentId: payments.studentId })
-        .from(payments)
-        .where(eq(payments.id, paymentId))
-        .limit(1);
+      return db.transaction(async (tx) => {
+        // FOR UPDATE serializes concurrent mark-paid clicks: two parallel
+        // requests would otherwise both read the same amountPaid and the
+        // second's `amount > remaining` check would pass against stale state.
+        const [owner] = await tx
+          .select({
+            studentId: payments.studentId,
+            amount: payments.amount,
+            amountPaid: payments.amountPaid,
+            paymentMethod: payments.paymentMethod,
+            metaData: payments.metaData,
+          })
+          .from(payments)
+          .where(eq(payments.id, paymentId))
+          .for("update")
+          .limit(1);
 
-      if (!owner) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Payment not found",
-        });
-      }
+        if (!owner) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Payment not found",
+          });
+        }
 
-      assertStudentAccess(ctx, owner.studentId);
+        assertStudentAccess(ctx, owner.studentId);
 
-      const metaData: PaymentMetaData = {
-        markedPaidBy: ctx.user.email,
-        markedPaidAt: new Date().toISOString(),
-        ...(reason ? { markedPaidReason: reason } : {}),
-      };
+        const penalty = owner.metaData?.penalty ?? 0;
+        const totalDue = owner.amount + penalty;
+        const remaining = Math.max(0, totalDue - owner.amountPaid);
 
-      const [updated] = await db
-        .update(payments)
-        .set({
-          paymentStatus: "paid",
-          paymentMethod,
-          paidDate: new Date().toISOString().split("T")[0],
-          metaData,
-        })
-        .where(
-          and(
-            eq(payments.id, paymentId),
-            inArray(payments.paymentStatus, ["unpaid", "overdue"])
+        if (amount > remaining) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Amount exceeds remaining balance of ${remaining}`,
+          });
+        }
+
+        const newAmountPaid = owner.amountPaid + amount;
+        const isFullyPaid = newAmountPaid >= totalDue;
+
+        const existingLog = owner.metaData?.partialPaymentLog ?? [];
+        const nextLog = [
+          ...existingLog,
+          {
+            at: new Date().toISOString(),
+            amount,
+          },
+        ];
+
+        // Preserve "razorpay" when any prior chunk landed via Razorpay —
+        // otherwise an offline mark-paid of the remainder would overwrite
+        // the method, and the markPaymentAsUnpaid guard (which blocks reverts
+        // for razorpay rows) would mis-classify the row as offline.
+        const hasRazorpayChunk =
+          owner.paymentMethod === "razorpay" ||
+          existingLog.some((entry) => entry.razorpayPaymentId);
+        const finalMethod = hasRazorpayChunk ? "razorpay" : paymentMethod;
+
+        const metaData: PaymentMetaData = {
+          ...(owner.metaData ?? {}),
+          markedPaidBy: ctx.user.email,
+          markedPaidAt: new Date().toISOString(),
+          ...(reason ? { markedPaidReason: reason } : {}),
+          partialPaymentLog: nextLog,
+        };
+
+        const [updated] = await tx
+          .update(payments)
+          .set({
+            paymentStatus: isFullyPaid ? "paid" : "partially_paid",
+            paymentMethod: finalMethod,
+            paidDate: isFullyPaid
+              ? new Date().toISOString().split("T")[0]
+              : null,
+            amountPaid: newAmountPaid,
+            metaData,
+          })
+          .where(
+            and(
+              eq(payments.id, paymentId),
+              inArray(payments.paymentStatus, [
+                "unpaid",
+                "overdue",
+                "partially_paid",
+              ])
+            )
           )
-        )
-        .returning({ id: payments.id });
+          .returning({ id: payments.id });
 
-      if (!updated) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Payment not found or already paid",
-        });
-      }
+        if (!updated) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Payment not found or already paid",
+          });
+        }
 
-      return { id: updated.id };
+        return { id: updated.id };
+      });
     }),
 
-  markPaymentAsUnpaid: studentProcedure
+  markPaymentAsUnpaid: adminProcedure
     .input(
       z.object({
         paymentId: z.number().int().positive(),
@@ -189,7 +255,6 @@ export const paymentsRouter = router({
 
       const [owner] = await db
         .select({
-          studentId: payments.studentId,
           paymentMethod: payments.paymentMethod,
           metaData: payments.metaData,
         })
@@ -203,8 +268,6 @@ export const paymentsRouter = router({
           message: "Payment not found",
         });
       }
-
-      assertStudentAccess(ctx, owner.studentId);
 
       if (owner.paymentMethod === "razorpay") {
         throw new TRPCError({
@@ -244,7 +307,7 @@ export const paymentsRouter = router({
       return { id: updated.id };
     }),
 
-  createPayment: studentProcedure
+  createPayment: adminProcedure
     .input(
       z.object({
         studentId: z.number().int().positive(),
@@ -255,14 +318,7 @@ export const paymentsRouter = router({
         description: z.string().trim().min(1).max(255),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.isAdmin) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can add payments",
-        });
-      }
-
+    .mutation(async ({ input }) => {
       const { studentId, amount, dueDate, description } = input;
 
       const [latestEnrollment] = await db
@@ -301,16 +357,9 @@ export const paymentsRouter = router({
       return { id: inserted.id };
     }),
 
-  sendPaymentReminder: studentProcedure
+  sendPaymentReminder: adminProcedure
     .input(z.object({ paymentId: z.number().int().positive() }))
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.isAdmin) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can send payment reminders",
-        });
-      }
-
+    .mutation(async ({ input }) => {
       const [row] = await db
         .select({
           id: payments.id,

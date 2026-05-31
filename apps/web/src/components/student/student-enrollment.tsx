@@ -406,13 +406,20 @@ type KitVariant =
   | { kind: "complimentary" }
   | { kind: "paid"; amount: number }
   | { kind: "overdue"; amount: number; dueDate: string }
-  | { kind: "unpaid"; amount: number; dueDate: string };
+  | { kind: "unpaid"; amount: number; dueDate: string }
+  | {
+      kind: "partial";
+      amount: number;
+      amountPaid: number;
+      dueDate: string;
+    };
 
 function getKitVariant(data: {
   enrollment: { kitCost: number | null };
   kit: {
     amount: number;
-    paymentStatus: "paid" | "unpaid" | "overdue";
+    amountPaid: number;
+    paymentStatus: "paid" | "unpaid" | "overdue" | "partially_paid";
     dueDate: string;
   } | null;
 }): KitVariant | null {
@@ -424,6 +431,14 @@ function getKitVariant(data: {
   }
   if (data.kit.paymentStatus === "paid") {
     return { kind: "paid", amount: data.kit.amount };
+  }
+  if (data.kit.paymentStatus === "partially_paid") {
+    return {
+      kind: "partial",
+      amount: data.kit.amount,
+      amountPaid: data.kit.amountPaid,
+      dueDate: data.kit.dueDate,
+    };
   }
   if (data.kit.paymentStatus === "overdue") {
     return {
@@ -507,6 +522,27 @@ export function KitDetailsCard({ studentId }: SimpleCardProps) {
       );
       subtitle = <>Overdue since {formatDate(variant.dueDate)}</>;
       break;
+    case "partial": {
+      tone = "primary";
+      value =
+        variant.amount > 0 ? variant.amountPaid / variant.amount : 0;
+      const remaining = variant.amount - variant.amountPaid;
+      center = (
+        <>
+          <span className="text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+            {formatCurrency(remaining)}
+          </span>
+          <span className="mt-1 text-xs text-muted-foreground">
+            due of {formatCurrency(variant.amount)}
+          </span>
+          <span className="mt-2 text-xs font-medium text-amber-700">
+            {formatCurrency(variant.amountPaid)} paid
+          </span>
+        </>
+      );
+      subtitle = <>Kit fee due on {formatDate(variant.dueDate)}</>;
+      break;
+    }
     default:
       tone = "muted";
       value = 0;

@@ -115,6 +115,12 @@ export function PayButton({ paymentId, studentId }: PayButtonProps) {
 
   const isOpening = createOrder.isPending;
   const isVerifying = verifyPayment.isPending;
+  let label = "Pay";
+  if (isOpening) {
+    label = "Opening...";
+  } else if (isVerifying) {
+    label = "Verifying...";
+  }
 
   return (
     <Button
@@ -124,7 +130,7 @@ export function PayButton({ paymentId, studentId }: PayButtonProps) {
       size="sm"
       variant="blue"
     >
-      {isOpening ? "Opening..." : isVerifying ? "Verifying..." : "Pay"}
+      {label}
     </Button>
   );
 }
