@@ -39,15 +39,13 @@ export type Payment = {
 const ROW_GRID =
   "grid grid-cols-[1.5fr_1fr_0.9fr_0.9fr_1.2fr] items-center gap-4 px-4";
 
-const HEADER_LABELS = [
-  "Installment",
-  "Course",
-  "Due Date",
-  "Status",
-  "Amount",
-] as const;
-
 const SKELETON_ROW_COUNT = 4;
+
+const STATUS_LABELS: Record<string, string> = {
+  paid: "Paid",
+  overdue: "Overdue",
+  partially_paid: "Partially paid",
+};
 
 export function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -80,13 +78,7 @@ export function StatusBadge({ status }: { status: string }) {
           "bg-surface-destructive text-surface-destructive-foreground"
       )}
     >
-      {isPaid
-        ? "Paid"
-        : isOverdue
-          ? "Overdue"
-          : isPartial
-            ? "Partially paid"
-            : "Unpaid"}
+      {STATUS_LABELS[status] ?? "Unpaid"}
     </span>
   );
 }
@@ -238,9 +230,7 @@ export function PaymentActions({
   );
 }
 
-function MobileRow(
-  props: PaymentActionsProps & { showDetails: boolean }
-) {
+function MobileRow(props: PaymentActionsProps & { showDetails: boolean }) {
   const {
     payment,
     totalAmount,
@@ -482,47 +472,45 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
                     <span className="text-sm text-foreground">
                       {payment.course}
                     </span>
-                  <span className="text-sm text-foreground">
-                    {formatDate(payment.dueDate)}
-                  </span>
-                  <StatusCell
-                    notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
-                    partialAllowed={payment.partialPaymentEnabled}
-                    showDetails={showDetails}
-                    status={payment.paymentStatus}
-                  />
-                  <div className="flex flex-col items-start">
                     <span className="text-sm text-foreground">
-                      {payment.amountPaid > 0 && !isPaid
-                        ? formatCurrency(totalAmount - payment.amountPaid)
-                        : formatCurrency(totalAmount)}
+                      {formatDate(payment.dueDate)}
                     </span>
-                    {showDetails &&
-                      payment.amountPaid > 0 &&
-                      !isPaid && (
+                    <StatusCell
+                      notifiedAt={payment.metaData?.overdueNotifiedAt ?? null}
+                      partialAllowed={payment.partialPaymentEnabled}
+                      showDetails={showDetails}
+                      status={payment.paymentStatus}
+                    />
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm text-foreground">
+                        {payment.amountPaid > 0 && !isPaid
+                          ? formatCurrency(totalAmount - payment.amountPaid)
+                          : formatCurrency(totalAmount)}
+                      </span>
+                      {showDetails && payment.amountPaid > 0 && !isPaid && (
                         <span className="text-xs font-medium text-amber-700">
                           {formatCurrency(payment.amountPaid)} paid of{" "}
                           {formatCurrency(totalAmount)}
                         </span>
                       )}
-                    {showDetails && penalty > 0 && !isPaid && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatCurrency(payment.amount)} +{" "}
-                        {formatCurrency(penalty)} late fee
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-start gap-2">
-                    <PaymentActions
-                      isAdmin={isAdmin}
-                      isPaid={isPaid}
-                      label={label}
-                      payment={payment}
-                      showSecondary={showDetails}
-                      studentId={studentId}
-                      totalAmount={totalAmount}
-                    />
-                  </div>
+                      {showDetails && penalty > 0 && !isPaid && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatCurrency(payment.amount)} +{" "}
+                          {formatCurrency(penalty)} late fee
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-start gap-2">
+                      <PaymentActions
+                        isAdmin={isAdmin}
+                        isPaid={isPaid}
+                        label={label}
+                        payment={payment}
+                        showSecondary={showDetails}
+                        studentId={studentId}
+                        totalAmount={totalAmount}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="md:hidden">

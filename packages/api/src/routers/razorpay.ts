@@ -11,7 +11,12 @@ import { eq } from "drizzle-orm";
 import Razorpay from "razorpay";
 import { z } from "zod";
 
-import { assertStudentAccess, router, studentProcedure } from "../index";
+import {
+  adminProcedure,
+  assertStudentAccess,
+  router,
+  studentProcedure,
+} from "../index";
 import { syncOrderPaymentState } from "../lib/razorpay-webhook";
 
 const razorpay = new Razorpay({
@@ -250,23 +255,16 @@ export const razorpayRouter = router({
       return { success: true };
     }),
 
-  // Admin-only per-row toggle. Locked once a chunk has landed because
-  // Razorpay won't let us flip partial_payment on an in-flight order.
-  setPartialEnabled: studentProcedure
+  // Admin-only per-row toggle. Each Pay click mints a fresh order, so the
+  // next order picks up whatever the flag says — no mid-flow lock needed.
+  setPartialEnabled: adminProcedure
     .input(
       z.object({
         paymentId: z.number().int().positive(),
         enabled: z.boolean(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.isAdmin) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only admins can change this setting",
-        });
-      }
-
+    .mutation(async ({ input }) => {
       const [row] = await db
         .select({
           amountPaid: payments.amountPaid,

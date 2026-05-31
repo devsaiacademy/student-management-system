@@ -1,11 +1,17 @@
+import { unstable_noStore as noStore } from "next/cache";
+
 import { PaymentCharts } from "@/components/admin/payment-charts";
 import { createTRPCServerCaller } from "@/utils/trpc-server";
 
-// Always render fresh — partial chunks land via webhook outside the request
-// lifecycle, so a cached server render would show stale totals.
-export const dynamic = "force-dynamic";
-
 export default async function PaymentsPage() {
+  // Opt this fetch out of the Data Cache — partial chunks land via webhook
+  // outside the request lifecycle, so a cached server render would show
+  // stale totals. Narrower than `dynamic = "force-dynamic"` because only
+  // this query needs freshness, not every render path.
+  // TODO(payments): swap for webhook-triggered revalidation
+  // (`revalidateTag("payments-overview")` from syncOrderPaymentState) so the
+  // admin page can serve a cached payload between chunk events.
+  noStore();
   const trpc = await createTRPCServerCaller();
   const data = await trpc.payments.getPaymentOverview();
 

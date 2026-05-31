@@ -95,6 +95,10 @@ export async function syncOrderPaymentState(
       return;
     }
 
+    // FOR UPDATE serializes concurrent chunks for the same row: a parallel
+    // verifyPayment + payment.captured (or two webhooks racing) would
+    // otherwise both read the same amountPaid and last-writer-wins, silently
+    // dropping one chunk's amount. The lock holds for the rest of the tx.
     const [current] = await tx
       .select({
         id: payments.id,
@@ -105,9 +109,10 @@ export async function syncOrderPaymentState(
       })
       .from(payments)
       .where(eq(payments.razorpayOrderId, localOrder.id))
+      .for("update")
       .limit(1);
 
-    if (!current || current.paymentStatus === "paid") {
+    if (!current) {
       return;
     }
 
@@ -128,8 +133,12 @@ export async function syncOrderPaymentState(
 
     const penalty = current.metaData?.penalty ?? 0;
     const totalDue = current.amount + penalty;
-    const newAmountPaid = current.amountPaid + chunkRupees;
-    const isFullyPaid = newAmountPaid >= totalDue;
+    // Cap at totalDue so a late-arriving chunk (e.g. chunk A landing after
+    // chunk B already flipped the row to paid) can't overshoot. The audit
+    // log still gets the entry so the chunk isn't silently lost.
+    const newAmountPaid = Math.min(current.amountPaid + chunkRupees, totalDue);
+    const wasAlreadyPaid = current.paymentStatus === "paid";
+    const isFullyPaid = wasAlreadyPaid || newAmountPaid >= totalDue;
 
     const nextMetaData: PaymentMetaData = {
       ...(current.metaData ?? {}),
@@ -143,7 +152,11 @@ export async function syncOrderPaymentState(
           amountPaid: newAmountPaid,
           paymentStatus: "paid",
           paymentMethod: "razorpay",
-          paidDate: new Date().toISOString().split("T")[0],
+          // Don't reset paidDate on late-arriving chunks against an
+          // already-paid row.
+          ...(wasAlreadyPaid
+            ? {}
+            : { paidDate: new Date().toISOString().split("T")[0] }),
           metaData: nextMetaData,
         })
         .where(eq(payments.id, current.id));
@@ -158,6 +171,7 @@ export async function syncOrderPaymentState(
         .set({
           amountPaid: newAmountPaid,
           paymentStatus: "partially_paid",
+          paymentMethod: "razorpay",
           metaData: nextMetaData,
         })
         .where(eq(payments.id, current.id));
