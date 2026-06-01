@@ -8,10 +8,18 @@ import {
   Avatar,
   AvatarFallback,
 } from "@student-management-system/ui/components/avatar";
-import { Badge } from "@student-management-system/ui/components/badge";
 import { Button } from "@student-management-system/ui/components/button";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Input } from "@student-management-system/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@student-management-system/ui/components/select";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { gooeyToast } from "goey-toast";
+import { Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { trpc } from "@/utils/trpc";
@@ -40,18 +48,25 @@ const ROLE_LABEL: Record<UserRole, string> = {
   parent: "Parent",
 };
 
-const ROLE_BADGE_CLASS: Record<UserRole, string> = {
-  super_admin: "bg-amber-50 text-amber-700 border-amber-200",
-  admin: "bg-primary/10 text-primary border-primary/20",
-  staff: "bg-sky-50 text-sky-700 border-sky-200",
-  parent: "bg-muted text-muted-foreground border-border",
-};
+const TOAST_OPTS = {
+  showTimestamp: false,
+  borderColor: "#E0E0E0",
+  borderWidth: 1.5,
+  timing: { displayDuration: 4000 },
+} as const;
 
 function assignableRoles(callerRole: UserRole): UserRole[] {
   if (callerRole === "super_admin") {
     return ["admin", "staff", "parent"];
   }
   return ["staff", "parent"];
+}
+
+function handleFor(email: string): string {
+  const local = email.split("@")[0] ?? email;
+  // Strip plus-aliases and anything beyond the canonical handle so
+  // "anita+kid1@foo.com" reads as @anita.
+  return `@${local.split("+")[0] ?? local}`;
 }
 
 function initialFor(name: string, email: string): string {
@@ -65,9 +80,12 @@ export function UsersManager({
   initialUsers,
 }: UsersManagerProps) {
   const queryClient = useQueryClient();
-  const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [deleting, setDeleting] = useState<UserRow | null>(null);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<UserRole | "">("");
 
   const usersQuery = useQuery({
     ...trpc.users.list.queryOptions(),
@@ -83,113 +101,164 @@ export function UsersManager({
     });
   };
 
+  const createMutation = useMutation(
+    trpc.users.create.mutationOptions({
+      onSuccess: () => {
+        gooeyToast.success("User added", {
+          ...TOAST_OPTS,
+          description: "They can sign in via magic link from /login.",
+        });
+        setName("");
+        setEmail("");
+        setRole("");
+        invalidateList();
+      },
+      onError: (err) => {
+        gooeyToast.error("Failed to add user", {
+          ...TOAST_OPTS,
+          description: err.message,
+        });
+      },
+    })
+  );
+
+  function handleAdd(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!role) {
+      gooeyToast.error("Pick a role", { ...TOAST_OPTS });
+      return;
+    }
+    createMutation.mutate({
+      email: email.trim(),
+      name: name.trim(),
+      role,
+    });
+  }
+
+  const adding = createMutation.isPending;
+
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Users</h1>
-          <p className="text-sm text-muted-foreground">
-            Admins, staff, and parents who can sign in to the platform.
-          </p>
-        </div>
-        <Button onClick={() => setAddOpen(true)} type="button">
-          <Plus className="size-4" aria-hidden />
-          Add user
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-6 px-6 py-8">
+      <form
+        aria-label="Add user"
+        className="flex flex-wrap items-center gap-3"
+        onSubmit={handleAdd}
+      >
+        <Input
+          aria-label="Name"
+          autoComplete="off"
+          className="h-11 flex-1 min-w-[160px] rounded-lg border-input bg-white shadow-sm"
+          disabled={adding}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+          required
+          value={name}
+        />
+        <Input
+          aria-label="Email"
+          autoComplete="off"
+          className="h-11 flex-1 min-w-[200px] rounded-lg border-input bg-white shadow-sm"
+          disabled={adding}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          required
+          type="email"
+          value={email}
+        />
+        <Select
+          disabled={adding}
+          onValueChange={(value) => setRole(value as UserRole)}
+          value={role}
+        >
+          <SelectTrigger
+            aria-label="Role"
+            className="h-11 w-[140px] rounded-lg border-input bg-white shadow-sm"
+          >
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            {roleOptions.map((r) => (
+              <SelectItem key={r} value={r}>
+                {ROLE_LABEL[r]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          className="h-11 min-w-[88px] rounded-lg"
+          disabled={adding}
+          type="submit"
+        >
+          {adding ? "Adding…" : "Add"}
         </Button>
-      </header>
+      </form>
 
-      <div className="overflow-hidden rounded-xl bg-card shadow-sm">
-        <div className="hidden grid-cols-[1.4fr_1.4fr_0.8fr_140px] gap-4 border-b border-border bg-muted/40 px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground md:grid">
-          <span>Name</span>
-          <span>Email</span>
-          <span>Role</span>
-          <span className="text-right">Actions</span>
-        </div>
-        <ul className="divide-y divide-border">
-          {users.length === 0 ? (
-            <li className="px-5 py-10 text-center text-sm text-muted-foreground">
-              No users yet. Click <strong>Add user</strong> to invite the first
-              one.
-            </li>
-          ) : (
-            users.map((user) => {
-              const isSelf = user.id === callerId;
-              const isSuperAdmin = user.role === "super_admin";
-              const lockEdit = isSuperAdmin;
-              const lockDelete = isSelf || isSuperAdmin;
-              return (
-                <li
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-4 md:grid-cols-[1.4fr_1.4fr_0.8fr_140px] md:gap-4 md:px-5"
-                  key={user.id}
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Avatar className="size-9">
-                      <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-                        {initialFor(user.name, user.email)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-sm font-medium text-foreground">
-                        {user.name}
-                      </span>
-                      <span className="truncate text-xs text-muted-foreground md:hidden">
-                        {user.email}
-                      </span>
-                    </div>
+      <ul className="divide-y divide-border">
+        {users.length === 0 ? (
+          <li className="py-12 text-center text-sm text-muted-foreground">
+            No users yet. Fill the form above and click <strong>Add</strong> to
+            invite the first one.
+          </li>
+        ) : (
+          users.map((user) => {
+            const isSelf = user.id === callerId;
+            const isSuperAdmin = user.role === "super_admin";
+            const lockEdit = isSuperAdmin;
+            const lockDelete = isSelf || isSuperAdmin;
+            return (
+              <li
+                className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
+                key={user.id}
+              >
+                <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
+                  <Avatar className="size-10 shrink-0">
+                    <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+                      {initialFor(user.name, user.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-semibold text-foreground">
+                      {user.name}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {handleFor(user.email)}
+                    </span>
                   </div>
+                </div>
 
-                  <span className="hidden truncate text-sm text-muted-foreground md:inline">
-                    {user.email}
-                  </span>
+                <span className="hidden truncate text-sm text-muted-foreground sm:inline">
+                  {ROLE_LABEL[user.role]}
+                </span>
 
-                  <div className="hidden md:block">
-                    <Badge
-                      className={ROLE_BADGE_CLASS[user.role]}
-                      variant="outline"
-                    >
-                      {ROLE_LABEL[user.role]}
-                    </Badge>
-                  </div>
+                <span className="hidden truncate text-sm text-muted-foreground sm:inline">
+                  {user.email}
+                </span>
 
-                  <div className="flex items-center justify-end gap-1 md:gap-2">
-                    <Button
-                      aria-label={`Edit ${user.name}`}
-                      disabled={lockEdit}
-                      onClick={() => setEditing(user)}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      aria-label={`Delete ${user.name}`}
-                      disabled={lockDelete}
-                      onClick={() => setDeleting(user)}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </li>
-              );
-            })
-          )}
-        </ul>
-      </div>
-
-      <UserFormDialog
-        mode="create"
-        onOpenChange={setAddOpen}
-        onSuccess={() => {
-          setAddOpen(false);
-          invalidateList();
-        }}
-        open={addOpen}
-        roleOptions={roleOptions}
-      />
+                <div className="col-start-3 row-start-1 flex items-center justify-end gap-1 sm:col-start-auto sm:row-start-auto sm:gap-2">
+                  <button
+                    aria-label={`Delete ${user.name}`}
+                    className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40"
+                    disabled={lockDelete}
+                    onClick={() => setDeleting(user)}
+                    type="button"
+                  >
+                    <Trash2 aria-hidden className="size-4" />
+                  </button>
+                  <button
+                    aria-label={`Edit ${user.name}`}
+                    className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40"
+                    disabled={lockEdit}
+                    onClick={() => setEditing(user)}
+                    type="button"
+                  >
+                    <Pencil aria-hidden className="size-4" />
+                  </button>
+                </div>
+              </li>
+            );
+          })
+        )}
+      </ul>
 
       <UserFormDialog
         initialValues={
