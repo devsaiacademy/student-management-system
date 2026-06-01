@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
   { label: "Reports", href: "/admin/reports", icon: FileBarChart },
   {
-    label: "Users",
+    label: "Teachers",
     href: "/admin/users",
     icon: Shield,
     rolesAllowed: ["admin", "super_admin"],

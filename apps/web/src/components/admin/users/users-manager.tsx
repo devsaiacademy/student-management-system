@@ -27,6 +27,9 @@ import { trpc } from "@/utils/trpc";
 import { DeleteUserDialog } from "./delete-user-dialog";
 import { UserFormDialog } from "./user-form-dialog";
 
+type WorkerRole = Extract<UserRole, "super_admin" | "admin" | "staff">;
+type AssignableRole = Extract<UserRole, "admin" | "staff">;
+
 type UserRow = {
   id: string;
   email: string;
@@ -37,7 +40,7 @@ type UserRow = {
 
 type UsersManagerProps = {
   callerId: string;
-  callerRole: UserRole;
+  callerRole: WorkerRole;
   initialUsers: UserRow[];
 };
 
@@ -55,11 +58,14 @@ const TOAST_OPTS = {
   timing: { displayDuration: 4000 },
 } as const;
 
-function assignableRoles(callerRole: UserRole): UserRole[] {
+// Only worker roles are managed here. Parents are end-customers,
+// auto-provisioned by the parent-login trigger, and live on their own
+// route.
+function assignableRoles(callerRole: WorkerRole): AssignableRole[] {
   if (callerRole === "super_admin") {
-    return ["admin", "staff", "parent"];
+    return ["admin", "staff"];
   }
-  return ["staff", "parent"];
+  return ["staff"];
 }
 
 function handleFor(email: string): string {
@@ -85,7 +91,7 @@ export function UsersManager({
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<UserRole | "">("");
+  const [role, setRole] = useState<AssignableRole | "">("");
 
   const usersQuery = useQuery({
     ...trpc.users.list.queryOptions(),
@@ -167,7 +173,7 @@ export function UsersManager({
         />
         <Select
           disabled={adding}
-          onValueChange={(value) => setRole(value as UserRole)}
+          onValueChange={(value) => setRole(value as AssignableRole)}
           value={role}
         >
           <SelectTrigger
@@ -274,7 +280,7 @@ export function UsersManager({
 
       <UserFormDialog
         initialValues={
-          editing
+          editing && (editing.role === "admin" || editing.role === "staff")
             ? { id: editing.id, name: editing.name, role: editing.role }
             : undefined
         }

@@ -1,24 +1,27 @@
 import { db } from "@student-management-system/db";
 import {
-  USER_ROLES,
   type UserRole,
 } from "@student-management-system/db/schema/constants";
 import { userProfiles } from "@student-management-system/db/schema/user-profiles";
 import { TRPCError } from "@trpc/server";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure, router } from "../index";
 
-// Roles a caller is permitted to *assign* when creating or updating a user.
-// Encodes two rules from the spec:
-//   1. super_admin can never be created via the UI (seed-only role).
-//   2. admin can only be created by super_admin (no privilege elevation).
+// Roles considered "workers" — the only ones this admin page manages.
+// Parents are end-customers, provisioned implicitly by the parent-login
+// trigger; they never show up here.
+const WORKER_ROLES = ["staff", "admin", "super_admin"] as const satisfies readonly UserRole[];
+
+// Roles a caller is permitted to *assign* when creating or updating a
+// worker. super_admin is seed-only; admin can only be created by
+// super_admin.
 function assignableRoles(callerRole: UserRole): readonly UserRole[] {
   if (callerRole === "super_admin") {
-    return ["admin", "staff", "parent"];
+    return ["admin", "staff"];
   }
-  return ["staff", "parent"];
+  return ["staff"];
 }
 
 function assertAssignable(callerRole: UserRole, target: UserRole): void {
@@ -30,16 +33,19 @@ function assertAssignable(callerRole: UserRole, target: UserRole): void {
   }
 }
 
+// Inputs are scoped to worker roles so callers can't slip "parent" through.
+const workerRoleEnum = z.enum(["admin", "staff"]);
+
 const createUserInput = z.object({
   email: z.email().transform((value) => value.trim().toLowerCase()),
   name: z.string().trim().min(1).max(255),
-  role: z.enum(USER_ROLES),
+  role: workerRoleEnum,
 });
 
 const updateUserInput = z.object({
   id: z.uuid(),
   name: z.string().trim().min(1).max(255).optional(),
-  role: z.enum(USER_ROLES).optional(),
+  role: workerRoleEnum.optional(),
 });
 
 const deleteUserInput = z.object({ id: z.uuid() });
@@ -55,6 +61,7 @@ export const usersRouter = router({
         createdAt: userProfiles.createdAt,
       })
       .from(userProfiles)
+      .where(inArray(userProfiles.role, WORKER_ROLES))
       .orderBy(desc(userProfiles.createdAt));
     return rows;
   }),

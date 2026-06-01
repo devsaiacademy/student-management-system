@@ -39,18 +39,20 @@ const TOAST_OPTS = {
   timing: { displayDuration: 4000 },
 } as const;
 
+type AssignableRole = Extract<UserRole, "admin" | "staff">;
+
 type CreateValues = { mode: "create" };
 
 type EditValues = {
   mode: "edit";
-  initialValues?: { id: string; name: string; role: UserRole };
+  initialValues?: { id: string; name: string; role: AssignableRole };
 };
 
 type UserFormDialogProps = (CreateValues | EditValues) & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  roleOptions: UserRole[];
+  roleOptions: AssignableRole[];
 };
 
 export function UserFormDialog(props: UserFormDialogProps) {
@@ -60,7 +62,7 @@ export function UserFormDialog(props: UserFormDialogProps) {
 
   const [name, setName] = useState(initial?.name ?? "");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<UserRole | "">(initial?.role ?? "");
+  const [role, setRole] = useState<AssignableRole | "">(initial?.role ?? "");
 
   // Reset whenever the dialog re-opens with a different target.
   useEffect(() => {
@@ -164,7 +166,7 @@ export function UserFormDialog(props: UserFormDialogProps) {
           <div className="flex flex-col gap-2">
             <Label htmlFor="user-role">Role</Label>
             <Select
-              onValueChange={(value) => setRole(value as UserRole)}
+              onValueChange={(value) => setRole(value as AssignableRole)}
               value={role}
             >
               <SelectTrigger id="user-role">
