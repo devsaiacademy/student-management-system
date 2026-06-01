@@ -80,6 +80,13 @@ export const authRouter = router({
     return ctx.user;
   }),
 
+  // Returns the loaded user_profiles row for the current session. Null when
+  // the session exists but no profile has been provisioned (defensive state
+  // — should not happen for valid logins).
+  getUserProfile: protectedProcedure.query(({ ctx }) => {
+    return ctx.userProfile;
+  }),
+
   // Public so callers can check "is anyone logged in?" without tripping
   // the UNAUTHORIZED throw from `protectedProcedure`. Returns the user
   // object when authenticated, or null when there's no session.
