@@ -5,11 +5,10 @@ import {
 } from "@student-management-system/db/schema/constants";
 import { userProfiles } from "@student-management-system/db/schema/user-profiles";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure, router } from "../index";
-import { getSupabaseAdminClient } from "../lib/supabase-admin";
 
 // Roles a caller is permitted to *assign* when creating or updating a user.
 // Encodes two rules from the spec:
@@ -60,17 +59,16 @@ export const usersRouter = router({
     return rows;
   }),
 
-  // Admin pre-provisions both auth.users and user_profiles in one mutation.
-  // No invitation email is sent; the invitee signs in normally via magic link
-  // on /login and is matched by id == auth.users.id.
+  // Insert a stub user_profiles row with a placeholder uuid. We do NOT touch
+  // auth.users here — when the invitee later signs in via magic link from
+  // /login, Supabase creates the auth.users row and the handle_new_user
+  // trigger reattaches this profile by email (UPDATEs the id to the real
+  // auth.users.id). This sidesteps the service-role-key dependency entirely.
   create: adminProcedure
     .input(createUserInput)
     .mutation(async ({ ctx, input }) => {
       assertAssignable(ctx.userProfile.role, input.role);
 
-      // Reject up front if the email is already in user_profiles. Cheaper
-      // than letting supabase.auth.admin.createUser fail downstream and
-      // leaves no orphan auth.users rows behind.
       const existing = await db.query.userProfiles.findFirst({
         where: eq(userProfiles.email, input.email),
         columns: { id: true },
@@ -82,25 +80,11 @@ export const usersRouter = router({
         });
       }
 
-      const admin = getSupabaseAdminClient();
-      const { data, error } = await admin.auth.admin.createUser({
-        email: input.email,
-        email_confirm: true,
-        user_metadata: { name: input.name },
-      });
-
-      if (error || !data.user) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error?.message ?? "Failed to create auth user",
-        });
-      }
-
       try {
         const [inserted] = await db
           .insert(userProfiles)
           .values({
-            id: data.user.id,
+            id: sql`gen_random_uuid()`,
             email: input.email,
             name: input.name,
             role: input.role,
@@ -108,10 +92,6 @@ export const usersRouter = router({
           .returning();
         return inserted;
       } catch (err) {
-        // Roll back the auth.users row so a failed profile insert doesn't
-        // leave an orphan login. Best-effort: if cleanup also fails the
-        // operator must remove the auth user manually.
-        await admin.auth.admin.deleteUser(data.user.id).catch(() => {});
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -127,9 +107,8 @@ export const usersRouter = router({
         assertAssignable(ctx.userProfile.role, input.role);
       }
 
-      // Prevent demoting the last super_admin or modifying anyone's role
-      // away from super_admin via this endpoint — super_admin promotions
-      // and demotions are seed-only operations.
+      // super_admin promotions/demotions are seed-only operations — never
+      // exposed through the UI.
       const target = await db.query.userProfiles.findFirst({
         where: eq(userProfiles.id, input.id),
         columns: { role: true },
@@ -164,8 +143,10 @@ export const usersRouter = router({
       return updated;
     }),
 
-  // Delete = revoke access. Removes both auth.users (so they can never log
-  // back in) and user_profiles. There is no soft-delete / deactivate.
+  // Delete = revoke access. Removes auth.users (if the user has ever
+  // logged in) AND user_profiles. Uses direct SQL on auth.users — no
+  // Supabase Auth admin API call, so this works regardless of the
+  // service-role key configuration.
   delete: adminProcedure
     .input(deleteUserInput)
     .mutation(async ({ ctx, input }) => {
@@ -178,7 +159,7 @@ export const usersRouter = router({
 
       const target = await db.query.userProfiles.findFirst({
         where: eq(userProfiles.id, input.id),
-        columns: { role: true },
+        columns: { role: true, email: true },
       });
       if (!target) {
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
@@ -190,18 +171,16 @@ export const usersRouter = router({
         });
       }
 
-      const admin = getSupabaseAdminClient();
-      const { error } = await admin.auth.admin.deleteUser(input.id);
-      if (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
-        });
-      }
-
-      // auth.users → user_profiles FK is implicit (user_profiles.id == auth
-      // .users.id) and not enforced as an FK, so delete the profile row too.
-      await db.delete(userProfiles).where(eq(userProfiles.id, input.id));
+      await db.transaction(async (tx) => {
+        // Remove the auth.users row matching this profile's id, AND any
+        // auth.users row matching the email (covers stub profiles whose
+        // id is still a placeholder uuid because the user hasn't logged
+        // in yet). Both queries use the postgres role from DATABASE_URL.
+        await tx.execute(
+          sql`DELETE FROM auth.users WHERE id = ${input.id} OR LOWER(email) = ${target.email.toLowerCase()}`
+        );
+        await tx.delete(userProfiles).where(eq(userProfiles.id, input.id));
+      });
 
       return { id: input.id };
     }),

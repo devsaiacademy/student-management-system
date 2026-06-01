@@ -155,6 +155,13 @@
       "when": 1780336871148,
       "tag": "0021_restore_parent_provisioning_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1780337589685,
+      "tag": "0022_merge_user_profile_by_email_on_login",
+      "breakpoints": true
     }
   ]
 }
