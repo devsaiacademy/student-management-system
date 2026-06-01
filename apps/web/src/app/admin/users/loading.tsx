@@ -6,16 +6,16 @@ export default function UsersLoading() {
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-6 px-6 py-8">
       <div className="flex flex-wrap items-center gap-3">
-        <Skeleton className="h-11 flex-1 min-w-[160px] rounded-lg" />
-        <Skeleton className="h-11 flex-1 min-w-[200px] rounded-lg" />
-        <Skeleton className="h-11 w-[140px] rounded-lg" />
-        <Skeleton className="h-11 w-[88px] rounded-lg" />
+        <Skeleton className="h-10 min-w-[160px] flex-1 rounded-[8px]" />
+        <Skeleton className="h-10 min-w-[200px] flex-1 rounded-[8px]" />
+        <Skeleton className="h-10 w-[140px] rounded-[8px]" />
+        <Skeleton className="h-10 w-[88px] rounded-[8px]" />
       </div>
 
       <ul className="divide-y divide-border">
         {SKELETON_KEYS.map((key) => (
           <li
-            className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
+            className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
             key={key}
           >
             <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
@@ -25,7 +25,7 @@ export default function UsersLoading() {
                 <Skeleton className="h-3 w-20" />
               </div>
             </div>
-            <Skeleton className="hidden h-4 w-28 sm:block" />
+            <Skeleton className="hidden h-4 w-24 sm:block" />
             <Skeleton className="hidden h-4 w-48 sm:block" />
             <div className="col-start-3 row-start-1 flex items-center justify-end gap-1 sm:col-start-auto sm:row-start-auto sm:gap-2">
               <Skeleton className="size-8 rounded-md" />

@@ -147,7 +147,7 @@ export function UsersManager({
         <Input
           aria-label="Name"
           autoComplete="off"
-          className="h-11 flex-1 min-w-[160px] rounded-lg border-input bg-white shadow-sm"
+          className="h-10 min-w-[160px] flex-1 rounded-[8px] border-input bg-white px-3 text-sm shadow-sm"
           disabled={adding}
           onChange={(e) => setName(e.target.value)}
           placeholder="Name"
@@ -157,7 +157,7 @@ export function UsersManager({
         <Input
           aria-label="Email"
           autoComplete="off"
-          className="h-11 flex-1 min-w-[200px] rounded-lg border-input bg-white shadow-sm"
+          className="h-10 min-w-[200px] flex-1 rounded-[8px] border-input bg-white px-3 text-sm shadow-sm"
           disabled={adding}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
@@ -172,20 +172,20 @@ export function UsersManager({
         >
           <SelectTrigger
             aria-label="Role"
-            className="h-11 w-[140px] rounded-lg border-input bg-white shadow-sm"
+            className="h-10 w-[140px] rounded-[8px] border-input bg-white px-3 text-sm shadow-sm"
           >
             <SelectValue placeholder="Role" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-[8px]">
             {roleOptions.map((r) => (
-              <SelectItem key={r} value={r}>
+              <SelectItem className="rounded-[6px] text-sm" key={r} value={r}>
                 {ROLE_LABEL[r]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Button
-          className="h-11 min-w-[88px] rounded-lg"
+          className="h-10 min-w-[88px] rounded-[8px] px-4 text-sm"
           disabled={adding}
           type="submit"
         >
@@ -207,7 +207,12 @@ export function UsersManager({
             const lockDelete = isSelf || isSuperAdmin;
             return (
               <li
-                className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
+                aria-current={isSelf ? "true" : undefined}
+                className={
+                  isSelf
+                    ? "grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[8px] bg-primary/5 px-3 py-4 ring-1 ring-primary/10 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
+                    : "grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
+                }
                 key={user.id}
               >
                 <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
@@ -217,8 +222,15 @@ export function UsersManager({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex min-w-0 flex-col">
-                    <span className="truncate text-sm font-semibold text-foreground">
-                      {user.name}
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="truncate text-sm font-semibold text-foreground">
+                        {user.name}
+                      </span>
+                      {isSelf ? (
+                        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                          You
+                        </span>
+                      ) : null}
                     </span>
                     <span className="truncate text-xs text-muted-foreground">
                       {handleFor(user.email)}
