@@ -1,3 +1,6 @@
+export const USER_ROLES = ["super_admin", "admin", "staff", "parent"] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
 export const PAYMENT_PLANS = ["single", "installment"] as const;
 export type PaymentPlan = (typeof PAYMENT_PLANS)[number];
 

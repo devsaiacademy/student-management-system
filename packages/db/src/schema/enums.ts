@@ -8,7 +8,10 @@ import {
   REACHED_US_BY_OPTIONS,
   STUDENT_PROGRESS_STATUSES,
   STUDENT_STATUSES,
+  USER_ROLES,
 } from "./constants";
+
+export const userRoleEnum = pgEnum("user_role", USER_ROLES);
 
 export const paymentPlanEnum = pgEnum("payment_plan", PAYMENT_PLANS);
 

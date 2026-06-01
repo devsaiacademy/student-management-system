@@ -1,17 +1,15 @@
 import { sql } from "drizzle-orm";
-import {
-  pgTable,
-  uuid,
-  varchar,
-  timestamp,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
+import { pgPolicy, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+
+import { userRoleEnum } from "./enums";
 
 export const userProfiles = pgTable(
   "user_profiles",
   {
     id: uuid("id").primaryKey(),
-    role: varchar("role", { length: 20 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    name: varchar("name", { length: 255 }).notNull(),
+    role: userRoleEnum("role").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -27,7 +25,22 @@ export const userProfiles = pgTable(
     pgPolicy("user_profiles_select_admin", {
       for: "select",
       to: "authenticated",
-      using: sql`public.current_user_role() = 'admin'`,
+      using: sql`public.current_user_role() IN ('admin', 'super_admin')`,
+    }),
+    pgPolicy("user_profiles_insert_admin", {
+      for: "insert",
+      to: "authenticated",
+      withCheck: sql`public.current_user_role() IN ('admin', 'super_admin')`,
+    }),
+    pgPolicy("user_profiles_update_admin", {
+      for: "update",
+      to: "authenticated",
+      using: sql`public.current_user_role() IN ('admin', 'super_admin')`,
+    }),
+    pgPolicy("user_profiles_delete_admin", {
+      for: "delete",
+      to: "authenticated",
+      using: sql`public.current_user_role() IN ('admin', 'super_admin')`,
     }),
   ]
 ).enableRLS();
