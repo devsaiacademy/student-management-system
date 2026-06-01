@@ -1,6 +1,5 @@
 "use client";
 
-import { isOtomatiksAdminEmail } from "@student-management-system/api/lib/admin-email";
 import { Button } from "@student-management-system/ui/components/button";
 import {
   InputOTP,
@@ -123,17 +122,18 @@ export default function Login() {
       return true;
     }
     if (role === "teacher") {
-      if (!isOtomatiksAdminEmail(targetEmail)) {
+      const allowed = await trpcClient.auth.isStaffEmail.query({
+        email: targetEmail,
+      });
+      if (!allowed) {
         toastInvalidEmail(
-          "You are not allowed to login with this email, use your otomatiks.in email."
+          "Your email is not registered for staff access. Contact your admin."
         );
         return false;
       }
       return true;
     }
-    toastInvalidEmail(
-      "You are not allowed to login with this email, use your otomatiks.in email."
-    );
+    toastInvalidEmail("Your email is not registered. Contact your admin.");
     return false;
   }
 

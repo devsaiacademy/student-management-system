@@ -1,4 +1,5 @@
 import type { Context } from "@student-management-system/api/context";
+import { loadUserProfile } from "@student-management-system/api/context";
 import { appRouter } from "@student-management-system/api/routers/index";
 import { createServerClient } from "@supabase/ssr";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -37,9 +38,12 @@ async function createContext(req: NextRequest): Promise<Context> {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const userProfile = user ? await loadUserProfile(user.id) : null;
+
   return {
     supabase,
     user: user ? { id: user.id, email: user.email ?? "" } : null,
+    userProfile,
   };
 }
 
