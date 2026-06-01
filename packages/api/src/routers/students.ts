@@ -6,7 +6,6 @@ import {
 import { enrollments } from "@student-management-system/db/schema/enrollment";
 import { payments } from "@student-management-system/db/schema/payment";
 import { students } from "@student-management-system/db/schema/students";
-import { userProfiles } from "@student-management-system/db/schema/user-profiles";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import z from "zod";
@@ -18,7 +17,6 @@ import {
   staffProcedure,
   studentProcedure,
 } from "../index";
-import { getSupabaseAdminClient } from "../lib/supabase-admin";
 import {
   buildTuitionAndKitRows,
   formatDateForPg,
@@ -243,54 +241,8 @@ export const studentsRouter = router({
   createStudent: staffProcedure
     .input(createStudentSchema)
     .mutation(async ({ input }) => {
-      // Provision the parent login alongside the student. Server-side
-      // supabase.auth.admin.createUser({ email_confirm: true }) creates the
-      // auth.users row without sending an email; the parent later signs in
-      // via standard magic link from /login.
-      const existingProfile = await db.query.userProfiles.findFirst({
-        where: eq(userProfiles.email, input.email),
-        columns: { role: true },
-      });
-      if (existingProfile) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message:
-            existingProfile.role === "parent"
-              ? "A parent account with this email already exists"
-              : "This email is already used by a staff or admin account",
-        });
-      }
-
-      const admin = getSupabaseAdminClient();
-      // Parent display name defaults to mother → father → student name. The
-      // admin can rename later via /admin/users.
-      const parentDisplayName =
-        input.motherName?.trim() ||
-        input.fatherName?.trim() ||
-        input.name;
-      const { data: authData, error: authError } =
-        await admin.auth.admin.createUser({
-          email: input.email,
-          email_confirm: true,
-          user_metadata: { name: parentDisplayName },
-        });
-      if (authError || !authData.user) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: authError?.message ?? "Failed to provision parent login",
-        });
-      }
-      const parentAuthId = authData.user.id;
-
       try {
         return await db.transaction(async (tx) => {
-          await tx.insert(userProfiles).values({
-            id: parentAuthId,
-            email: input.email,
-            name: parentDisplayName,
-            role: "parent",
-          });
-
           // Status is derived from joiningDate: a student without a known
           // joining date is `pending` regardless of what the form sent. The
           // form's `studentStatus` is otherwise honored.
@@ -298,10 +250,12 @@ export const studentsRouter = router({
             ? input.studentStatus
             : ("pending" as const);
 
+          // Parent auth.users is created lazily by the handle_new_user
+          // trigger when the parent first signs in via magic link from
+          // /login (matching by email). No admin-API call here.
           const [created] = await tx
             .insert(students)
             .values({
-              authUserId: parentAuthId,
               name: input.name,
               rollNumber: input.rollNumber,
               age: input.age,
@@ -404,11 +358,6 @@ export const studentsRouter = router({
           return { id: created.id };
         });
       } catch (error) {
-        // Roll back the auth.users row we created for the parent — the DB
-        // transaction failed so there's no profile or student to attach it
-        // to. Best-effort: if this also fails the operator must clean up.
-        await admin.auth.admin.deleteUser(parentAuthId).catch(() => {});
-
         // Translate common unique-constraint violations into a friendly
         // field-level error so the form can highlight the right input.
         const message = error instanceof Error ? error.message : "";

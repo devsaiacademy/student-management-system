@@ -148,6 +148,13 @@
       "when": 1780334785289,
       "tag": "0020_role_management_overhaul",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1780336871148,
+      "tag": "0021_restore_parent_provisioning_trigger",
+      "breakpoints": true
     }
   ]
 }
