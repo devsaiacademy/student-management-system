@@ -32,7 +32,7 @@ const defaultValues: CreateStudentInput = {
   fatherOccupation: "",
   reachedUsBy: "Board / Walkin",
   studentStatus: "active",
-  course: "Robotics",
+  course: "",
   duration: "3 months",
   level: "Level 1",
   closedBy: "",
