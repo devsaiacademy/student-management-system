@@ -2,6 +2,7 @@ import { env } from "@student-management-system/env/server";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+import * as coursesSchema from "./schema/courses";
 import * as enrollmentSchema from "./schema/enrollment";
 import * as paymentSchema from "./schema/payment";
 import * as razorpayOrderSchema from "./schema/razorpay-order";
@@ -16,6 +17,7 @@ const schema = {
   ...razorpayOrderSchema,
   ...studentProgressSchema,
   ...userProfilesSchema,
+  ...coursesSchema,
 };
 
 declare global {

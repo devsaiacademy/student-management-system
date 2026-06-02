@@ -154,8 +154,8 @@ export function UsersManager({
 
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-6 px-6 py-8">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold text-foreground">Teachers</h1>
+      <header className="flex flex-col items-center gap-1 text-center">
+        <h1 className="text-lg font-semibold text-foreground">Teachers</h1>
         <p className="text-sm text-muted-foreground">
           Admins and staff who can sign in to manage the platform.
         </p>

@@ -1,5 +1,4 @@
 import {
-  COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
   LEVELS,
@@ -55,7 +54,10 @@ export const createStudentSchema = z
     studentStatus: z.enum(STUDENT_STATUSES),
 
     // --- Enrollment (enrollments table) ---
-    course: z.enum(COURSES),
+    // Course is a free-form name validated against the `courses` table at
+    // mutation time — the dropdown options are sourced dynamically via
+    // `trpc.courses.list`.
+    course: z.string().trim().min(1).max(100),
     duration: z.enum(DURATIONS),
     level: z.enum(LEVELS),
     // The dropdown is populated dynamically from user_profiles (workers).

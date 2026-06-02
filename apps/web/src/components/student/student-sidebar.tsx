@@ -16,7 +16,7 @@ import {
 } from "@student-management-system/ui/components/sidebar";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, LogOut } from "lucide-react";
+import { BookOpen, CreditCard, LogOut } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,7 +24,12 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { trpc } from "@/utils/trpc";
 
-const navItems = [{ label: "Billing", href: "/student", icon: CreditCard }];
+const navItems = [
+  { label: "Billing", href: "/student", icon: CreditCard },
+  { label: "Courses", href: "/student/courses", icon: BookOpen },
+];
+
+const STUDENT_DETAIL_PATTERN = /^\/student\/\d+(?:\/.*)?$/;
 
 type StudentSidebarProps = {
   user: { email: string; name?: string } | null;
@@ -70,8 +75,16 @@ export function StudentSidebar({ user }: StudentSidebarProps) {
       <SidebarContent>
         <SidebarMenu>
           {navItems.map((item) => {
+            // Billing lives at `/student` and at `/student/<id>` (the real
+            // detail page parents get redirected to). It must NOT light up
+            // on sibling routes like `/student/courses`. Numeric-id paths
+            // count as billing; non-numeric segments belong to siblings.
             const isActive =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+              item.href === "/student"
+                ? pathname === "/student" ||
+                  STUDENT_DETAIL_PATTERN.test(pathname)
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
 
             return (
               <SidebarMenuItem key={item.href}>
