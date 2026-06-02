@@ -51,7 +51,7 @@ export function EnrollmentCard({
   // "Closed By" options are sourced from user_profiles workers (admin /
   // super_admin / staff). Empty array while loading or on error so the
   // dropdown stays open-able but shows no items.
-  const workersQuery = useQuery(trpc.users.workers.queryOptions());
+  const workersQuery = useQuery(trpc.users.staffs.queryOptions());
   const closedByOptions = (workersQuery.data ?? []).map((w) => w.name);
 
   return (

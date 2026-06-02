@@ -54,7 +54,7 @@ export const usersRouter = router({
   // Lightweight name list of every worker (admin / super_admin / staff),
   // used by add-student "Closed By" dropdown. Available to anyone who can
   // create students (staff and above), unlike `list` which is admin-only.
-  workers: staffProcedure.query(async () => {
+  staffs: staffProcedure.query(async () => {
     const rows = await db
       .select({
         id: userProfiles.id,
