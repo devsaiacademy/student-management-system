@@ -20,11 +20,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   FileBarChart,
-  GraduationCap,
   LogOut,
   UserPlus,
   Users,
 } from "lucide-react";
+
+import { TeachersIcon } from "@/components/icons/teachers-icon";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,7 +36,7 @@ import { trpc } from "@/utils/trpc";
 type NavItem = {
   label: string;
   href: string;
-  icon: typeof Users;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   rolesAllowed?: UserRole[];
 };
 
@@ -48,7 +49,7 @@ const navItems: NavItem[] = [
   {
     label: "Teachers",
     href: "/admin/teachers",
-    icon: GraduationCap,
+    icon: TeachersIcon,
     rolesAllowed: ["admin", "super_admin"],
   },
 ];
