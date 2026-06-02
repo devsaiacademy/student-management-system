@@ -14,6 +14,7 @@ import {
   assertStudentAccess,
   protectedProcedure,
   router,
+  staffProcedure,
   studentProcedure,
 } from "../index";
 import {
@@ -237,7 +238,7 @@ export const studentsRouter = router({
   //   - If `joiningDate` is omitted, only the optional Initial Payment row
   //     (anchored to `admissionDate`) is inserted; the student is `pending`
   //     until `enrollment.setJoiningDate` is called.
-  createStudent: protectedProcedure
+  createStudent: staffProcedure
     .input(createStudentSchema)
     .mutation(async ({ input }) => {
       try {
@@ -249,6 +250,9 @@ export const studentsRouter = router({
             ? input.studentStatus
             : ("pending" as const);
 
+          // Parent auth.users is created lazily by the handle_new_user
+          // trigger when the parent first signs in via magic link from
+          // /login (matching by email). No admin-API call here.
           const [created] = await tx
             .insert(students)
             .values({

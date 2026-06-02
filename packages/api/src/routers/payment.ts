@@ -15,6 +15,7 @@ import {
   assertStudentAccess,
   protectedProcedure,
   router,
+  staffProcedure,
   studentProcedure,
 } from "../index";
 import { sendOverdueEmail } from "../lib/overdue-payments";
@@ -307,7 +308,7 @@ export const paymentsRouter = router({
       return { id: updated.id };
     }),
 
-  createPayment: adminProcedure
+  createPayment: staffProcedure
     .input(
       z.object({
         studentId: z.number().int().positive(),
@@ -357,7 +358,7 @@ export const paymentsRouter = router({
       return { id: inserted.id };
     }),
 
-  sendPaymentReminder: adminProcedure
+  sendPaymentReminder: staffProcedure
     .input(z.object({ paymentId: z.number().int().positive() }))
     .mutation(async ({ input }) => {
       const [row] = await db

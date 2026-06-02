@@ -1,4 +1,5 @@
 import { db } from "@student-management-system/db";
+import type { UserRole } from "@student-management-system/db/schema/constants";
 import { students } from "@student-management-system/db/schema/students";
 import { userProfiles } from "@student-management-system/db/schema/user-profiles";
 import { TRPCError } from "@trpc/server";
@@ -6,7 +7,13 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, publicProcedure, router } from "../index";
-import { isOtomatiksAdminEmail } from "../lib/admin-email";
+
+// Staff and above land on /admin; parent (and anyone with no profile) lands
+// on the parent-facing surface. Matches the staffProcedure gate so the
+// pre-routing check stays consistent with what the router will allow.
+function hasAdminAreaAccess(role: UserRole | undefined): boolean {
+  return role === "staff" || role === "admin" || role === "super_admin";
+}
 
 export const authRouter = router({
   sendSignInEmail: publicProcedure
@@ -42,16 +49,28 @@ export const authRouter = router({
       return student;
     }),
 
-  // using this before logging in.
+  // Used by the login form's "teacher" branch to gate magic-link sends.
+  // Replaces the old email-shape check; the only criterion is now whether a
+  // user_profiles row exists with a staff-or-above role.
+  isStaffEmail: publicProcedure
+    .input(z.object({ email: z.email() }))
+    .query(async ({ input }) => {
+      const row = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.email, input.email),
+        columns: { role: true },
+      });
+      return Boolean(row && hasAdminAreaAccess(row.role));
+    }),
+
+  // True when the caller's user_profile grants admin-area access (staff or
+  // above). Used by /admin layouts to gate pre-render redirects.
   isAdmin: protectedProcedure.query(({ ctx }) => {
-    return isOtomatiksAdminEmail(ctx.user.email);
+    return hasAdminAreaAccess(ctx.userProfile?.role);
   }),
 
   isAdminUser: protectedProcedure.query(async ({ ctx }) => {
-    const email = ctx.user.id;
-
     const user = await db.query.userProfiles.findFirst({
-      where: eq(userProfiles.id, email),
+      where: eq(userProfiles.id, ctx.user.id),
     });
 
     return !!user;
@@ -59,6 +78,13 @@ export const authRouter = router({
 
   getUser: protectedProcedure.query(({ ctx }) => {
     return ctx.user;
+  }),
+
+  // Returns the loaded user_profiles row for the current session. Null when
+  // the session exists but no profile has been provisioned (defensive state
+  // — should not happen for valid logins).
+  getUserProfile: protectedProcedure.query(({ ctx }) => {
+    return ctx.userProfile;
   }),
 
   // Public so callers can check "is anyone logged in?" without tripping
@@ -75,14 +101,15 @@ export const authRouter = router({
     if (!ctx.user) {
       return { user: null, isAdmin: false, student: [] };
     }
-    const [isAdmin, student] = await Promise.all([
-      Promise.resolve(isOtomatiksAdminEmail(ctx.user.email)),
-      db
-        .select({ id: students.id })
-        .from(students)
-        .where(eq(students.email, ctx.user.email)),
-    ]);
-    return { user: ctx.user, isAdmin, student };
+    const student = await db
+      .select({ id: students.id })
+      .from(students)
+      .where(eq(students.email, ctx.user.email));
+    return {
+      user: ctx.user,
+      isAdmin: hasAdminAreaAccess(ctx.userProfile?.role),
+      student,
+    };
   }),
 
   // Public because a stale/expired session should still be able to log out

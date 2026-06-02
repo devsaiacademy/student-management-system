@@ -1,5 +1,6 @@
 "use client";
 
+import type { UserRole } from "@student-management-system/db/schema/constants";
 import {
   Avatar,
   AvatarFallback,
@@ -23,6 +24,8 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+
+import { TeachersIcon } from "@/components/icons/teachers-icon";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,19 +33,36 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { trpc } from "@/utils/trpc";
 
-const navItems = [
+type NavItem = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  rolesAllowed?: UserRole[];
+};
+
+// Users is admin-only (admin + super_admin); everything else is staff-or-above.
+const navItems: NavItem[] = [
   { label: "Students", href: "/admin/all-students", icon: Users },
   { label: "Add Student", href: "/admin/add-student", icon: UserPlus },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
-  // { label: "Courses", href: "/admin/courses", icon: BookOpen },
   { label: "Reports", href: "/admin/reports", icon: FileBarChart },
+  {
+    label: "Teachers",
+    href: "/admin/teachers",
+    icon: TeachersIcon,
+    rolesAllowed: ["admin", "super_admin"],
+  },
 ];
 
 type AdminSidebarProps = {
+  role: UserRole;
   user: { email: string; name?: string } | null;
 };
 
-export function AdminSidebar({ user }: AdminSidebarProps) {
+export function AdminSidebar({ role, user }: AdminSidebarProps) {
+  const visibleNavItems = navItems.filter(
+    (item) => !item.rolesAllowed || item.rolesAllowed.includes(role)
+  );
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -83,7 +103,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
       <SidebarContent>
         <SidebarMenu>
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive =
               item.href === "/admin"
                 ? pathname === "/admin"

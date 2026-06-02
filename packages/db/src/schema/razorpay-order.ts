@@ -48,27 +48,27 @@ export const razorpayOrders = pgTable(
     pgPolicy("razorpay_orders_select_policy_student", {
       for: "select",
       to: "authenticated",
-      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'student'`,
+      using: sql`student_id IN (SELECT id FROM students WHERE auth_user_id = auth.uid()) AND public.current_user_role() = 'parent'`,
     }),
     pgPolicy("razorpay_orders_select_policy_admin", {
       for: "select",
       to: "authenticated",
-      using: sql`public.current_user_role() = 'admin'`,
+      using: sql`public.current_user_role() IN ('admin', 'super_admin', 'staff')`,
     }),
     pgPolicy("razorpay_orders_insert_policy", {
       for: "insert",
       to: "authenticated",
-      withCheck: sql`public.current_user_role() = 'admin'`,
+      withCheck: sql`public.current_user_role() IN ('admin', 'super_admin', 'staff')`,
     }),
     pgPolicy("razorpay_orders_update_policy", {
       for: "update",
       to: "authenticated",
-      using: sql`public.current_user_role() = 'admin'`,
+      using: sql`public.current_user_role() IN ('admin', 'super_admin', 'staff')`,
     }),
     pgPolicy("razorpay_orders_delete_policy", {
       for: "delete",
       to: "authenticated",
-      using: sql`public.current_user_role() = 'admin'`,
+      using: sql`public.current_user_role() IN ('admin', 'super_admin', 'staff')`,
     }),
   ]
 ).enableRLS();

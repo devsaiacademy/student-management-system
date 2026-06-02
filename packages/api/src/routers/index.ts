@@ -5,6 +5,7 @@ import { paymentsRouter } from "./payment";
 import { razorpayRouter } from "./razorpay";
 import { reportsRouter } from "./reports";
 import { studentsRouter } from "./students";
+import { usersRouter } from "./users";
 
 export const appRouter = router({
   auth: authRouter,
@@ -13,6 +14,7 @@ export const appRouter = router({
   payments: paymentsRouter,
   razorpay: razorpayRouter,
   reports: reportsRouter,
+  users: usersRouter,
   healthCheck: publicProcedure.query(() => "OK"),
 });
 
