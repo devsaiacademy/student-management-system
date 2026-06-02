@@ -97,7 +97,16 @@ export function UsersManager({
     ...trpc.users.list.queryOptions(),
     initialData: initialUsers,
   });
-  const users: UserRow[] = usersQuery.data ?? initialUsers;
+  const users: UserRow[] = useMemo(() => {
+    const data = usersQuery.data ?? initialUsers;
+    // Pin the caller's row to the top so they can always find themselves
+    // without scrolling. Preserves the createdAt desc order for the rest.
+    return [...data].sort((a, b) => {
+      if (a.id === callerId) return -1;
+      if (b.id === callerId) return 1;
+      return 0;
+    });
+  }, [usersQuery.data, initialUsers, callerId]);
 
   const roleOptions = useMemo(() => assignableRoles(callerRole), [callerRole]);
 

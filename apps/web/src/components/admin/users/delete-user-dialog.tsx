@@ -69,6 +69,7 @@ export function DeleteUserDialog({
         </DialogHeader>
         <DialogFooter>
           <Button
+            className="h-10 rounded-[8px] px-4 text-sm"
             disabled={deleteMutation.isPending}
             onClick={() => onOpenChange(false)}
             type="button"
@@ -77,6 +78,7 @@ export function DeleteUserDialog({
             Cancel
           </Button>
           <Button
+            className="h-10 rounded-[8px] px-4 text-sm"
             disabled={deleteMutation.isPending}
             onClick={handleConfirm}
             type="button"

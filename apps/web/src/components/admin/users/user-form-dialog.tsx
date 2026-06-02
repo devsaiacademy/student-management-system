@@ -142,6 +142,7 @@ export function UserFormDialog(props: UserFormDialogProps) {
             <Label htmlFor="user-name">Name</Label>
             <Input
               autoComplete="off"
+              className="h-10 rounded-[8px] px-3 text-sm"
               id="user-name"
               onChange={(e) => setName(e.target.value)}
               required
@@ -154,6 +155,7 @@ export function UserFormDialog(props: UserFormDialogProps) {
               <Label htmlFor="user-email">Email</Label>
               <Input
                 autoComplete="off"
+                className="h-10 rounded-[8px] px-3 text-sm"
                 id="user-email"
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -169,12 +171,19 @@ export function UserFormDialog(props: UserFormDialogProps) {
               onValueChange={(value) => setRole(value as AssignableRole)}
               value={role}
             >
-              <SelectTrigger id="user-role">
+              <SelectTrigger
+                className="h-10 rounded-[8px] px-3 text-sm"
+                id="user-role"
+              >
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-[8px]">
                 {roleOptions.map((r) => (
-                  <SelectItem key={r} value={r}>
+                  <SelectItem
+                    className="rounded-[6px] text-sm"
+                    key={r}
+                    value={r}
+                  >
                     {ROLE_LABEL[r]}
                   </SelectItem>
                 ))}
@@ -184,6 +193,7 @@ export function UserFormDialog(props: UserFormDialogProps) {
 
           <DialogFooter className="mt-2">
             <Button
+              className="h-10 rounded-[8px] px-4 text-sm"
               disabled={pending}
               onClick={() => onOpenChange(false)}
               type="button"
@@ -191,7 +201,11 @@ export function UserFormDialog(props: UserFormDialogProps) {
             >
               Cancel
             </Button>
-            <Button disabled={pending} type="submit">
+            <Button
+              className="h-10 rounded-[8px] px-4 text-sm"
+              disabled={pending}
+              type="submit"
+            >
               {pending ? "Saving…" : isEdit ? "Save changes" : "Add user"}
             </Button>
           </DialogFooter>
