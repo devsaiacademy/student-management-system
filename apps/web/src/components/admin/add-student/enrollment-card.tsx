@@ -1,14 +1,10 @@
 import type { CreateStudentInput } from "@student-management-system/api/schemas/student";
 import {
-  COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
   REACHED_US_BY_OPTIONS,
   LEVELS,
 } from "@student-management-system/db/schema/constants";
-import { useQuery } from "@tanstack/react-query";
-
-import { trpc } from "@/utils/trpc";
 import {
   Card,
   CardContent,
@@ -30,9 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@student-management-system/ui/components/select";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { toCurrency } from "to-words/en-IN";
+
+import { trpc } from "@/utils/trpc";
 
 import { DatePickerField } from "./date-picker-field";
 import { LabeledRadio } from "./labeled-radio";
@@ -54,6 +53,11 @@ export function EnrollmentCard({
   const workersQuery = useQuery(trpc.users.staffs.queryOptions());
   const closedByOptions = (workersQuery.data ?? []).map((w) => w.name);
 
+  // Course options come from the `courses` table — admins manage them on
+  // /admin/courses. Empty while loading so the trigger stays clickable.
+  const coursesQuery = useQuery(trpc.courses.list.queryOptions());
+  const courseOptions = (coursesQuery.data ?? []).map((c) => c.name);
+
   return (
     <Card
       className="animate-in fade-in slide-in-from-bottom-3 rounded-[12px] transition-shadow duration-200 hover:shadow-sm"
@@ -74,7 +78,7 @@ export function EnrollmentCard({
               name="course"
               label="Course"
               placeholder="Select a Course"
-              options={COURSES}
+              options={courseOptions}
             />
             <LabeledSelect
               control={form.control}

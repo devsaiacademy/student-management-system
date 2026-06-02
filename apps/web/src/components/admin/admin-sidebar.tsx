@@ -18,19 +18,19 @@ import {
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  BookOpen,
   CreditCard,
   FileBarChart,
   LogOut,
   UserPlus,
   Users,
 } from "lucide-react";
-
-import { TeachersIcon } from "@/components/icons/teachers-icon";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { TeachersIcon } from "@/components/icons/teachers-icon";
 import { trpc } from "@/utils/trpc";
 
 type NavItem = {
@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
   { label: "Students", href: "/admin/all-students", icon: Users },
   { label: "Add Student", href: "/admin/add-student", icon: UserPlus },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
+  { label: "Courses", href: "/admin/courses", icon: BookOpen },
   { label: "Reports", href: "/admin/reports", icon: FileBarChart },
   {
     label: "Teachers",

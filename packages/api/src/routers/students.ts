@@ -3,6 +3,7 @@ import {
   REACHED_US_BY_OPTIONS,
   STUDENT_STATUSES,
 } from "@student-management-system/db/schema/constants";
+import { courses } from "@student-management-system/db/schema/courses";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
 import { payments } from "@student-management-system/db/schema/payment";
 import { students } from "@student-management-system/db/schema/students";
@@ -242,6 +243,19 @@ export const studentsRouter = router({
     .input(createStudentSchema)
     .mutation(async ({ input }) => {
       try {
+        // Course names come from a dynamic dropdown; reject stale clients
+        // referencing a course that has since been deleted/renamed.
+        const courseRow = await db.query.courses.findFirst({
+          where: eq(courses.name, input.course),
+          columns: { id: true },
+        });
+        if (!courseRow) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Course "${input.course}" no longer exists. Refresh the page and pick a current course.`,
+          });
+        }
+
         return await db.transaction(async (tx) => {
           // Status is derived from joiningDate: a student without a known
           // joining date is `pending` regardless of what the form sent. The

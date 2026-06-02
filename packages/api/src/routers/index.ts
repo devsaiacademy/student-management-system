@@ -1,5 +1,6 @@
 import { publicProcedure, router } from "../index";
 import { authRouter } from "./auth";
+import { coursesRouter } from "./courses";
 import { enrollmentRouter } from "./enrollment";
 import { paymentsRouter } from "./payment";
 import { razorpayRouter } from "./razorpay";
@@ -15,6 +16,7 @@ export const appRouter = router({
   razorpay: razorpayRouter,
   reports: reportsRouter,
   users: usersRouter,
+  courses: coursesRouter,
   healthCheck: publicProcedure.query(() => "OK"),
 });
 

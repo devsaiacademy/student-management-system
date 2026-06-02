@@ -44,15 +44,8 @@ export const STUDENT_PROGRESS_STATUSES = ["in_progress", "completed"] as const;
 export type StudentProgressStatus = (typeof STUDENT_PROGRESS_STATUSES)[number];
 
 // Form option constants — used as static dropdown sources and for server-side
-// enum validation. Change these when the business adds courses, staff, etc.
-export const COURSES = [
-  "Robotics",
-  "Programming",
-  "AI / ML",
-  "Web Development",
-] as const;
-export type Course = (typeof COURSES)[number];
-
+// enum validation. Change these when the business adds new options. Course
+// names live in the `courses` table, fetched via `trpc.courses.list`.
 export const DURATIONS = [
   "3 months",
   "6 months",
