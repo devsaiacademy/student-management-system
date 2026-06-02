@@ -3,10 +3,12 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
-  CLOSED_BY_NAMES,
   REACHED_US_BY_OPTIONS,
   LEVELS,
 } from "@student-management-system/db/schema/constants";
+import { useQuery } from "@tanstack/react-query";
+
+import { trpc } from "@/utils/trpc";
 import {
   Card,
   CardContent,
@@ -45,6 +47,12 @@ export function EnrollmentCard({
   const [kitProvided, setKitProvided] = useState<boolean>(
     Boolean(form.watch("kitProvided"))
   );
+
+  // "Closed By" options are sourced from user_profiles workers (admin /
+  // super_admin / staff). Empty array while loading or on error so the
+  // dropdown stays open-able but shows no items.
+  const workersQuery = useQuery(trpc.users.workers.queryOptions());
+  const closedByOptions = (workersQuery.data ?? []).map((w) => w.name);
 
   return (
     <Card
@@ -87,7 +95,7 @@ export function EnrollmentCard({
               name="closedBy"
               label="Closed By"
               placeholder="Closed By"
-              options={CLOSED_BY_NAMES}
+              options={closedByOptions}
             />
             <DatePickerField
               control={form.control}

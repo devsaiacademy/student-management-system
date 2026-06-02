@@ -2,7 +2,6 @@ import {
   COURSES,
   DURATIONS,
   EMI_MONTHS_OPTIONS,
-  CLOSED_BY_NAMES,
   LEVELS,
   PAYMENT_PLANS,
   REACHED_US_BY_OPTIONS,
@@ -59,7 +58,9 @@ export const createStudentSchema = z
     course: z.enum(COURSES),
     duration: z.enum(DURATIONS),
     level: z.enum(LEVELS),
-    closedBy: z.enum(CLOSED_BY_NAMES),
+    // The dropdown is populated dynamically from user_profiles (workers).
+    // Validated only as a non-empty string; the DB column is varchar(100).
+    closedBy: z.string().trim().min(1).max(100),
 
     totalFees: z.preprocess(toNumberOrUndefined, z.number().int().positive()), // stored in rupees
     initialPayment: z.preprocess(

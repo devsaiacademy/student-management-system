@@ -35,7 +35,7 @@ const defaultValues: CreateStudentInput = {
   course: "Robotics",
   duration: "3 months",
   level: "Level 1",
-  closedBy: "Mohan",
+  closedBy: "",
   totalFees: "" as unknown as number,
   initialPayment: undefined,
   paymentPlan: "single",

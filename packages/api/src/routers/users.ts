@@ -7,7 +7,7 @@ import { TRPCError } from "@trpc/server";
 import { desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { adminProcedure, router } from "../index";
+import { adminProcedure, router, staffProcedure } from "../index";
 
 // Roles considered "workers" — the only ones this admin page manages.
 // Parents are end-customers, provisioned implicitly by the parent-login
@@ -51,6 +51,22 @@ const updateUserInput = z.object({
 const deleteUserInput = z.object({ id: z.uuid() });
 
 export const usersRouter = router({
+  // Lightweight name list of every worker (admin / super_admin / staff),
+  // used by add-student "Closed By" dropdown. Available to anyone who can
+  // create students (staff and above), unlike `list` which is admin-only.
+  workers: staffProcedure.query(async () => {
+    const rows = await db
+      .select({
+        id: userProfiles.id,
+        name: userProfiles.name,
+        role: userProfiles.role,
+      })
+      .from(userProfiles)
+      .where(inArray(userProfiles.role, WORKER_ROLES))
+      .orderBy(userProfiles.name);
+    return rows;
+  }),
+
   list: adminProcedure.query(async () => {
     const rows = await db
       .select({
