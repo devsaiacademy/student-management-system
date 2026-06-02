@@ -5,6 +5,11 @@ const SKELETON_KEYS = ["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8"] as const;
 export default function UsersLoading() {
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-6 px-6 py-8">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-6 w-28" />
+        <Skeleton className="h-4 w-72" />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <Skeleton className="h-10 min-w-[160px] flex-1 rounded-[8px]" />
         <Skeleton className="h-10 min-w-[200px] flex-1 rounded-[8px]" />

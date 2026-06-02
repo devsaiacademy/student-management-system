@@ -145,6 +145,13 @@ export function UsersManager({
 
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-6 px-6 py-8">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-xl font-semibold text-foreground">Teachers</h1>
+        <p className="text-sm text-muted-foreground">
+          Admins and staff who can sign in to manage the platform.
+        </p>
+      </header>
+
       <form
         aria-label="Add user"
         className="flex flex-wrap items-center gap-3"
@@ -214,11 +221,7 @@ export function UsersManager({
             return (
               <li
                 aria-current={isSelf ? "true" : undefined}
-                className={
-                  isSelf
-                    ? "grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[8px] bg-primary/5 px-3 py-4 ring-1 ring-primary/10 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
-                    : "grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
-                }
+                className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:gap-6"
                 key={user.id}
               >
                 <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
