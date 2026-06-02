@@ -172,7 +172,7 @@ export function UserFormDialog(props: UserFormDialogProps) {
               value={role}
             >
               <SelectTrigger
-                className="h-10 rounded-[8px] px-3 text-sm"
+                className="data-[size=default]:h-10 rounded-[8px] px-3 text-sm"
                 id="user-role"
               >
                 <SelectValue placeholder="Select role" />

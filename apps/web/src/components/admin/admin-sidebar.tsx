@@ -20,8 +20,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   FileBarChart,
+  GraduationCap,
   LogOut,
-  Shield,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -48,7 +48,7 @@ const navItems: NavItem[] = [
   {
     label: "Teachers",
     href: "/admin/teachers",
-    icon: Shield,
+    icon: GraduationCap,
     rolesAllowed: ["admin", "super_admin"],
   },
 ];

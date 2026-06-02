@@ -194,7 +194,7 @@ export function UsersManager({
         >
           <SelectTrigger
             aria-label="Role"
-            className="h-10 w-[140px] rounded-[8px] border-input bg-white px-3 text-sm shadow-sm"
+            className="data-[size=default]:h-10 w-[140px] rounded-[8px] border-input bg-white px-3 text-sm shadow-sm"
           >
             <SelectValue placeholder="Role" />
           </SelectTrigger>
