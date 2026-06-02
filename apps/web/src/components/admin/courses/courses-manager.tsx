@@ -51,8 +51,8 @@ export function CoursesManager({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="grid grid-cols-[1fr_auto_1fr] items-start gap-4 px-6 py-5">
-        <div />
+      <header className="flex flex-col items-center gap-3 px-6 py-5 max-[480px]:items-center min-[481px]:grid min-[481px]:grid-cols-[1fr_auto_1fr] min-[481px]:items-start min-[481px]:gap-4">
+        <div className="hidden min-[481px]:block" />
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-lg font-semibold text-foreground">Courses</h1>
           <p className="text-sm text-muted-foreground">
@@ -61,7 +61,7 @@ export function CoursesManager({
               : "Courses students can enroll in"}
           </p>
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-center min-[481px]:justify-end">
           {canManage ? (
             <Button
               className="h-10 rounded-[8px] px-4 text-sm"
