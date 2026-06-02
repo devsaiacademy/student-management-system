@@ -1,16 +1,9 @@
--- Drop the auth-user-created trigger + function. Profile creation is now
--- explicit in the tRPC users.create / students.create mutations; no more
--- email-shape inference.
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;--> statement-breakpoint
-DROP FUNCTION IF EXISTS public.handle_new_user();--> statement-breakpoint
 CREATE TYPE "public"."user_role" AS ENUM('super_admin', 'admin', 'staff', 'parent');--> statement-breakpoint
 -- Migrate user_profiles.role from varchar to user_role enum. Legacy 'student'
--- value maps to 'parent'; 'admin' is unchanged. Rows with any other value
--- would fail the cast — none exist today (column was always 'admin' or
--- 'student'), so no further branches needed.
+-- value maps to 'parent'; 'admin' is unchanged. No other values exist today.
 ALTER TABLE "user_profiles" ALTER COLUMN "role" SET DATA TYPE "public"."user_role"
   USING (CASE "role" WHEN 'student' THEN 'parent' ELSE "role" END)::"public"."user_role";--> statement-breakpoint
--- Add email + name as nullable first so existing rows survive the ADD COLUMN.
+-- Add email + name as nullable first so existing rows survive ADD COLUMN.
 ALTER TABLE "user_profiles" ADD COLUMN "email" varchar(255);--> statement-breakpoint
 ALTER TABLE "user_profiles" ADD COLUMN "name" varchar(255);--> statement-breakpoint
 -- Backfill email + name from auth.users. Name falls back to the email
@@ -26,14 +19,78 @@ WHERE au.id = up.id;--> statement-breakpoint
 ALTER TABLE "user_profiles" ALTER COLUMN "email" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "user_profiles" ALTER COLUMN "name" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "user_profiles" ADD CONSTRAINT "user_profiles_email_unique" UNIQUE("email");--> statement-breakpoint
--- Refresh current_user_role(): role is now an enum, so cast to text explicitly
--- to keep the function's return type stable. All RLS policies compare against
--- text literals; this preserves that contract.
+-- Refresh current_user_role(): role is now an enum, so cast to text
+-- explicitly so the function's return type stays text. All RLS policies
+-- compare against text literals; this preserves that contract.
 CREATE OR REPLACE FUNCTION public.current_user_role()
 RETURNS text
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
 AS $$
   SELECT role::text FROM public.user_profiles WHERE id = auth.uid();
+$$;--> statement-breakpoint
+-- Replace handle_new_user with the final shape. The old @otomatiks.in
+-- email-shape branch is gone; the trigger now resolves auth.users INSERTs
+-- in this order:
+--   1. If a profile already exists for new.id, no-op (super_admin /
+--      admin pre-created via /admin/teachers and the user is logging in
+--      for the second+ time).
+--   2. If a profile exists with the same email but a different uuid
+--      (stub created by users.create — auth.users wasn't touched), claim
+--      it: UPDATE its id to new.id.
+--   3. Else if the email matches a students row, auto-provision a parent
+--      profile and link students.auth_user_id.
+--   4. Otherwise: no-op; the middleware bounces profile-less sessions.
+-- The trigger from 0000 (on_auth_user_created) continues to reference
+-- public.handle_new_user by name, so no re-attach is needed.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  stub_profile_id uuid;
+  student_match RECORD;
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.user_profiles WHERE id = new.id) THEN
+    RETURN new;
+  END IF;
+
+  SELECT id INTO stub_profile_id
+  FROM public.user_profiles
+  WHERE LOWER(email) = LOWER(new.email)
+  LIMIT 1;
+
+  IF FOUND THEN
+    UPDATE public.user_profiles
+       SET id = new.id
+     WHERE id = stub_profile_id;
+    RETURN new;
+  END IF;
+
+  SELECT id, name INTO student_match
+  FROM public.students
+  WHERE LOWER(email) = LOWER(new.email)
+  LIMIT 1;
+
+  IF FOUND THEN
+    INSERT INTO public.user_profiles (id, email, name, role)
+    VALUES (
+      new.id,
+      LOWER(new.email),
+      COALESCE(NULLIF(new.raw_user_meta_data->>'name', ''), student_match.name),
+      'parent'
+    )
+    ON CONFLICT (id) DO NOTHING;
+
+    UPDATE public.students
+       SET auth_user_id = new.id
+     WHERE LOWER(email) = LOWER(new.email)
+       AND auth_user_id IS NULL;
+  END IF;
+
+  RETURN new;
+END;
 $$;--> statement-breakpoint
 CREATE POLICY "user_profiles_insert_admin" ON "user_profiles" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (public.current_user_role() IN ('admin', 'super_admin'));--> statement-breakpoint
 CREATE POLICY "user_profiles_update_admin" ON "user_profiles" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (public.current_user_role() IN ('admin', 'super_admin'));--> statement-breakpoint
