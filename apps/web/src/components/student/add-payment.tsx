@@ -13,10 +13,10 @@ import { Input } from "@student-management-system/ui/components/input";
 import { Label } from "@student-management-system/ui/components/label";
 import { Textarea } from "@student-management-system/ui/components/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 type AddPaymentProps = {
@@ -42,13 +42,7 @@ export function AddPayment({ studentId }: AddPaymentProps) {
   const createPayment = useMutation(
     trpc.payments.createPayment.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("Payment added", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: "The payment has been added to this student.",
-          timing: { displayDuration: 4000 },
-        });
+        notify.success("The payment has been added to this student");
         queryClient.invalidateQueries({
           queryKey: trpc.payments.getStudentPayments.queryOptions({ studentId })
             .queryKey,
@@ -62,13 +56,7 @@ export function AddPayment({ studentId }: AddPaymentProps) {
         resetForm();
       },
       onError: (error) => {
-        gooeyToast.error("Failed to add payment", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 5000 },
-        });
+        notify.error(error.message);
       },
     })
   );
@@ -97,25 +85,25 @@ export function AddPayment({ studentId }: AddPaymentProps) {
     <>
       <Button
         className="h-8 rounded-md px-3 text-xs font-medium"
-        size="sm"
-        variant="blue"
         onClick={() => {
           resetForm();
           setDialogOpen(true);
         }}
+        size="sm"
+        variant="blue"
       >
         <Plus aria-hidden className="size-3.5" />
         Add Payment
       </Button>
 
       <Dialog
-        open={dialogOpen}
         onOpenChange={(open) => {
           setDialogOpen(open);
           if (!open) {
             resetForm();
           }
         }}
+        open={dialogOpen}
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -135,15 +123,15 @@ export function AddPayment({ studentId }: AddPaymentProps) {
                 Amount <span className="text-destructive">*</span>
               </Label>
               <Input
+                className="h-9 rounded-[8px]"
                 id="add-payment-amount"
-                type="number"
                 inputMode="numeric"
                 min={1}
-                step={1}
-                placeholder="e.g. 500"
-                value={amount}
                 onChange={(event) => setAmount(event.target.value)}
-                className="h-9 rounded-[8px]"
+                placeholder="e.g. 500"
+                step={1}
+                type="number"
+                value={amount}
               />
             </div>
 
@@ -155,11 +143,11 @@ export function AddPayment({ studentId }: AddPaymentProps) {
                 Due Date <span className="text-destructive">*</span>
               </Label>
               <Input
+                className="h-9 rounded-[8px]"
                 id="add-payment-due-date"
+                onChange={(event) => setDueDate(event.target.value)}
                 type="date"
                 value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-                className="h-9 rounded-[8px]"
               />
             </div>
 
@@ -171,24 +159,24 @@ export function AddPayment({ studentId }: AddPaymentProps) {
                 Description <span className="text-destructive">*</span>
               </Label>
               <Textarea
+                className="rounded-[8px]"
                 id="add-payment-description"
-                value={description}
+                maxLength={DESCRIPTION_MAX_LENGTH}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="e.g. Late fee, extra session, materials"
-                maxLength={DESCRIPTION_MAX_LENGTH}
                 rows={3}
-                className="rounded-[8px]"
+                value={description}
               />
             </div>
           </div>
 
           <DialogFooter>
             <Button
-              className="ml-auto rounded-[5px] max-w-fit"
-              variant="blue"
-              size="sm"
-              onClick={handleConfirm}
+              className="ml-auto max-w-fit rounded-[5px]"
               disabled={!isFormValid || createPayment.isPending}
+              onClick={handleConfirm}
+              size="sm"
+              variant="blue"
             >
               {createPayment.isPending ? "Adding..." : "Confirm"}
             </Button>

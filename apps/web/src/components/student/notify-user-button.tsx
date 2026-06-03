@@ -2,8 +2,8 @@
 
 import { Button } from "@student-management-system/ui/components/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 type NotifyUserButtonProps = {
@@ -34,26 +34,14 @@ export function NotifyUserButton({
   const sendReminder = useMutation(
     trpc.payments.sendPaymentReminder.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("Reminder sent", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: "An email has been sent to the student.",
-          timing: { displayDuration: 4000 },
-        });
+        notify.success("An email has been sent to the student");
         queryClient.invalidateQueries({
           queryKey: trpc.payments.getStudentPayments.queryOptions({ studentId })
             .queryKey,
         });
       },
       onError: (error) => {
-        gooeyToast.error("Failed to send reminder", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 5000 },
-        });
+        notify.error(error.message);
       },
     })
   );

@@ -13,17 +13,10 @@ import { Input } from "@student-management-system/ui/components/input";
 import { Label } from "@student-management-system/ui/components/label";
 import { Textarea } from "@student-management-system/ui/components/textarea";
 import { useMutation } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { useEffect, useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
-
-const TOAST_OPTS = {
-  showTimestamp: false,
-  borderColor: "#E0E0E0",
-  borderWidth: 1.5,
-  timing: { displayDuration: 4000 },
-} as const;
 
 type CreateProps = { mode: "create" };
 type EditProps = {
@@ -56,14 +49,11 @@ export function CourseFormDialog(props: CourseFormDialogProps) {
   const createMutation = useMutation(
     trpc.courses.create.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("Course added", { ...TOAST_OPTS });
+        notify.success("Course added");
         onSuccess();
       },
       onError: (err) => {
-        gooeyToast.error("Failed to add course", {
-          ...TOAST_OPTS,
-          description: err.message,
-        });
+        notify.error(err.message);
       },
     })
   );
@@ -71,14 +61,11 @@ export function CourseFormDialog(props: CourseFormDialogProps) {
   const updateMutation = useMutation(
     trpc.courses.update.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("Course updated", { ...TOAST_OPTS });
+        notify.success("Course updated");
         onSuccess();
       },
       onError: (err) => {
-        gooeyToast.error("Failed to update course", {
-          ...TOAST_OPTS,
-          description: err.message,
-        });
+        notify.error(err.message);
       },
     })
   );
@@ -90,7 +77,7 @@ export function CourseFormDialog(props: CourseFormDialogProps) {
     const trimmedName = name.trim();
     const trimmedDescription = description.trim();
     if (!trimmedName || !trimmedDescription) {
-      gooeyToast.error("Name and description are required", { ...TOAST_OPTS });
+      notify.error("Name and description are required");
       return;
     }
     if (isEdit && initial) {

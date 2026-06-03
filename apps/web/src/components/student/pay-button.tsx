@@ -3,8 +3,8 @@
 import { env } from "@student-management-system/env/web";
 import { Button } from "@student-management-system/ui/components/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 type PayButtonProps = {
@@ -15,23 +15,11 @@ type PayButtonProps = {
 const BRAND_BLUE = "#0769AB";
 
 function showError(title: string, description?: string) {
-  gooeyToast.error(title, {
-    showTimestamp: false,
-    borderColor: "#E0E0E0",
-    borderWidth: 1.5,
-    description,
-    timing: { displayDuration: 5000 },
-  });
+  notify.error(description ?? title);
 }
 
 function showSuccess(title: string, description?: string) {
-  gooeyToast.success(title, {
-    showTimestamp: false,
-    borderColor: "#E0E0E0",
-    borderWidth: 1.5,
-    description,
-    timing: { displayDuration: 4000 },
-  });
+  notify.success(description ?? title);
 }
 
 export function PayButton({ paymentId, studentId }: PayButtonProps) {

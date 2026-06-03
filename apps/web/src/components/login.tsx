@@ -8,15 +8,15 @@ import {
   InputOTPSlot,
 } from "@student-management-system/ui/components/input-otp";
 import { useMutation } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { MoveLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { SiteLogo } from "@/components/site-logo";
 import { FourBallOrbit } from "@/components/four-ball-orbit";
+import { SiteLogo } from "@/components/site-logo";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { notify } from "@/utils/notify";
 import { trpcClient } from "@/utils/trpc";
 
 const RESEND_COOLDOWN_MS = 65_000;
@@ -34,13 +34,7 @@ type Stage =
     };
 
 function toastInvalidEmail(description: string) {
-  gooeyToast.error("Invalid email", {
-    showTimestamp: false,
-    borderColor: "#E0E0E0",
-    borderWidth: 1.5,
-    description,
-    timing: { displayDuration: 5000 },
-  });
+  notify.error(description);
 }
 
 function resendLabel(secondsLeft: number, pending: boolean) {
@@ -155,7 +149,7 @@ export default function Login() {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unable to send code.";
-      gooeyToast.error("Sign-in failed", { description: message });
+      notify.error(message);
     }
   }
 
@@ -176,7 +170,7 @@ export default function Login() {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unable to resend code.";
-      gooeyToast.error("Resend failed", { description: message });
+      notify.error(message);
     }
   }
 
@@ -199,9 +193,7 @@ export default function Login() {
     }
 
     if (error.code === "otp_expired" || error.code === "otp_disabled") {
-      gooeyToast.error("Code expired", {
-        description: "Request a new code to continue.",
-      });
+      notify.error("This code has expired — request a new one to continue");
       setStage({
         kind: "verify",
         email: stage.email,
@@ -216,9 +208,7 @@ export default function Login() {
     const nextAttempts = stage.attempts + 1;
     const remainingAttempts = MAX_ATTEMPTS - nextAttempts;
     if (remainingAttempts <= 0) {
-      gooeyToast.error("Too many attempts", {
-        description: "Request a new code to continue.",
-      });
+      notify.error("Too many attempts — request a new code to continue");
       setStage({
         kind: "verify",
         email: stage.email,
@@ -230,9 +220,9 @@ export default function Login() {
       return;
     }
 
-    gooeyToast.error("Wrong code", {
-      description: `That code didn't match. (${remainingAttempts}/${MAX_ATTEMPTS} left)`,
-    });
+    notify.error(
+      `That code didn't match (${remainingAttempts}/${MAX_ATTEMPTS} left)`
+    );
     setStage({
       kind: "verify",
       email: stage.email,

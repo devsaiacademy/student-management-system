@@ -2,10 +2,23 @@
 
 import { type StudentStatus } from "@student-management-system/db/schema/constants";
 import { Button } from "@student-management-system/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
+} from "@student-management-system/ui/components/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
-import { useState } from "react";
+import {
+  Ban,
+  CheckCircle2,
+  ChevronDown,
+  type LucideIcon,
+  PauseCircle,
+} from "lucide-react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 type StatusTransition = {
@@ -13,15 +26,39 @@ type StatusTransition = {
   label: string;
 };
 
-const buttonStylesByStatus: Record<StudentStatus, string> = {
-  pending:
-    "h-8 rounded-md border-none bg-surface-warning px-3 text-xs text-surface-warning-foreground hover:brightness-95",
-  active:
-    "h-8 rounded-md border-none bg-surface-success px-3 text-xs text-surface-success-foreground hover:brightness-95",
-  in_active:
-    "h-8 rounded-md border-none bg-surface-warning px-3 text-xs text-surface-warning-foreground hover:brightness-95",
-  discontinue:
-    "h-8 rounded-md border-none bg-surface-destructive px-3 text-xs text-surface-destructive-foreground hover:brightness-95",
+type TransitionVisual = {
+  icon: LucideIcon;
+  color: string;
+  // Full literal class so Tailwind can statically extract the arbitrary
+  // animation variant (template-built class names are never scanned).
+  animationClass: string;
+};
+
+const transitionVisuals: Record<StudentStatus, TransitionVisual> = {
+  pending: {
+    icon: PauseCircle,
+    color: "#64748b",
+    animationClass:
+      "group-hover/dropdown-menu-item:[animation:pop_0.5s_ease-in-out]",
+  },
+  active: {
+    icon: CheckCircle2,
+    color: "#16a34a",
+    animationClass:
+      "group-hover/dropdown-menu-item:[animation:pop_0.5s_ease-in-out]",
+  },
+  in_active: {
+    icon: PauseCircle,
+    color: "#f59e0b",
+    animationClass:
+      "group-hover/dropdown-menu-item:[animation:pop_0.5s_ease-in-out]",
+  },
+  discontinue: {
+    icon: Ban,
+    color: "#dc2626",
+    animationClass:
+      "group-hover/dropdown-menu-item:[animation:wiggle_0.5s_ease-in-out]",
+  },
 };
 
 // A `pending` student transitions to `active` automatically when an admin
@@ -58,68 +95,64 @@ export function ChangeStudentStatus({
   const queryClient = useQueryClient();
   const nextStatuses = statusTransitions[currentStudentStatus] || [];
 
-  // Tracks which status the user clicked so we can avoid “both buttons updating”.
-  const [optimisticStatus, setOptimisticStatus] = useState<StudentStatus | null>(
-    null,
-  );
-
   const changeStatus = useMutation(
     trpc.students.changeStudentStatus.mutationOptions({
-      onMutate: ({ changeStatusTo }) => {
-        setOptimisticStatus(changeStatusTo);
-        // Intentionally do NOT do optimistic cache updates.
-        // We only show a loader for the clicked button and rely on invalidation for correctness.
-      },
       onSuccess: (_data, variables) => {
         const nextStatus = variables.changeStatusTo;
-        gooeyToast.success("Student status updated", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: (
-            <div className="w-full text-center">
-              Student marked as {statusLabelByStatus[nextStatus]}.
-            </div>
-          ),
-          timing: { displayDuration: 4000 },
-        });
-        setOptimisticStatus(null);
+        notify.success(`Student marked as ${statusLabelByStatus[nextStatus]}`);
         queryClient.invalidateQueries({
           queryKey: trpc.students.getStudentInfo.queryOptions({ studentId: id })
             .queryKey,
         });
       },
       onError: (error) => {
-        setOptimisticStatus(null);
-        gooeyToast.error("Failed to update status", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 5000 },
-        });
+        notify.error(error.message);
       },
-    }),
+    })
   );
 
+  if (nextStatuses.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="flex w-full flex-wrap justify-start gap-2 sm:w-auto sm:justify-end">
-      {nextStatuses.map((status) => (
-        <Button
-          variant="white"
-          size="sm"
-          className={buttonStylesByStatus[status.nextStatus]}
-          key={status.nextStatus}
-          onClick={() =>
-            changeStatus.mutate({ studentId: id, changeStatusTo: status.nextStatus })
-          }
-          disabled={changeStatus.isPending}
-        >
-          {changeStatus.isPending && optimisticStatus === status.nextStatus
-            ? "Updating..."
-            : status.label}
-        </Button>
-      ))}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            aria-label="Change student status"
+            className="h-8 rounded-md px-3 text-xs font-medium"
+            disabled={changeStatus.isPending}
+            size="sm"
+            variant="white"
+          >
+            {changeStatus.isPending ? "Updating…" : "Actions"}
+            <ChevronDown aria-hidden className="ml-1 size-3.5" />
+          </Button>
+        }
+      />
+      <DropdownMenuPortal>
+        <DropdownMenuContent align="end" className="min-w-48">
+          {nextStatuses.map((status) => {
+            const visual = transitionVisuals[status.nextStatus];
+            const Icon = visual.icon;
+            return (
+              <DropdownMenuItem
+                key={status.nextStatus}
+                onClick={() =>
+                  changeStatus.mutate({
+                    studentId: id,
+                    changeStatusTo: status.nextStatus,
+                  })
+                }
+              >
+                <Icon className={visual.animationClass} color={visual.color} />
+                {status.label}
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </DropdownMenu>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { gooeyToast } from "goey-toast";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
+
+import { notify } from "@/utils/notify";
 
 export function WelcomeToast() {
   const searchParams = useSearchParams();
@@ -18,15 +19,7 @@ export function WelcomeToast() {
 
     hasShown.current = true;
 
-    gooeyToast.success("Success", {
-      showTimestamp: false,
-      borderColor: "#E0E0E0",
-      borderWidth: 1.5,
-      description: "You've been successfully logged in",
-      timing: {
-        displayDuration: 5000,
-      },
-    });
+    notify.success("You've been successfully logged in");
 
     const url = new URL(window.location.href);
     url.searchParams.delete("t");

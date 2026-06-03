@@ -12,9 +12,9 @@ import {
 import { Label } from "@student-management-system/ui/components/label";
 import { Textarea } from "@student-management-system/ui/components/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 type Payment = {
@@ -59,13 +59,7 @@ export function MarkAsUnpaid({
   const markUnpaid = useMutation(
     trpc.payments.markPaymentAsUnpaid.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("Payment reverted to unpaid", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: "The payment status has been updated successfully.",
-          timing: { displayDuration: 4000 },
-        });
+        notify.success("The payment status has been updated successfully");
         queryClient.invalidateQueries({
           queryKey: trpc.payments.getStudentPayments.queryOptions({ studentId })
             .queryKey,
@@ -79,13 +73,7 @@ export function MarkAsUnpaid({
         setReason("");
       },
       onError: (error) => {
-        gooeyToast.error("Failed to revert payment", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 5000 },
-        });
+        notify.error(error.message);
       },
     })
   );

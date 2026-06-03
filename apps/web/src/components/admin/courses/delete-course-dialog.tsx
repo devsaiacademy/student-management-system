@@ -10,16 +10,9 @@ import {
   DialogTitle,
 } from "@student-management-system/ui/components/dialog";
 import { useMutation } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
-
-const TOAST_OPTS = {
-  showTimestamp: false,
-  borderColor: "#E0E0E0",
-  borderWidth: 1.5,
-  timing: { displayDuration: 4000 },
-} as const;
 
 type DeleteCourseDialogProps = {
   open: boolean;
@@ -37,14 +30,11 @@ export function DeleteCourseDialog({
   const deleteMutation = useMutation(
     trpc.courses.delete.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("Course removed", { ...TOAST_OPTS });
+        notify.success("Course removed");
         onSuccess();
       },
       onError: (err) => {
-        gooeyToast.error("Failed to delete course", {
-          ...TOAST_OPTS,
-          description: err.message,
-        });
+        notify.error(err.message);
       },
     })
   );

@@ -65,24 +65,26 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   if (isPending) {
     return (
       <div className="w-full rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex min-w-0 items-start gap-5">
-          <Skeleton className="size-16 shrink-0 rounded-full" />
-          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-            <Skeleton className="h-6 w-40 max-w-full rounded" />
-            <div className="flex flex-wrap gap-1.5">
-              <Skeleton className="h-6 w-16 rounded-full" />
-              <Skeleton className="h-6 w-14 rounded-full" />
-              <Skeleton className="h-6 w-20 rounded-full" />
-            </div>
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:gap-x-5">
-              <Skeleton className="h-4 w-48 max-w-full rounded" />
-              <Skeleton className="h-4 w-32 max-w-full rounded" />
-              <Skeleton className="h-4 w-24 max-w-full rounded" />
+        <div className="flex min-w-0 flex-col gap-4 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-5 sm:gap-y-2.5">
+          <div className="flex min-w-0 items-start gap-4 sm:contents">
+            <Skeleton className="size-16 shrink-0 rounded-full sm:col-start-1 sm:row-span-3 sm:row-start-1 sm:self-start" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:contents">
+              <Skeleton className="h-6 w-40 max-w-full rounded sm:col-start-2 sm:col-span-2 sm:row-start-1" />
+              <div className="flex flex-wrap gap-1.5 sm:col-start-2 sm:row-start-2">
+                <Skeleton className="h-6 w-16 rounded-full" />
+                <Skeleton className="h-6 w-14 rounded-full" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+              <div className="flex flex-col gap-1.5 sm:col-start-2 sm:col-span-2 sm:row-start-3 sm:flex-row sm:flex-wrap sm:gap-x-5">
+                <Skeleton className="h-4 w-48 max-w-full rounded" />
+                <Skeleton className="h-4 w-32 max-w-full rounded" />
+                <Skeleton className="h-4 w-24 max-w-full rounded" />
+              </div>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Skeleton className="h-8 w-28 rounded-md" />
+          <div className="flex flex-wrap items-center gap-2 sm:col-start-3 sm:row-start-2 sm:justify-self-end sm:self-center">
             <Skeleton className="h-8 w-24 rounded-md" />
+            <Skeleton className="h-8 w-28 rounded-md" />
           </div>
         </div>
       </div>
@@ -102,19 +104,25 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
 
   return (
     <div className="w-full rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+      <div className="flex min-w-0 flex-col gap-4 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-5 sm:gap-y-2.5">
         <div className="flex min-w-0 items-start gap-4 pr-12 sm:contents sm:pr-0">
-          <Avatar className="size-16" size="lg">
+          <Avatar
+            className={cn(
+              "size-16 sm:col-start-1 sm:row-start-1 sm:self-start",
+              isAdmin ? "sm:row-span-3" : "sm:row-span-2"
+            )}
+            size="lg"
+          >
             <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-            <h2 className="text-xl font-semibold leading-tight text-foreground">
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:contents">
+            <h2 className="text-xl font-semibold leading-tight text-foreground sm:col-start-2 sm:col-span-2 sm:row-start-1">
               {data.name}
             </h2>
             {isAdmin && (
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5 sm:col-start-2 sm:row-start-2">
                 <span
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
@@ -147,7 +155,12 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
                 )}
               </div>
             )}
-            <div className="flex flex-col gap-1.5 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5">
+            <div
+              className={cn(
+                "flex flex-col gap-1.5 text-sm text-muted-foreground sm:col-start-2 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5",
+                isAdmin ? "sm:row-start-3" : "sm:row-start-2"
+              )}
+            >
               <span className="flex min-w-0 items-center gap-1.5">
                 <Mail aria-hidden className="size-3.5 shrink-0" />
                 <span className="truncate">{data.email}</span>
@@ -164,7 +177,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
           </div>
         </div>
         {isAdmin && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:col-start-3 sm:row-start-2 sm:justify-self-end sm:self-center">
             <ChangeStudentStatus
               currentStudentStatus={data.studentStatus}
               id={data.id}
