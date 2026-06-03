@@ -10,16 +10,10 @@ import {
   DropdownMenuTrigger,
 } from "@student-management-system/ui/components/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
-import {
-  Bell,
-  CheckCircle2,
-  ChevronDown,
-  Coins,
-  XCircle,
-} from "lucide-react";
+import { Bell, CheckCircle2, ChevronDown, Coins, XCircle } from "lucide-react";
 import { useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 import { MarkAsPaid } from "../student/mark-as-paid";
@@ -66,24 +60,12 @@ export function PaymentActionsMenu({
           queryKey: trpc.payments.getStudentPayments.queryOptions({ studentId })
             .queryKey,
         });
-        gooeyToast.success(
-          enabled ? "Partial payment enabled" : "Partial payment disabled",
-          {
-            showTimestamp: false,
-            borderColor: "#E0E0E0",
-            borderWidth: 1.5,
-            timing: { displayDuration: 3000 },
-          }
+        notify.success(
+          enabled ? "Partial payment enabled" : "Partial payment disabled"
         );
       },
       onError: (error) => {
-        gooeyToast.error("Couldn't update", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 5000 },
-        });
+        notify.error(error.message);
       },
     })
   );

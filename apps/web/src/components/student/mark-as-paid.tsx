@@ -22,9 +22,9 @@ import {
 } from "@student-management-system/ui/components/select";
 import { Textarea } from "@student-management-system/ui/components/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 type Payment = {
@@ -89,13 +89,7 @@ export function MarkAsPaid({
   const markPaid = useMutation(
     trpc.payments.markPaymentAsPaid.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("Payment marked as paid", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: "The payment status has been updated successfully.",
-          timing: { displayDuration: 4000 },
-        });
+        notify.success("The payment status has been updated successfully");
         queryClient.invalidateQueries({
           queryKey: trpc.payments.getStudentPayments.queryOptions({ studentId })
             .queryKey,
@@ -111,13 +105,7 @@ export function MarkAsPaid({
         setAmountInput("");
       },
       onError: (error) => {
-        gooeyToast.error("Failed to mark payment", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 5000 },
-        });
+        notify.error(error.message);
       },
     })
   );
@@ -188,9 +176,7 @@ export function MarkAsPaid({
                   {(payment.amountPaid ?? 0) > 0 ? "Remaining" : "Amount"}
                 </p>
                 <p className="mt-0.5 font-medium">
-                  {formatCurrency(
-                    payment.amount - (payment.amountPaid ?? 0)
-                  )}
+                  {formatCurrency(payment.amount - (payment.amountPaid ?? 0))}
                 </p>
                 {(payment.amountPaid ?? 0) > 0 && (
                   <p className="mt-0.5 text-[11px] text-amber-700">
@@ -209,10 +195,7 @@ export function MarkAsPaid({
             </div>
 
             <div className="space-y-2">
-              <Label
-                className="text-xs font-medium"
-                htmlFor="mark-paid-amount"
-              >
+              <Label className="text-xs font-medium" htmlFor="mark-paid-amount">
                 Amount Received <span className="text-destructive">*</span>
               </Label>
               <Input

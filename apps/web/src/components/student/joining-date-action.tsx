@@ -14,10 +14,10 @@ import {
 } from "@student-management-system/ui/components/tooltip";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { gooeyToast } from "goey-toast";
 import { CalendarPlus, Pencil } from "lucide-react";
 import { useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 type JoiningDateActionProps = {
@@ -44,17 +44,10 @@ export function JoiningDateAction({
   const setJoiningDate = useMutation(
     trpc.enrollments.setJoiningDate.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success(
-          joiningDate ? "Joining date updated" : "Joining date set",
-          {
-            showTimestamp: false,
-            borderColor: "#E0E0E0",
-            borderWidth: 1.5,
-            description: joiningDate
-              ? "Outstanding tuition and kit due dates have been shifted."
-              : "Tuition schedule has been generated.",
-            timing: { displayDuration: 4000 },
-          }
+        notify.success(
+          joiningDate
+            ? "Outstanding tuition and kit due dates have been shifted"
+            : "Tuition schedule has been generated"
         );
         setOpen(false);
         queryClient.invalidateQueries({
@@ -72,13 +65,7 @@ export function JoiningDateAction({
         });
       },
       onError: (error) => {
-        gooeyToast.error("Could not update joining date", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 6000 },
-        });
+        notify.error(error.message);
       },
     })
   );

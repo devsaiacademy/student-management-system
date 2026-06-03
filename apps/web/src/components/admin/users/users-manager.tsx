@@ -18,10 +18,10 @@ import {
   SelectValue,
 } from "@student-management-system/ui/components/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 import { DeleteUserDialog } from "./delete-user-dialog";
@@ -50,13 +50,6 @@ const ROLE_LABEL: Record<UserRole, string> = {
   staff: "Staff",
   parent: "Parent",
 };
-
-const TOAST_OPTS = {
-  showTimestamp: false,
-  borderColor: "#E0E0E0",
-  borderWidth: 1.5,
-  timing: { displayDuration: 4000 },
-} as const;
 
 // Only worker roles are managed here. Parents are end-customers,
 // auto-provisioned by the parent-login trigger, and live on their own
@@ -119,20 +112,14 @@ export function UsersManager({
   const createMutation = useMutation(
     trpc.users.create.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("User added", {
-          ...TOAST_OPTS,
-          description: "They can sign in via magic link from /login.",
-        });
+        notify.success("They can sign in via magic link from /login");
         setName("");
         setEmail("");
         setRole("");
         invalidateList();
       },
       onError: (err) => {
-        gooeyToast.error("Failed to add user", {
-          ...TOAST_OPTS,
-          description: err.message,
-        });
+        notify.error(err.message);
       },
     })
   );
@@ -140,7 +127,7 @@ export function UsersManager({
   function handleAdd(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!role) {
-      gooeyToast.error("Pick a role", { ...TOAST_OPTS });
+      notify.error("Pick a role");
       return;
     }
     createMutation.mutate({

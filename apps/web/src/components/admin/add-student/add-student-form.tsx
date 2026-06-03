@@ -8,10 +8,10 @@ import {
 import { Button } from "@student-management-system/ui/components/button";
 import { Form } from "@student-management-system/ui/components/form";
 import { useMutation } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 import { EnrollmentCard } from "./enrollment-card";
@@ -58,23 +58,11 @@ export function AddStudentForm() {
   const createStudent = useMutation(
     trpc.students.createStudent.mutationOptions({
       onSuccess: (data) => {
-        gooeyToast.success("Student added", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: "The student has been added successfully.",
-          timing: { displayDuration: 4000 },
-        });
+        notify.success("The student has been added successfully");
         router.push(`/admin/all-students/student/${data.id}`);
       },
       onError: (error) => {
-        gooeyToast.error("Failed to add student", {
-          showTimestamp: false,
-          borderColor: "#E0E0E0",
-          borderWidth: 1.5,
-          description: error.message,
-          timing: { displayDuration: 5000 },
-        });
+        notify.error(error.message);
       },
     })
   );
@@ -84,13 +72,7 @@ export function AddStudentForm() {
   };
 
   const onInvalid = () => {
-    gooeyToast.error("Error adding student", {
-      showTimestamp: false,
-      borderColor: "#E0E0E0",
-      borderWidth: 1.5,
-      timing: { displayDuration: 7000 },
-      description: "Student cannot be added, enter all the details to add",
-    });
+    notify.error("Student cannot be added, enter all the details to add");
   };
 
   return (

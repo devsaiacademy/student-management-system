@@ -20,9 +20,9 @@ import {
   SelectValue,
 } from "@student-management-system/ui/components/select";
 import { useMutation } from "@tanstack/react-query";
-import { gooeyToast } from "goey-toast";
 import { useEffect, useState } from "react";
 
+import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 const ROLE_LABEL: Record<UserRole, string> = {
@@ -31,13 +31,6 @@ const ROLE_LABEL: Record<UserRole, string> = {
   staff: "Staff",
   parent: "Parent",
 };
-
-const TOAST_OPTS = {
-  showTimestamp: false,
-  borderColor: "#E0E0E0",
-  borderWidth: 1.5,
-  timing: { displayDuration: 4000 },
-} as const;
 
 type AssignableRole = Extract<UserRole, "admin" | "staff">;
 
@@ -77,17 +70,11 @@ export function UserFormDialog(props: UserFormDialogProps) {
   const createMutation = useMutation(
     trpc.users.create.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("User added", {
-          ...TOAST_OPTS,
-          description: "They can sign in via magic link from /login.",
-        });
+        notify.success("They can sign in via magic link from /login");
         onSuccess();
       },
       onError: (err) => {
-        gooeyToast.error("Failed to add user", {
-          ...TOAST_OPTS,
-          description: err.message,
-        });
+        notify.error(err.message);
       },
     })
   );
@@ -95,14 +82,11 @@ export function UserFormDialog(props: UserFormDialogProps) {
   const updateMutation = useMutation(
     trpc.users.update.mutationOptions({
       onSuccess: () => {
-        gooeyToast.success("User updated", { ...TOAST_OPTS });
+        notify.success("User updated");
         onSuccess();
       },
       onError: (err) => {
-        gooeyToast.error("Failed to update user", {
-          ...TOAST_OPTS,
-          description: err.message,
-        });
+        notify.error(err.message);
       },
     })
   );
@@ -112,7 +96,7 @@ export function UserFormDialog(props: UserFormDialogProps) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!role) {
-      gooeyToast.error("Pick a role", { ...TOAST_OPTS });
+      notify.error("Pick a role");
       return;
     }
     if (isEdit) {
