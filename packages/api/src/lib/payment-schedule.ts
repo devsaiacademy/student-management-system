@@ -74,6 +74,7 @@ export const buildTuitionAndKitRows = (
       enrollmentId: enrollment.enrollmentId,
       amount: enrollment.kitCost,
       description: "Kit",
+      paymentType: "kit_fee" as const,
       emiNumber: null,
       paymentStatus:
         enrollment.kitCost === 0 ? ("paid" as const) : ("unpaid" as const),

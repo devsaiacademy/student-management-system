@@ -19,6 +19,7 @@ const RING_SIZE = 160;
 const RING_STROKE = 14;
 
 const MAX_SCHOOL_NAME_LENGTH = 28;
+const CRORE = 10_000_000;
 const LAKH = 100_000;
 const THOUSAND = 1_000;
 
@@ -54,6 +55,11 @@ function formatCurrency(amount: number) {
 }
 
 function formatCompactINR(amount: number) {
+  if (amount >= CRORE) {
+    const value = amount / CRORE;
+    const display = amount % CRORE === 0 ? value.toFixed(0) : value.toFixed(1);
+    return `₹${display}Cr`;
+  }
   if (amount >= LAKH) {
     const value = amount / LAKH;
     const display = amount % LAKH === 0 ? value.toFixed(0) : value.toFixed(1);
@@ -66,6 +72,22 @@ function formatCompactINR(amount: number) {
     return `₹${display}K`;
   }
   return `₹${amount}`;
+}
+
+// Scales the ring's headline amount down as the formatted string grows so it
+// never spills outside the circle. Tuned to the fixed RING_SIZE/RING_STROKE.
+function ringAmountClass(text: string): string {
+  const length = text.length;
+  if (length <= 6) {
+    return "text-2xl";
+  }
+  if (length <= 9) {
+    return "text-xl";
+  }
+  if (length <= 12) {
+    return "text-base";
+  }
+  return "text-sm";
 }
 
 function truncateSchoolName(name: string) {
@@ -347,10 +369,51 @@ export function PaymentProgressCard({ studentId }: SimpleCardProps) {
     return null;
   }
 
-  const { enrollment, progress } = data;
+  const { progress } = data;
   const tone = getPaymentRingState(progress);
   const value =
-    enrollment.totalFees > 0 ? progress.totalPaid / enrollment.totalFees : 0;
+    progress.totalDue > 0 ? progress.totalPaid / progress.totalDue : 0;
+  const isFullyPaid =
+    progress.totalCount > 0 && progress.paidCount === progress.totalCount;
+  const paidLabel = formatCurrency(progress.totalPaid);
+
+  let center: ReactNode;
+  if (progress.totalCount === 0) {
+    center = (
+      <span className="text-2xl font-semibold text-muted-foreground">—</span>
+    );
+  } else if (isFullyPaid) {
+    center = (
+      <>
+        <Check
+          aria-hidden
+          className="size-10 text-[color:var(--surface-success-foreground)]"
+        />
+        <span className="mt-1 text-xs font-medium text-muted-foreground">
+          {paidLabel}
+        </span>
+      </>
+    );
+  } else {
+    center = (
+      <>
+        <span
+          className={cn(
+            "font-semibold leading-tight text-foreground tabular-nums",
+            ringAmountClass(paidLabel)
+          )}
+        >
+          {paidLabel}
+        </span>
+        <span className="mt-1 text-xs text-muted-foreground">
+          of {formatCompactINR(progress.totalDue)}
+        </span>
+        <span className="mt-2 text-xs font-medium text-muted-foreground">
+          {progress.paidCount} of {progress.totalCount} paid
+        </span>
+      </>
+    );
+  }
 
   let subtitle: ReactNode;
   if (progress.totalCount === 0) {
@@ -377,23 +440,7 @@ export function PaymentProgressCard({ studentId }: SimpleCardProps) {
           tone={tone}
           value={value}
         >
-          {progress.totalCount === 0 ? (
-            <span className="text-2xl font-semibold text-muted-foreground">
-              —
-            </span>
-          ) : (
-            <>
-              <span className="text-2xl font-semibold leading-tight text-foreground md:text-3xl">
-                {formatCurrency(progress.totalPaid)}
-              </span>
-              <span className="mt-1 text-xs text-muted-foreground">
-                of {formatCompactINR(enrollment.totalFees)}
-              </span>
-              <span className="mt-2 text-xs font-medium text-muted-foreground">
-                {progress.paidCount} of {progress.totalCount} paid
-              </span>
-            </>
-          )}
+          {center}
         </CircularProgress>
       }
       subtitle={subtitle}
@@ -414,43 +461,44 @@ type KitVariant =
       dueDate: string;
     };
 
-function getKitVariant(data: {
-  enrollment: { kitCost: number | null };
+function getKitVariant(
   kit: {
     amount: number;
     amountPaid: number;
     paymentStatus: "paid" | "unpaid" | "overdue" | "partially_paid";
     dueDate: string;
-  } | null;
-}): KitVariant | null {
-  if (data.enrollment.kitCost === 0) {
-    return { kind: "complimentary" };
-  }
-  if (!data.kit) {
+  } | null
+): KitVariant | null {
+  // Driven entirely by the aggregated kit_fee rows. No kit fees → no card.
+  if (!kit) {
     return null;
   }
-  if (data.kit.paymentStatus === "paid") {
-    return { kind: "paid", amount: data.kit.amount };
+  // A zero total means the kit is included for free.
+  if (kit.amount === 0) {
+    return { kind: "complimentary" };
   }
-  if (data.kit.paymentStatus === "partially_paid") {
+  if (kit.paymentStatus === "paid") {
+    return { kind: "paid", amount: kit.amount };
+  }
+  if (kit.paymentStatus === "partially_paid") {
     return {
       kind: "partial",
-      amount: data.kit.amount,
-      amountPaid: data.kit.amountPaid,
-      dueDate: data.kit.dueDate,
+      amount: kit.amount,
+      amountPaid: kit.amountPaid,
+      dueDate: kit.dueDate,
     };
   }
-  if (data.kit.paymentStatus === "overdue") {
+  if (kit.paymentStatus === "overdue") {
     return {
       kind: "overdue",
-      amount: data.kit.amount,
-      dueDate: data.kit.dueDate,
+      amount: kit.amount,
+      dueDate: kit.dueDate,
     };
   }
   return {
     kind: "unpaid",
-    amount: data.kit.amount,
-    dueDate: data.kit.dueDate,
+    amount: kit.amount,
+    dueDate: kit.dueDate,
   };
 }
 
@@ -465,11 +513,7 @@ export function KitDetailsCard({ studentId }: SimpleCardProps) {
   if (isError) {
     return <CardError message="Failed to load kit details." />;
   }
-  if (!data?.enrollment.kitProvided) {
-    return null;
-  }
-
-  const variant = getKitVariant(data);
+  const variant = getKitVariant(data?.kit ?? null);
   if (!variant) {
     return null;
   }
@@ -512,7 +556,12 @@ export function KitDetailsCard({ studentId }: SimpleCardProps) {
       value = 0;
       center = (
         <>
-          <span className="text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+          <span
+            className={cn(
+              "font-semibold leading-tight text-foreground tabular-nums",
+              ringAmountClass(formatCurrency(variant.amount))
+            )}
+          >
             {formatCurrency(variant.amount)}
           </span>
           <span className="mt-1 text-xs font-medium text-[color:var(--surface-destructive-foreground)]">
@@ -524,12 +573,16 @@ export function KitDetailsCard({ studentId }: SimpleCardProps) {
       break;
     case "partial": {
       tone = "primary";
-      value =
-        variant.amount > 0 ? variant.amountPaid / variant.amount : 0;
+      value = variant.amount > 0 ? variant.amountPaid / variant.amount : 0;
       const remaining = variant.amount - variant.amountPaid;
       center = (
         <>
-          <span className="text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+          <span
+            className={cn(
+              "font-semibold leading-tight text-foreground tabular-nums",
+              ringAmountClass(formatCurrency(remaining))
+            )}
+          >
             {formatCurrency(remaining)}
           </span>
           <span className="mt-1 text-xs text-muted-foreground">
@@ -548,7 +601,12 @@ export function KitDetailsCard({ studentId }: SimpleCardProps) {
       value = 0;
       center = (
         <>
-          <span className="text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+          <span
+            className={cn(
+              "font-semibold leading-tight text-foreground tabular-nums",
+              ringAmountClass(formatCurrency(variant.amount))
+            )}
+          >
             {formatCurrency(variant.amount)}
           </span>
           <span className="mt-1 text-xs text-muted-foreground">due</span>

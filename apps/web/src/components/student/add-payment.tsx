@@ -1,5 +1,7 @@
 "use client";
 
+import { PAYMENT_TYPES } from "@student-management-system/db/schema/constants";
+import type { PaymentType } from "@student-management-system/db/schema/constants";
 import { Button } from "@student-management-system/ui/components/button";
 import {
   Dialog,
@@ -11,6 +13,13 @@ import {
 } from "@student-management-system/ui/components/dialog";
 import { Input } from "@student-management-system/ui/components/input";
 import { Label } from "@student-management-system/ui/components/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@student-management-system/ui/components/select";
 import { Textarea } from "@student-management-system/ui/components/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -25,15 +34,22 @@ type AddPaymentProps = {
 
 const DESCRIPTION_MAX_LENGTH = 255;
 
+const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
+  tuition_fee: "Tuition Fee",
+  kit_fee: "Kit Fee",
+};
+
 export function AddPayment({ studentId }: AddPaymentProps) {
   const queryClient = useQueryClient();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [paymentType, setPaymentType] = useState<PaymentType>("tuition_fee");
   const [amount, setAmount] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
   const [description, setDescription] = useState<string>("");
 
   const resetForm = () => {
+    setPaymentType("tuition_fee");
     setAmount("");
     setDueDate("");
     setDescription("");
@@ -75,6 +91,7 @@ export function AddPayment({ studentId }: AddPaymentProps) {
     }
     createPayment.mutate({
       studentId,
+      paymentType,
       amount: parsedAmount,
       dueDate,
       description: trimmedDescription,
@@ -115,6 +132,39 @@ export function AddPayment({ studentId }: AddPaymentProps) {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-xs font-medium" htmlFor="add-payment-type">
+                Type <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                onValueChange={(value) =>
+                  setPaymentType((value as PaymentType) ?? "tuition_fee")
+                }
+                value={paymentType}
+              >
+                <SelectTrigger
+                  className="h-9 w-full rounded-[8px]"
+                  id="add-payment-type"
+                >
+                  <SelectValue placeholder="Select type">
+                    {(value: PaymentType | null) =>
+                      value ? PAYMENT_TYPE_LABELS[value] : "Select type"
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent
+                  alignItemWithTrigger={false}
+                  className="rounded-[6px]"
+                >
+                  {PAYMENT_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {PAYMENT_TYPE_LABELS[type]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label
                 className="text-xs font-medium"
