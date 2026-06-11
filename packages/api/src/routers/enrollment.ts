@@ -20,6 +20,60 @@ import {
 
 const studentIdInput = z.object({ studentId: z.number().int().positive() });
 
+type PaymentStatus = "paid" | "unpaid" | "overdue" | "partially_paid";
+
+type KitRow = {
+  amount: number;
+  amountPaid: number;
+  paymentStatus: PaymentStatus;
+  dueDate: string;
+};
+
+type KitSummary = {
+  amount: number;
+  amountPaid: number;
+  paymentStatus: PaymentStatus;
+  dueDate: string;
+};
+
+// Rolls every kit_fee row into one summary for the Kit Details card. Returns
+// null when the student has no kit fees. Status precedence: all paid → paid;
+// otherwise any overdue → overdue; otherwise any money collected →
+// partially_paid; otherwise unpaid. dueDate is the earliest still-owing date
+// (falling back to the earliest of all when everything is paid).
+function summarizeKit(rows: KitRow[]): KitSummary | null {
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const amount = rows.reduce((sum, row) => sum + row.amount, 0);
+  const amountPaid = rows.reduce(
+    (sum, row) =>
+      sum + (row.paymentStatus === "paid" ? row.amount : row.amountPaid),
+    0
+  );
+
+  let paymentStatus: PaymentStatus;
+  if (rows.every((row) => row.paymentStatus === "paid")) {
+    paymentStatus = "paid";
+  } else if (rows.some((row) => row.paymentStatus === "overdue")) {
+    paymentStatus = "overdue";
+  } else if (amountPaid > 0) {
+    paymentStatus = "partially_paid";
+  } else {
+    paymentStatus = "unpaid";
+  }
+
+  const owing = rows.filter((row) => row.paymentStatus !== "paid");
+  const duePool = owing.length > 0 ? owing : rows;
+  // dueDate strings are "YYYY-MM-DD", so lexical min === chronological min.
+  const dueDate = duePool
+    .map((row) => row.dueDate)
+    .reduce((min, date) => (date < min ? date : min));
+
+  return { amount, amountPaid, paymentStatus, dueDate };
+}
+
 export const enrollmentRouter = router({
   // Latest enrollment + derived payment progress for the overview cards
   getStudentEnrollment: studentProcedure
@@ -44,22 +98,26 @@ export const enrollmentRouter = router({
           amountPaid: payments.amountPaid,
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
+          paymentType: payments.paymentType,
           description: payments.description,
         })
         .from(payments)
         .where(eq(payments.enrollmentId, enrollment.id))
         .orderBy(asc(payments.emiNumber), asc(payments.dueDate));
 
-      // Progress counters describe tuition installments only. Both the
-      // kit row and the initial down-payment row have their own concerns
-      // and should not inflate "N of M paid" or "₹X paid so far". Rows
-      // are identified by description.
+      // Progress counters cover every tuition_fee row — the installment
+      // schedule, the initial down-payment, and any ad-hoc tuition payments.
+      // Only the kit fee is tracked separately (in its own card).
       const tuitionPayments = enrollmentPayments.filter(
-        (p) => p.description !== "Kit" && p.description !== "Initial Payment"
+        (p) => p.paymentType === "tuition_fee"
       );
-      const kitPayment = enrollmentPayments.find(
-        (p) => p.description === "Kit"
+      // Every kit_fee row (the enrollment kit plus any ad-hoc kit payments)
+      // rolls up into one summary for the Kit Details card. Identified by
+      // payment_type, never by the description string.
+      const kitPayments = enrollmentPayments.filter(
+        (p) => p.paymentType === "kit_fee"
       );
+      const kitSummary = summarizeKit(kitPayments);
 
       const paidCount = tuitionPayments.filter(
         (p) => p.paymentStatus === "paid"
@@ -69,10 +127,13 @@ export const enrollmentRouter = router({
       // == amount when fully paid).
       const totalPaid = tuitionPayments.reduce(
         (sum, p) =>
-          sum +
-          (p.paymentStatus === "paid" ? p.amount : (p.amountPaid ?? 0)),
+          sum + (p.paymentStatus === "paid" ? p.amount : (p.amountPaid ?? 0)),
         0
       );
+      // Denominator for the progress ring: the sum of every tuition_fee row
+      // (installments + initial + ad-hoc), so ad-hoc tuition is reflected in
+      // the total — not just enrollment.totalFees, which is fixed at signup.
+      const totalDue = tuitionPayments.reduce((sum, p) => sum + p.amount, 0);
       const nextUnpaid = tuitionPayments.find(
         (p) => p.paymentStatus === "unpaid"
       );
@@ -81,14 +142,19 @@ export const enrollmentRouter = router({
       );
       const oldestOverdue = overduePayments[0];
 
-      // Joining date is locked once any tuition or kit row is paid or
-      // overdue. Kit shares the lock because it anchors to joining day too
-      // (changing joining day would otherwise rewrite the dueDate of an
-      // already-collected kit fee).
+      // Joining date is locked once a row whose due date is derived from the
+      // joining day — a tuition installment or the kit — is paid or overdue
+      // (shifting the joining day would rewrite an already-settled due date).
+      // The initial deposit is a tuition_fee row but anchors to the admission
+      // day, so it must never lock the joining date even when it's paid.
+      const joiningAnchoredTuition = tuitionPayments.filter(
+        (p) => p.description !== "Initial Payment"
+      );
       const isJoiningDateLocked =
-        paidCount > 0 ||
-        overduePayments.length > 0 ||
-        (kitPayment !== undefined && kitPayment.paymentStatus !== "unpaid");
+        joiningAnchoredTuition.some(
+          (p) => p.paymentStatus === "paid" || p.paymentStatus === "overdue"
+        ) ||
+        (kitSummary !== null && kitSummary.paymentStatus !== "unpaid");
 
       return {
         enrollment: {
@@ -109,6 +175,7 @@ export const enrollmentRouter = router({
           paidCount,
           totalCount: tuitionPayments.length,
           totalPaid,
+          totalDue,
           admissionDate: enrollment.admissionDate.toISOString(),
           joiningDate: enrollment.joiningDate,
           isJoiningDateLocked,
@@ -116,14 +183,7 @@ export const enrollmentRouter = router({
           hasOverdue: overduePayments.length > 0,
           oldestOverdueDate: oldestOverdue?.dueDate ?? null,
         },
-        kit: kitPayment
-          ? {
-              amount: kitPayment.amount,
-              amountPaid: kitPayment.amountPaid ?? 0,
-              paymentStatus: kitPayment.paymentStatus,
-              dueDate: kitPayment.dueDate,
-            }
-          : null,
+        kit: kitSummary,
       };
     }),
 
@@ -226,7 +286,7 @@ export const enrollmentRouter = router({
           // emiNumber and offset 0.
           for (const row of existingRows) {
             const newDueDate =
-              row.description === "Kit"
+              row.paymentType === "kit_fee"
                 ? joiningDateString
                 : formatDateForPg(
                     addMonthsClamped(

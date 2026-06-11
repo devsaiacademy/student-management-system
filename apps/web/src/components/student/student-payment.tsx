@@ -29,6 +29,7 @@ export type Payment = {
   paymentMethod: string | null;
   emiNumber: number | null;
   description: string | null;
+  paymentType: string;
   metaData: {
     overdueNotifiedAt?: string;
     overdueEmailStatus?: "sent" | "failed";
@@ -159,7 +160,7 @@ function DetailsToggle({
 }
 
 export function getInstallmentLabel(payment: Payment, total: number) {
-  if (payment.description === "Kit") {
+  if (payment.paymentType === "kit_fee") {
     return "Kit";
   }
   return payment.emiNumber
@@ -454,7 +455,7 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
         data &&
         (() => {
           const installmentTotal = data.filter(
-            (p) => p.description !== "Kit"
+            (p) => p.paymentType !== "kit_fee"
           ).length;
           return data.map((payment) => {
             const isPaid = payment.paymentStatus === "paid";

@@ -13,7 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { enrollments } from "./enrollment";
-import { paymentStatusEnum, paymentMethodEnum } from "./enums";
+import { paymentStatusEnum, paymentMethodEnum, paymentTypeEnum } from "./enums";
 import { razorpayOrders } from "./razorpay-order";
 import { students } from "./students";
 
@@ -63,6 +63,11 @@ export const payments = pgTable(
       .notNull()
       .default(false),
     description: varchar("description", { length: 255 }),
+    // What this row is for. Defaults to tuition; the kit row is tagged
+    // "kit_fee". Replaces the old description-string sniffing.
+    paymentType: paymentTypeEnum("payment_type")
+      .default("tuition_fee")
+      .notNull(),
     currency: varchar("currency", { length: 3 }).default("INR").notNull(),
 
     // Nullable: a payment row exists from enrollment creation, but the method

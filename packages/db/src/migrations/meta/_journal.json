@@ -155,6 +155,13 @@
       "when": 1780422789847,
       "tag": "0021_add_courses_table",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1780510360580,
+      "tag": "0022_add_payment_type",
+      "breakpoints": true
     }
   ]
 }

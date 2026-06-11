@@ -1,5 +1,8 @@
 import { db } from "@student-management-system/db";
-import { PAYMENT_METHODS } from "@student-management-system/db/schema/constants";
+import {
+  PAYMENT_METHODS,
+  PAYMENT_TYPES,
+} from "@student-management-system/db/schema/constants";
 import { enrollments } from "@student-management-system/db/schema/enrollment";
 import {
   payments,
@@ -117,6 +120,7 @@ export const paymentsRouter = router({
           amountPaid: payments.amountPaid,
           partialPaymentEnabled: payments.partialPaymentEnabled,
           description: payments.description,
+          paymentType: payments.paymentType,
           emiNumber: payments.emiNumber,
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
@@ -317,10 +321,11 @@ export const paymentsRouter = router({
           message: "dueDate must be in YYYY-MM-DD format",
         }),
         description: z.string().trim().min(1).max(255),
+        paymentType: z.enum(PAYMENT_TYPES).default("tuition_fee"),
       })
     )
     .mutation(async ({ input }) => {
-      const { studentId, amount, dueDate, description } = input;
+      const { studentId, amount, dueDate, description, paymentType } = input;
 
       const [latestEnrollment] = await db
         .select({ id: enrollments.id })
@@ -344,6 +349,7 @@ export const paymentsRouter = router({
           amount,
           dueDate,
           description,
+          paymentType,
           paymentStatus: "unpaid",
         })
         .returning({ id: payments.id });

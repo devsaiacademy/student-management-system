@@ -15,7 +15,10 @@ import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
 
 import { EnrollmentCard } from "./enrollment-card";
+import { generateRandomStudentInfo } from "./random-student";
 import { StudentInfoCard } from "./student-info-card";
+
+const IS_DEV = process.env.NODE_ENV === "development";
 
 const defaultValues: CreateStudentInput = {
   name: "",
@@ -75,6 +78,12 @@ export function AddStudentForm() {
     notify.error("Student cannot be added, enter all the details to add");
   };
 
+  // Dev-only: fill the Student Information fields with random valid data,
+  // preserving any enrollment/payment values already entered.
+  const fillRandomStudent = () => {
+    form.reset({ ...form.getValues(), ...generateRandomStudentInfo() });
+  };
+
   return (
     <Form {...form}>
       <div>
@@ -93,13 +102,24 @@ export function AddStudentForm() {
           <EnrollmentCard form={form} />
 
           <div
-            className="animate-in fade-in slide-in-from-bottom-2 flex justify-end"
+            className="animate-in fade-in slide-in-from-bottom-2 flex justify-end gap-3"
             style={{
               animationDelay: "180ms",
               animationDuration: "400ms",
               animationFillMode: "backwards",
             }}
           >
+            {IS_DEV && (
+              <Button
+                type="button"
+                variant="white"
+                size="md"
+                className="rounded-[8px] px-6"
+                onClick={fillRandomStudent}
+              >
+                Generate Random
+              </Button>
+            )}
             <Button
               type="submit"
               variant="blue"

@@ -40,6 +40,12 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 export const MANUAL_PAYMENT_METHODS = ["upi", "cash", "others"] as const;
 export type ManualPaymentMethod = (typeof MANUAL_PAYMENT_METHODS)[number];
 
+// What a payment row is for. Replaces the old description-string sniffing
+// ("Kit" vs everything else). Defaults to "tuition_fee"; the kit row is the
+// only one tagged "kit_fee".
+export const PAYMENT_TYPES = ["tuition_fee", "kit_fee"] as const;
+export type PaymentType = (typeof PAYMENT_TYPES)[number];
+
 export const STUDENT_PROGRESS_STATUSES = ["in_progress", "completed"] as const;
 export type StudentProgressStatus = (typeof STUDENT_PROGRESS_STATUSES)[number];
 
