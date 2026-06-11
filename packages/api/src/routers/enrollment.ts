@@ -99,6 +99,7 @@ export const enrollmentRouter = router({
           dueDate: payments.dueDate,
           paymentStatus: payments.paymentStatus,
           paymentType: payments.paymentType,
+          description: payments.description,
         })
         .from(payments)
         .where(eq(payments.enrollmentId, enrollment.id))
@@ -141,13 +142,18 @@ export const enrollmentRouter = router({
       );
       const oldestOverdue = overduePayments[0];
 
-      // Joining date is locked once any tuition or kit row is paid or
-      // overdue. Kit shares the lock because it anchors to joining day too
-      // (changing joining day would otherwise rewrite the dueDate of an
-      // already-collected kit fee).
+      // Joining date is locked once a row whose due date is derived from the
+      // joining day — a tuition installment or the kit — is paid or overdue
+      // (shifting the joining day would rewrite an already-settled due date).
+      // The initial deposit is a tuition_fee row but anchors to the admission
+      // day, so it must never lock the joining date even when it's paid.
+      const joiningAnchoredTuition = tuitionPayments.filter(
+        (p) => p.description !== "Initial Payment"
+      );
       const isJoiningDateLocked =
-        paidCount > 0 ||
-        overduePayments.length > 0 ||
+        joiningAnchoredTuition.some(
+          (p) => p.paymentStatus === "paid" || p.paymentStatus === "overdue"
+        ) ||
         (kitSummary !== null && kitSummary.paymentStatus !== "unpaid");
 
       return {
