@@ -5,6 +5,7 @@ import {
   varchar,
   integer,
   timestamp,
+  date,
   pgPolicy,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -23,9 +24,15 @@ export const students = pgTable(
     rollNumber: varchar("roll_number", { length: 50 }).notNull().unique(),
 
     age: integer("age").notNull(),
+    dob: date("dob"),
 
     phoneNumber: varchar("phone_number", { length: 15 }).notNull(),
+    phoneNumber2: varchar("phone_number_2", { length: 15 }),
     email: varchar("email", { length: 100 }).notNull().unique(),
+
+    // Nullable at the DB level so the migration does not break existing rows;
+    // the form/zod layer enforces it as mandatory for newly created students.
+    address: varchar("address", { length: 500 }),
 
     schoolName: varchar("school_name", { length: 255 }).notNull(),
     standard: varchar("standard", { length: 20 }).notNull(),
