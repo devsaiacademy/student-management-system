@@ -7,7 +7,7 @@ import {
 } from "@student-management-system/api/schemas/student";
 import { Button } from "@student-management-system/ui/components/button";
 import { Form } from "@student-management-system/ui/components/form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -19,6 +19,13 @@ import { generateRandomStudentInfo } from "./random-student";
 import { StudentInfoCard } from "./student-info-card";
 
 const IS_DEV = process.env.NODE_ENV === "development";
+
+function getSubmitLabel(isEdit: boolean, isPending: boolean): string {
+  if (isEdit) {
+    return isPending ? "Saving..." : "Save Changes";
+  }
+  return isPending ? "Adding..." : "Add Student";
+}
 
 const defaultValues: CreateStudentInput = {
   name: "",
@@ -52,12 +59,24 @@ const defaultValues: CreateStudentInput = {
   kitCost: undefined,
 };
 
-export function AddStudentForm() {
+type AddStudentFormProps = {
+  mode?: "create" | "edit";
+  studentId?: number;
+  initialValues?: CreateStudentInput;
+};
+
+export function AddStudentForm({
+  mode = "create",
+  studentId,
+  initialValues,
+}: AddStudentFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isEdit = mode === "edit";
 
   const form = useForm<CreateStudentInput>({
     resolver: zodResolver(createStudentSchema),
-    defaultValues,
+    defaultValues: initialValues ?? defaultValues,
     mode: "onBlur",
   });
 
@@ -73,12 +92,49 @@ export function AddStudentForm() {
     })
   );
 
+  const updateStudent = useMutation(
+    trpc.students.updateStudent.mutationOptions({
+      onSuccess: (data) => {
+        notify.success("The student details have been updated");
+        // The detail page caches these per-student queries; invalidate so it
+        // shows the edited values (and any rebuilt schedule) on return.
+        for (const queryKey of [
+          trpc.students.getStudentInfo.queryOptions({ studentId: data.id })
+            .queryKey,
+          trpc.enrollments.getStudentEnrollment.queryOptions({
+            studentId: data.id,
+          }).queryKey,
+          trpc.payments.getStudentPayments.queryOptions({ studentId: data.id })
+            .queryKey,
+        ]) {
+          queryClient.invalidateQueries({ queryKey });
+        }
+        router.push(`/admin/all-students/student/${data.id}`);
+      },
+      onError: (error) => {
+        notify.error(error.message);
+      },
+    })
+  );
+
+  const isPending = isEdit ? updateStudent.isPending : createStudent.isPending;
+
   const onSubmit = (values: CreateStudentInput) => {
+    if (isEdit && studentId != null) {
+      updateStudent.mutate({ id: studentId, ...values } as Parameters<
+        typeof updateStudent.mutate
+      >[0]);
+      return;
+    }
     createStudent.mutate(values as Parameters<typeof createStudent.mutate>[0]);
   };
 
   const onInvalid = () => {
-    notify.error("Student cannot be added, enter all the details to add");
+    notify.error(
+      isEdit
+        ? "Student cannot be updated, fix the highlighted fields"
+        : "Student cannot be added, enter all the details to add"
+    );
   };
 
   // Dev-only: fill the Student Information fields with random valid data,
@@ -98,11 +154,13 @@ export function AddStudentForm() {
             className="animate-in fade-in slide-in-from-bottom-2 px-10 text-center text-lg font-semibold text-foreground md:px-0"
             style={{ animationDuration: "400ms" }}
           >
-            Enter the all the details to add new student
+            {isEdit
+              ? "Edit the student details"
+              : "Enter the all the details to add new student"}
           </h1>
 
-          <StudentInfoCard control={form.control} />
-          <EnrollmentCard form={form} />
+          <StudentInfoCard control={form.control} mode={mode} />
+          <EnrollmentCard form={form} mode={mode} />
 
           <div
             className="animate-in fade-in slide-in-from-bottom-2 flex justify-end gap-3"
@@ -112,7 +170,7 @@ export function AddStudentForm() {
               animationFillMode: "backwards",
             }}
           >
-            {IS_DEV && (
+            {IS_DEV && !isEdit && (
               <Button
                 type="button"
                 variant="white"
@@ -128,9 +186,9 @@ export function AddStudentForm() {
               variant="blue"
               size="md"
               className="rounded-[8px] px-6"
-              disabled={createStudent.isPending}
+              disabled={isPending}
             >
-              {createStudent.isPending ? "Adding..." : "Add Student"}
+              {getSubmitLabel(isEdit, isPending)}
             </Button>
           </div>
         </form>

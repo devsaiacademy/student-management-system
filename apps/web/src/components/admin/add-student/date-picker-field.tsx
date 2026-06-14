@@ -19,10 +19,12 @@ export function DatePickerField<Name extends FieldPath<CreateStudentInput>>({
   control,
   name,
   label,
+  disabled,
 }: {
   control: Control<CreateStudentInput>;
   name: Name;
   label: string;
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -37,10 +39,12 @@ export function DatePickerField<Name extends FieldPath<CreateStudentInput>>({
             <div>
               <Popover>
                 <PopoverTrigger
+                  disabled={disabled}
                   render={
                     <Button
                       variant="outline"
                       type="button"
+                      disabled={disabled}
                       className="h-8 w-full max-w-[300px] justify-start rounded-[8px] border-input px-2.5 text-sm font-normal"
                     >
                       {selectedDate

@@ -39,9 +39,14 @@ import { LabeledSelect } from "./labeled-select";
 
 export function EnrollmentCard({
   form,
+  mode = "create",
 }: {
   form: UseFormReturn<CreateStudentInput>;
+  mode?: "create" | "edit";
 }) {
+  // On edit, the joining date and the initial deposit are managed by their
+  // own dedicated detail-page actions, so they're read-only in this form.
+  const isEdit = mode === "edit";
   const [paymentPlan, setPaymentPlan] = useState(form.watch("paymentPlan"));
   const [kitProvided, setKitProvided] = useState<boolean>(
     Boolean(form.watch("kitProvided"))
@@ -110,12 +115,13 @@ export function EnrollmentCard({
               control={form.control}
               name="joiningDate"
               label="Joining Date"
+              disabled={isEdit}
             />
           </div>
 
           <div className="space-y-4">
             <FeesField control={form.control} />
-            <InitialPaymentField control={form.control} />
+            <InitialPaymentField control={form.control} disabled={isEdit} />
 
             <LabeledRadio
               control={form.control}
@@ -259,8 +265,10 @@ function KitCostField({
 
 function InitialPaymentField({
   control,
+  disabled,
 }: {
   control: UseFormReturn<CreateStudentInput>["control"];
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -276,6 +284,7 @@ function InitialPaymentField({
                 type="number"
                 inputMode="numeric"
                 min={0}
+                disabled={disabled}
                 placeholder="Amount paid upfront (0 if none)"
                 value={typeof field.value === "number" ? field.value : ""}
                 onChange={(event) => {

@@ -4,10 +4,13 @@ import {
   Avatar,
   AvatarFallback,
 } from "@student-management-system/ui/components/avatar";
+import { Button } from "@student-management-system/ui/components/button";
 import { Skeleton } from "@student-management-system/ui/components/skeleton";
 import { cn } from "@student-management-system/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Hash, Mail, Phone } from "lucide-react";
+import { Hash, Mail, Pencil, Phone } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import { trpc } from "@/utils/trpc";
 
@@ -178,6 +181,19 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
         </div>
         {isAdmin && (
           <div className="flex flex-wrap items-center gap-2 sm:col-start-3 sm:row-start-2 sm:justify-self-end sm:self-center">
+            <Button
+              variant="white"
+              size="md"
+              className="rounded-[8px]"
+              render={
+                <Link
+                  href={`/admin/all-students/student/${data.id}/edit` as Route}
+                />
+              }
+            >
+              <Pencil aria-hidden className="size-4" />
+              Edit
+            </Button>
             <ChangeStudentStatus
               currentStudentStatus={data.studentStatus}
               id={data.id}
