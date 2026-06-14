@@ -36,11 +36,31 @@ export const createStudentSchema = z
     name: z.string().trim().min(2).max(100),
     rollNumber: z.string().trim().min(1).max(50),
     age: z.preprocess(toNumberOrUndefined, z.number().int().min(3).max(100)),
+    // Optional. Empty string from the form is normalised to `undefined`.
+    dob: z
+      .preprocess(
+        (value) => (value === "" || value == null ? undefined : value),
+        z.coerce.date()
+      )
+      .optional(),
     phoneNumber: z
       .string()
       .trim()
       .regex(/^\d{10}$/, "Phone number must be 10 digits"),
+    // Optional secondary contact. Validated as 10 digits only when provided;
+    // an empty value is normalised to `undefined`.
+    phoneNumber2: z
+      .preprocess(
+        (value) => (value === "" || value == null ? undefined : value),
+        z
+          .string()
+          .trim()
+          .regex(/^\d{10}$/, "Phone number must be 10 digits")
+      )
+      .optional(),
     email: z.email().max(100),
+    // Mandatory in the form even though the DB column is nullable.
+    address: z.string().trim().min(5).max(500),
     schoolName: z.string().trim().min(1).max(255),
     standard: z.string().trim().min(1).max(20),
     academicYear: z.string().trim().min(1).max(20),
@@ -97,6 +117,13 @@ export const createStudentSchema = z
     kitCost: z.number().int().min(0).optional(),
   })
   .superRefine((data, ctx) => {
+    if (data.dob && data.dob > new Date()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Date of birth cannot be in the future",
+        path: ["dob"],
+      });
+    }
     if (data.paymentPlan === "installment" && data.emiMonths === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

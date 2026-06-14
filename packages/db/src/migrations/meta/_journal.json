@@ -162,6 +162,13 @@
       "when": 1780510360580,
       "tag": "0022_add_payment_type",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1781456482224,
+      "tag": "0023_add_student_dob_phone2_address",
+      "breakpoints": true
     }
   ]
 }
