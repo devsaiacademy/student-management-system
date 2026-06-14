@@ -61,6 +61,26 @@ const OCCUPATIONS = [
   "Architect",
 ];
 
+const AREAS = [
+  "MG Road",
+  "Indiranagar",
+  "Jayanagar",
+  "Anna Nagar",
+  "Banjara Hills",
+  "Koramangala",
+  "Adyar",
+  "Salt Lake",
+];
+
+const CITIES = [
+  "Bengaluru",
+  "Chennai",
+  "Hyderabad",
+  "Pune",
+  "Kolkata",
+  "Mumbai",
+];
+
 const pick = <T>(items: readonly T[]): T =>
   items[Math.floor(Math.random() * items.length)] as T;
 
@@ -84,13 +104,23 @@ export function generateRandomStudentInfo(): Partial<CreateStudentInput> {
   // Suffix keeps roll number and email unique across repeated clicks.
   const suffix = randomInt(1000, 999_999);
   const startYear = randomInt(2023, 2026);
+  const age = randomInt(5, 18);
+  // Birth date roughly consistent with the generated age.
+  const dob = new Date(
+    new Date().getFullYear() - age,
+    randomInt(0, 11),
+    randomInt(1, 28)
+  );
 
   return {
     name: `${first} ${last}`,
     rollNumber: `OTM-RND-${suffix}`,
-    age: randomInt(5, 18),
+    age,
+    dob,
     phoneNumber: randomPhone(),
+    phoneNumber2: randomPhone(),
     email: `${first}.${last}.${suffix}`.toLowerCase() + "@example.com",
+    address: `${randomInt(1, 200)}, ${pick(AREAS)}, ${pick(CITIES)}`,
     schoolName: pick(SCHOOLS),
     standard: String(randomInt(1, 12)),
     academicYear: `${startYear}-${startYear + 1}`,

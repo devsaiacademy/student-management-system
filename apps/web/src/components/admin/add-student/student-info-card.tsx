@@ -7,8 +7,10 @@ import {
   CardTitle,
 } from "@student-management-system/ui/components/card";
 import { Input } from "@student-management-system/ui/components/input";
+import { Textarea } from "@student-management-system/ui/components/textarea";
 import type { Control } from "react-hook-form";
 
+import { DatePickerField } from "./date-picker-field";
 import { LabeledField } from "./labeled-field";
 import { LabeledSelect } from "./labeled-select";
 
@@ -36,6 +38,20 @@ function TextField({
           inputMode={inputMode}
           {...field}
           value={(field.value as string | number | undefined) ?? ""}
+        />
+      )}
+    </LabeledField>
+  );
+}
+
+function AddressField({ control }: { control: Control<CreateStudentInput> }) {
+  return (
+    <LabeledField control={control} name="address" label="Address">
+      {(field) => (
+        <Textarea
+          className="rounded-[8px] text-sm"
+          {...field}
+          value={(field.value as string | undefined) ?? ""}
         />
       )}
     </LabeledField>
@@ -75,6 +91,11 @@ export function StudentInfoCard({
               type="number"
               inputMode="numeric"
             />
+            <DatePickerField
+              control={control}
+              name="dob"
+              label="Date of Birth"
+            />
             <TextField
               control={control}
               name="phoneNumber"
@@ -84,17 +105,24 @@ export function StudentInfoCard({
             />
             <TextField
               control={control}
+              name="phoneNumber2"
+              label="Phone Number 2"
+              type="tel"
+              inputMode="numeric"
+            />
+            <TextField
+              control={control}
               name="email"
               label="Email"
               type="email"
             />
+          </div>
+          <div className="space-y-4 md:space-y-6">
             <TextField
               control={control}
               name="schoolName"
               label="School Name"
             />
-          </div>
-          <div className="space-y-4 md:space-y-6">
             <LabeledSelect
               control={control}
               name="standard"
@@ -128,6 +156,9 @@ export function StudentInfoCard({
               label="Father Occupation"
             />
           </div>
+        </div>
+        <div className="mt-4 md:mt-6">
+          <AddressField control={control} />
         </div>
       </CardContent>
     </Card>
