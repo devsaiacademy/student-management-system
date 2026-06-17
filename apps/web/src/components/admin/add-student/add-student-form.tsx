@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createStudentSchema,
   type CreateStudentInput,
+  editStudentFormSchema,
 } from "@student-management-system/api/schemas/student";
 import { Button } from "@student-management-system/ui/components/button";
 import { Form } from "@student-management-system/ui/components/form";
@@ -63,19 +64,25 @@ type AddStudentFormProps = {
   mode?: "create" | "edit";
   studentId?: number;
   initialValues?: CreateStudentInput;
+  // On edit, true when a payment has been recorded — the fee fields are
+  // disabled because the schedule can no longer be rebuilt.
+  feesLocked?: boolean;
 };
 
 export function AddStudentForm({
   mode = "create",
   studentId,
   initialValues,
+  feesLocked = false,
 }: AddStudentFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === "edit";
 
   const form = useForm<CreateStudentInput>({
-    resolver: zodResolver(createStudentSchema),
+    // Edit mode relaxes the mandatory-address rule so legacy students with no
+    // address aren't blocked from other edits; add mode keeps it required.
+    resolver: zodResolver(isEdit ? editStudentFormSchema : createStudentSchema),
     defaultValues: initialValues ?? defaultValues,
     mode: "onBlur",
   });
@@ -160,7 +167,7 @@ export function AddStudentForm({
           </h1>
 
           <StudentInfoCard control={form.control} mode={mode} />
-          <EnrollmentCard form={form} mode={mode} />
+          <EnrollmentCard feesLocked={feesLocked} form={form} mode={mode} />
 
           <div
             className="animate-in fade-in slide-in-from-bottom-2 flex justify-end gap-3"

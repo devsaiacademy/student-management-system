@@ -169,11 +169,26 @@ export const createStudentSchema = z
   .object(studentFields)
   .superRefine(refineStudent);
 
-// "Edit Student" schema: the same fields plus the target student id. Reuses
-// the create form unchanged; the server ignores the read-only fields
-// (rollNumber, email, initialPayment, joiningDate) when applying the update.
+// Address is mandatory when ADDING a student, but pre-migration students may
+// have a null/empty address. On EDIT we drop the min-length requirement so an
+// admin isn't blocked from saving an unrelated change (e.g. a phone number)
+// just because the legacy record has no address. The INPUT type is still
+// `address: string`, so the form's CreateStudentInput stays compatible.
+const editStudentFields = {
+  ...studentFields,
+  address: z.string().trim().max(500),
+};
+
+// Client-side resolver for the edit form (no `id`; relaxed address).
+export const editStudentFormSchema = z
+  .object(editStudentFields)
+  .superRefine(refineStudent);
+
+// "Edit Student" server schema: the edit fields plus the target student id.
+// The server ignores the read-only fields (rollNumber, initialPayment,
+// joiningDate) when applying the update.
 export const updateStudentSchema = z
-  .object({ ...studentFields, id: z.number().int().positive() })
+  .object({ ...editStudentFields, id: z.number().int().positive() })
   .superRefine(refineStudent);
 
 // Form uses the permissive INPUT type (strings in numeric fields are OK).
