@@ -35,10 +35,11 @@ export default async function EditStudentPage({
     notFound();
   }
 
-  const { id, ...initialValues } = data;
+  const { id, feesLocked, ...initialValues } = data;
 
   return (
     <AddStudentForm
+      feesLocked={feesLocked}
       initialValues={initialValues as CreateStudentInput}
       mode="edit"
       studentId={id}

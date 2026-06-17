@@ -124,7 +124,6 @@ export function StudentInfoCard({
               name="email"
               label="Email"
               type="email"
-              disabled={isEdit}
             />
           </div>
           <div className="space-y-4 md:space-y-6">
