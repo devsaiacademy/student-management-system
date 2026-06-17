@@ -548,6 +548,19 @@ export const studentsRouter = router({
             });
           }
 
+          // The deposit (initialPayment) is read-only on edit, so the schedule
+          // is rebuilt from the STORED value. Validate the new totalFees
+          // against that stored deposit — not the client-submitted
+          // initialPayment, which a stale/crafted request could understate and
+          // slip past the zod refine, driving remainingFees negative and
+          // producing a corrupt schedule.
+          if (enrollment.initialPayment >= input.totalFees) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `Total fees must be greater than the initial payment already collected (₹${enrollment.initialPayment}).`,
+            });
+          }
+
           // 1) Personal fields. rollNumber is intentionally omitted (unique key,
           //    read-only on edit); studentStatus + joiningDate are managed by
           //    their dedicated actions.
