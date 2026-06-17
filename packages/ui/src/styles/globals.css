@@ -214,3 +214,67 @@
     transform: rotate(360deg);
   }
 }
+
+/* Pencil "writing" motion — for the Edit action. */
+@keyframes scribble {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  25% {
+    transform: rotate(-12deg) translateX(-1px);
+  }
+  50% {
+    transform: rotate(9deg) translateX(1px);
+  }
+  75% {
+    transform: rotate(-5deg) translateX(-0.5px);
+  }
+}
+
+/* Lift up — "activating" (Mark as active). */
+@keyframes bounce-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+  70% {
+    transform: translateY(-1px);
+  }
+}
+
+/* Soft fade/breathe — "pausing" (Mark as inactive). */
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.88);
+  }
+}
+
+/* Horizontal head-shake — "no" (Mark as discontinued). */
+@keyframes shake-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-2.5px);
+  }
+  40% {
+    transform: translateX(2.5px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(1.5px);
+  }
+}

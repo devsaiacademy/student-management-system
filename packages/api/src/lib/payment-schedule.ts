@@ -1,5 +1,19 @@
 import type { payments } from "@student-management-system/db/schema/payment";
 
+// A schedule row "locks" fee edits when real money is recorded against it, or
+// it is overdue (rebuilding would silently discard a past-due obligation).
+// A 0-amount row auto-marked "paid" — a complimentary kit — represents NO
+// money collected, so it must NOT lock: otherwise every free-kit student's
+// fees would be permanently uneditable. Callers exclude the "Initial Payment"
+// deposit row separately before applying this predicate.
+export const isLockingPaymentRow = (row: {
+  paymentStatus: "paid" | "unpaid" | "overdue" | "partially_paid";
+  amount: number;
+}): boolean =>
+  row.paymentStatus === "overdue" ||
+  row.paymentStatus === "partially_paid" ||
+  (row.paymentStatus === "paid" && row.amount > 0);
+
 // Format a Date as "YYYY-MM-DD" — Drizzle `date` columns expect a string.
 export const formatDateForPg = (date: Date): string => {
   const year = date.getFullYear();

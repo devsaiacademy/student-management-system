@@ -39,9 +39,20 @@ import { LabeledSelect } from "./labeled-select";
 
 export function EnrollmentCard({
   form,
+  mode = "create",
+  feesLocked = false,
 }: {
   form: UseFormReturn<CreateStudentInput>;
+  mode?: "create" | "edit";
+  // True when a tuition/kit payment has already been recorded — the fee
+  // schedule can't be rebuilt, so the fee fields are disabled on edit.
+  feesLocked?: boolean;
 }) {
+  // On edit, the joining date and the initial deposit are managed by their
+  // own dedicated detail-page actions, so they're read-only in this form.
+  const isEdit = mode === "edit";
+  // Schedule-affecting fields are locked once money has been recorded.
+  const feesDisabled = isEdit && feesLocked;
   const [paymentPlan, setPaymentPlan] = useState(form.watch("paymentPlan"));
   const [kitProvided, setKitProvided] = useState<boolean>(
     Boolean(form.watch("kitProvided"))
@@ -110,17 +121,25 @@ export function EnrollmentCard({
               control={form.control}
               name="joiningDate"
               label="Joining Date"
+              disabled={isEdit}
             />
           </div>
 
           <div className="space-y-4">
-            <FeesField control={form.control} />
-            <InitialPaymentField control={form.control} />
+            {feesDisabled && (
+              <p className="rounded-[8px] bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                Fees and payment plan are locked because a payment has already
+                been recorded. Mark those payments unpaid to edit them.
+              </p>
+            )}
+            <FeesField control={form.control} disabled={feesDisabled} />
+            <InitialPaymentField control={form.control} disabled={isEdit} />
 
             <LabeledRadio
               control={form.control}
               name="paymentPlan"
               label="Payment Plan"
+              disabled={feesDisabled}
               options={[
                 { value: "single", label: "Single" },
                 { value: "installment", label: "Installment" },
@@ -146,6 +165,7 @@ export function EnrollmentCard({
                     <div>
                       <FormControl>
                         <Select
+                          disabled={feesDisabled}
                           value={
                             field.value == null
                               ? undefined
@@ -189,6 +209,7 @@ export function EnrollmentCard({
               control={form.control}
               name="kitProvided"
               label="Kit Provided"
+              disabled={feesDisabled}
               options={[
                 { value: true, label: "Yes" },
                 { value: false, label: "No" },
@@ -206,7 +227,9 @@ export function EnrollmentCard({
               }}
             />
 
-            {kitProvided ? <KitCostField control={form.control} /> : null}
+            {kitProvided ? (
+              <KitCostField control={form.control} disabled={feesDisabled} />
+            ) : null}
           </div>
         </div>
       </CardContent>
@@ -216,8 +239,10 @@ export function EnrollmentCard({
 
 function KitCostField({
   control,
+  disabled,
 }: {
   control: UseFormReturn<CreateStudentInput>["control"];
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -233,6 +258,7 @@ function KitCostField({
                 type="number"
                 inputMode="numeric"
                 min={0}
+                disabled={disabled}
                 placeholder="Amount in rupees (0 if complementary)"
                 value={typeof field.value === "number" ? field.value : ""}
                 onChange={(event) => {
@@ -259,8 +285,10 @@ function KitCostField({
 
 function InitialPaymentField({
   control,
+  disabled,
 }: {
   control: UseFormReturn<CreateStudentInput>["control"];
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -276,6 +304,7 @@ function InitialPaymentField({
                 type="number"
                 inputMode="numeric"
                 min={0}
+                disabled={disabled}
                 placeholder="Amount paid upfront (0 if none)"
                 value={typeof field.value === "number" ? field.value : ""}
                 onChange={(event) => {
@@ -302,8 +331,10 @@ function InitialPaymentField({
 
 function FeesField({
   control,
+  disabled,
 }: {
   control: UseFormReturn<CreateStudentInput>["control"];
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -318,6 +349,7 @@ function FeesField({
                 className="max-w-[300px] rounded-[8px] text-sm"
                 type="number"
                 inputMode="numeric"
+                disabled={disabled}
                 placeholder="Amount in rupees"
                 value={
                   typeof field.value === "number" && field.value > 0

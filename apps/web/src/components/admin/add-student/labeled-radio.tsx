@@ -18,12 +18,14 @@ export function LabeledRadio<Name extends FieldPath<CreateStudentInput>>({
   label,
   options,
   onValueChange,
+  disabled,
 }: {
   control: Control<CreateStudentInput>;
   name: Name;
   label: string;
   options: { value: string | boolean; label: string }[];
   onValueChange?: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <FormField
@@ -35,6 +37,7 @@ export function LabeledRadio<Name extends FieldPath<CreateStudentInput>>({
           <div>
             <FormControl>
               <RadioGroup
+                disabled={disabled}
                 value={field.value as string}
                 onValueChange={(value) => {
                   field.onChange(value);

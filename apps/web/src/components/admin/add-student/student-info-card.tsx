@@ -22,12 +22,14 @@ function TextField({
   label,
   type,
   inputMode,
+  disabled,
 }: {
   control: Control<CreateStudentInput>;
   name: keyof CreateStudentInput;
   label: string;
   type?: string;
   inputMode?: "numeric";
+  disabled?: boolean;
 }) {
   return (
     <LabeledField control={control} name={name} label={label}>
@@ -36,6 +38,7 @@ function TextField({
           className="max-w-[300px] rounded-[8px] text-sm"
           type={type}
           inputMode={inputMode}
+          disabled={disabled}
           {...field}
           value={(field.value as string | number | undefined) ?? ""}
         />
@@ -60,9 +63,14 @@ function AddressField({ control }: { control: Control<CreateStudentInput> }) {
 
 export function StudentInfoCard({
   control,
+  mode = "create",
 }: {
   control: Control<CreateStudentInput>;
+  mode?: "create" | "edit";
 }) {
+  // Roll number and email are unique keys; they're read-only when editing an
+  // existing student so the edit form can't accidentally re-key the record.
+  const isEdit = mode === "edit";
   return (
     <Card
       className="animate-in fade-in slide-in-from-bottom-3 rounded-[12px] transition-shadow duration-200 hover:shadow-sm"
@@ -83,6 +91,7 @@ export function StudentInfoCard({
               control={control}
               name="rollNumber"
               label="Roll Number"
+              disabled={isEdit}
             />
             <TextField
               control={control}

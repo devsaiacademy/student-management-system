@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@student-management-system/ui/components/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,10 +17,21 @@ import {
   ChevronDown,
   type LucideIcon,
   PauseCircle,
+  Pencil,
 } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import { notify } from "@/utils/notify";
 import { trpc } from "@/utils/trpc";
+
+// Each action gets a distinct, meaningful icon micro-animation on row hover.
+// Tailwind needs the FULL literal class to statically extract the arbitrary
+// animation variant (template-built names are never scanned), and the
+// `motion-safe:` prefix disables them under prefers-reduced-motion.
+// Edit ✏️ → the pencil "writes".
+const EDIT_HOVER =
+  "motion-safe:group-hover/dropdown-menu-item:[animation:scribble_0.4s_ease-in-out]";
 
 type StatusTransition = {
   nextStatus: StudentStatus;
@@ -35,29 +47,33 @@ type TransitionVisual = {
 };
 
 const transitionVisuals: Record<StudentStatus, TransitionVisual> = {
+  // `pending` is never a transition target; kept for completeness.
   pending: {
     icon: PauseCircle,
     color: "#64748b",
     animationClass:
-      "group-hover/dropdown-menu-item:[animation:pop_0.5s_ease-in-out]",
+      "motion-safe:group-hover/dropdown-menu-item:[animation:pulse-soft_0.45s_ease-in-out]",
   },
+  // Activate → the icon lifts up.
   active: {
     icon: CheckCircle2,
     color: "#16a34a",
     animationClass:
-      "group-hover/dropdown-menu-item:[animation:pop_0.5s_ease-in-out]",
+      "motion-safe:group-hover/dropdown-menu-item:[animation:bounce-up_0.4s_ease-out]",
   },
+  // Pause → soft breathe/fade.
   in_active: {
     icon: PauseCircle,
     color: "#f59e0b",
     animationClass:
-      "group-hover/dropdown-menu-item:[animation:pop_0.5s_ease-in-out]",
+      "motion-safe:group-hover/dropdown-menu-item:[animation:pulse-soft_0.45s_ease-in-out]",
   },
+  // Discontinue → horizontal "no" shake.
   discontinue: {
     icon: Ban,
     color: "#dc2626",
     animationClass:
-      "group-hover/dropdown-menu-item:[animation:wiggle_0.5s_ease-in-out]",
+      "motion-safe:group-hover/dropdown-menu-item:[animation:shake-x_0.4s_ease-in-out]",
   },
 };
 
@@ -133,6 +149,15 @@ export function ChangeStudentStatus({
       />
       <DropdownMenuPortal>
         <DropdownMenuContent align="end" className="min-w-48">
+          <DropdownMenuItem
+            render={
+              <Link href={`/admin/all-students/student/${id}/edit` as Route} />
+            }
+          >
+            <Pencil className={EDIT_HOVER} color="#2E5AA7" />
+            Edit details
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {nextStatuses.map((status) => {
             const visual = transitionVisuals[status.nextStatus];
             const Icon = visual.icon;
