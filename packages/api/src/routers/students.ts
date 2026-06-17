@@ -31,6 +31,7 @@ import {
 import {
   buildTuitionAndKitRows,
   formatDateForPg,
+  isLockingPaymentRow,
 } from "../lib/payment-schedule";
 import { createStudentSchema, updateStudentSchema } from "../schemas/student";
 
@@ -454,12 +455,30 @@ export const studentsRouter = router({
         });
       }
 
+      // The fee schedule can only be rebuilt while no money has been recorded
+      // against it. Mirrors the lock in `updateStudent`: any tuition/kit row
+      // (excluding the Initial Payment deposit) that is paid, partially paid,
+      // or overdue locks the fee fields. The form uses this to disable them.
+      const scheduleRows = await db
+        .select({
+          amount: payments.amount,
+          paymentStatus: payments.paymentStatus,
+          description: payments.description,
+        })
+        .from(payments)
+        .where(eq(payments.enrollmentId, enrollment.id));
+      const feesLocked = scheduleRows.some(
+        (row) =>
+          row.description !== "Initial Payment" && isLockingPaymentRow(row)
+      );
+
       // `date` columns come back as "YYYY-MM-DD" strings; the form's date
       // pickers need real Date objects (parsed at local midnight).
       const toDate = (value: string | null) =>
         value ? new Date(`${value}T00:00:00`) : undefined;
 
       return {
+        feesLocked,
         id: student.id,
         name: student.name,
         rollNumber: student.rollNumber,
@@ -496,8 +515,8 @@ export const studentsRouter = router({
   // Edits an existing student. Personal fields and non-schedule enrollment
   // fields update freely. The fee schedule (totalFees / plan / EMI / kit) is
   // rebuilt only when it changed AND no money has been recorded against it —
-  // mirroring the joining-date lock. `rollNumber`, `email`, `initialPayment`
-  // and `joiningDate` are read-only here (handled by their own flows) and are
+  // mirroring the joining-date lock. `rollNumber`, `initialPayment` and
+  // `joiningDate` are read-only here (handled by their own flows) and are
   // ignored even if the client sends new values.
   updateStudent: staffProcedure
     .input(updateStudentSchema)
@@ -513,138 +532,148 @@ export const studentsRouter = router({
         });
       }
 
-      return await db.transaction(async (tx) => {
-        const [enrollment] = await tx
-          .select()
-          .from(enrollments)
-          .where(eq(enrollments.studentId, input.id))
-          .orderBy(desc(enrollments.createdAt))
-          .limit(1);
-
-        if (!enrollment) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Student has no enrollment to edit",
-          });
-        }
-
-        // 1) Personal fields. rollNumber + email are intentionally omitted
-        //    (unique keys, read-only on edit); studentStatus + joiningDate are
-        //    managed by their dedicated actions.
-        const [updated] = await tx
-          .update(students)
-          .set({
-            name: input.name,
-            age: input.age,
-            dob: input.dob ? formatDateForPg(input.dob) : null,
-            phoneNumber: input.phoneNumber,
-            phoneNumber2: input.phoneNumber2 || null,
-            address: input.address,
-            schoolName: input.schoolName,
-            standard: input.standard,
-            academicYear: input.academicYear,
-            motherName: input.motherName || null,
-            motherOccupation: input.motherOccupation || null,
-            fatherName: input.fatherName || null,
-            fatherOccupation: input.fatherOccupation || null,
-            reachedUsBy: input.reachedUsBy,
-          })
-          .where(eq(students.id, input.id))
-          .returning({ id: students.id });
-
-        if (!updated) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Student not found",
-          });
-        }
-
-        // 2) Non-schedule enrollment fields. initialPayment + joiningDate are
-        //    read-only on edit, so their stored values are preserved.
-        const emiMonths =
-          input.paymentPlan === "installment" ? input.emiMonths : null;
-        const kitCost = input.kitProvided ? (input.kitCost ?? 0) : null;
-
-        await tx
-          .update(enrollments)
-          .set({
-            course: input.course,
-            level: input.level,
-            duration: input.duration,
-            closedBy: input.closedBy,
-            totalFees: input.totalFees,
-            paymentPlan: input.paymentPlan,
-            emiMonths,
-            admissionDate: input.admissionDate,
-            kitProvided: input.kitProvided,
-            kitCost,
-          })
-          .where(eq(enrollments.id, enrollment.id));
-
-        // 3) Rebuild the fee schedule only when it exists (joiningDate set)
-        //    and a schedule-affecting field actually changed.
-        const scheduleChanged =
-          input.totalFees !== enrollment.totalFees ||
-          input.paymentPlan !== enrollment.paymentPlan ||
-          emiMonths !== enrollment.emiMonths ||
-          input.kitProvided !== enrollment.kitProvided ||
-          kitCost !== enrollment.kitCost;
-
-        if (enrollment.joiningDate && scheduleChanged) {
-          // Tuition + kit rows, excluding the Initial Payment deposit (which
-          // anchors to admission and is never regenerated here).
-          const scheduleRows = await tx
+      try {
+        return await db.transaction(async (tx) => {
+          const [enrollment] = await tx
             .select()
-            .from(payments)
-            .where(
-              and(
-                eq(payments.enrollmentId, enrollment.id),
-                or(
-                  isNull(payments.description),
-                  ne(payments.description, "Initial Payment")
-                )
-              )
-            );
+            .from(enrollments)
+            .where(eq(enrollments.studentId, input.id))
+            .orderBy(desc(enrollments.createdAt))
+            .limit(1);
 
-          const locked = scheduleRows.some(
-            (row) =>
-              row.paymentStatus === "paid" ||
-              row.paymentStatus === "partially_paid" ||
-              row.paymentStatus === "overdue"
-          );
-          if (locked) {
+          if (!enrollment) {
             throw new TRPCError({
-              code: "CONFLICT",
-              message:
-                "Fees and payment plan are locked: a tuition or kit payment has already been recorded. Mark those payments unpaid before editing the fee details.",
+              code: "NOT_FOUND",
+              message: "Student has no enrollment to edit",
             });
           }
 
-          const rowIds = scheduleRows.map((row) => row.id);
-          if (rowIds.length > 0) {
-            await tx.delete(payments).where(inArray(payments.id, rowIds));
+          // 1) Personal fields. rollNumber is intentionally omitted (unique key,
+          //    read-only on edit); studentStatus + joiningDate are managed by
+          //    their dedicated actions.
+          const [updated] = await tx
+            .update(students)
+            .set({
+              name: input.name,
+              age: input.age,
+              dob: input.dob ? formatDateForPg(input.dob) : null,
+              phoneNumber: input.phoneNumber,
+              phoneNumber2: input.phoneNumber2 || null,
+              email: input.email,
+              address: input.address,
+              schoolName: input.schoolName,
+              standard: input.standard,
+              academicYear: input.academicYear,
+              motherName: input.motherName || null,
+              motherOccupation: input.motherOccupation || null,
+              fatherName: input.fatherName || null,
+              fatherOccupation: input.fatherOccupation || null,
+              reachedUsBy: input.reachedUsBy,
+            })
+            .where(eq(students.id, input.id))
+            .returning({ id: students.id });
+
+          if (!updated) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Student not found",
+            });
           }
 
-          const joiningDate = new Date(`${enrollment.joiningDate}T00:00:00`);
-          const rebuiltRows = buildTuitionAndKitRows(
-            {
-              studentId: input.id,
-              enrollmentId: enrollment.id,
+          // 2) Non-schedule enrollment fields. initialPayment + joiningDate are
+          //    read-only on edit, so their stored values are preserved.
+          const emiMonths =
+            input.paymentPlan === "installment" ? input.emiMonths : null;
+          const kitCost = input.kitProvided ? (input.kitCost ?? 0) : null;
+
+          await tx
+            .update(enrollments)
+            .set({
+              course: input.course,
+              level: input.level,
+              duration: input.duration,
+              closedBy: input.closedBy,
               totalFees: input.totalFees,
-              initialPayment: enrollment.initialPayment,
               paymentPlan: input.paymentPlan,
               emiMonths,
+              admissionDate: input.admissionDate,
               kitProvided: input.kitProvided,
               kitCost,
-            },
-            joiningDate
-          );
-          if (rebuiltRows.length > 0) {
-            await tx.insert(payments).values(rebuiltRows);
-          }
-        }
+            })
+            .where(eq(enrollments.id, enrollment.id));
 
-        return { id: input.id };
-      });
+          // 3) Rebuild the fee schedule only when it exists (joiningDate set)
+          //    and a schedule-affecting field actually changed.
+          const scheduleChanged =
+            input.totalFees !== enrollment.totalFees ||
+            input.paymentPlan !== enrollment.paymentPlan ||
+            emiMonths !== enrollment.emiMonths ||
+            input.kitProvided !== enrollment.kitProvided ||
+            kitCost !== enrollment.kitCost;
+
+          if (enrollment.joiningDate && scheduleChanged) {
+            // Tuition + kit rows, excluding the Initial Payment deposit (which
+            // anchors to admission and is never regenerated here).
+            const scheduleRows = await tx
+              .select()
+              .from(payments)
+              .where(
+                and(
+                  eq(payments.enrollmentId, enrollment.id),
+                  or(
+                    isNull(payments.description),
+                    ne(payments.description, "Initial Payment")
+                  )
+                )
+              );
+
+            const locked = scheduleRows.some(isLockingPaymentRow);
+            if (locked) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message:
+                  "Fees and payment plan are locked: a tuition or kit payment has already been recorded. Mark those payments unpaid before editing the fee details.",
+              });
+            }
+
+            const rowIds = scheduleRows.map((row) => row.id);
+            if (rowIds.length > 0) {
+              await tx.delete(payments).where(inArray(payments.id, rowIds));
+            }
+
+            const joiningDate = new Date(`${enrollment.joiningDate}T00:00:00`);
+            const rebuiltRows = buildTuitionAndKitRows(
+              {
+                studentId: input.id,
+                enrollmentId: enrollment.id,
+                totalFees: input.totalFees,
+                initialPayment: enrollment.initialPayment,
+                paymentPlan: input.paymentPlan,
+                emiMonths,
+                kitProvided: input.kitProvided,
+                kitCost,
+              },
+              joiningDate
+            );
+            if (rebuiltRows.length > 0) {
+              await tx.insert(payments).values(rebuiltRows);
+            }
+          }
+
+          return { id: input.id };
+        });
+      } catch (error) {
+        // Email is now editable; translate the unique-constraint violation
+        // into a friendly field-level message. Other TRPCErrors (locked
+        // schedule, not found) and unknown errors propagate unchanged.
+        const message = error instanceof Error ? error.message : "";
+        if (message.includes("students_email_unique")) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "A student with this email already exists",
+          });
+        }
+        throw error;
+      }
     }),
 });
