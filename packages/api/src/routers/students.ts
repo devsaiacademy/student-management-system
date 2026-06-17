@@ -423,11 +423,9 @@ export const studentsRouter = router({
   // returned as `Date` objects (consumed by the server caller in the edit
   // route, no wire serialization). Optional string columns become "" so the
   // form's inputs stay controlled.
-  getStudentForEdit: studentProcedure
+  getStudentForEdit: staffProcedure
     .input(z.object({ id: z.number().int().positive() }))
-    .query(async ({ ctx, input }) => {
-      assertStudentAccess(ctx, input.id);
-
+    .query(async ({ input }) => {
       const [student] = await db
         .select()
         .from(students)
