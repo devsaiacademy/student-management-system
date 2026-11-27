@@ -20,6 +20,22 @@ export type Context = {
   userProfile: UserProfile | null;
 };
 
+// Reads the signed-in user from the session JWT. The project signs tokens
+// with an asymmetric key (ES256), so getClaims() verifies the signature
+// locally against the cached JWKS instead of calling Supabase Auth on every
+// request the way getUser() does. Trade-off: a token revoked server-side
+// stays valid until it expires.
+export async function getSessionUser(
+  supabase: SupabaseClient
+): Promise<Context["user"]> {
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) {
+    return null;
+  }
+  return { id: claims.sub, email: claims.email ?? "" };
+}
+
 export async function loadUserProfile(
   userId: string
 ): Promise<UserProfile | null> {

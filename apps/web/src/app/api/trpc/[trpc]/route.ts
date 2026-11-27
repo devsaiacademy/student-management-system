@@ -1,5 +1,8 @@
 import type { Context } from "@student-management-system/api/context";
-import { loadUserProfile } from "@student-management-system/api/context";
+import {
+  getSessionUser,
+  loadUserProfile,
+} from "@student-management-system/api/context";
 import { appRouter } from "@student-management-system/api/routers/index";
 import { createServerClient } from "@supabase/ssr";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -34,17 +37,10 @@ async function createContext(req: NextRequest): Promise<Context> {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getSessionUser(supabase);
   const userProfile = user ? await loadUserProfile(user.id) : null;
 
-  return {
-    supabase,
-    user: user ? { id: user.id, email: user.email ?? "" } : null,
-    userProfile,
-  };
+  return { supabase, user, userProfile };
 }
 
 function handler(req: NextRequest) {
