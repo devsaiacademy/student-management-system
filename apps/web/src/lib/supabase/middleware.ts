@@ -49,7 +49,9 @@ export async function updateSession(request: NextRequest) {
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login?role=parent";
+    url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set("role", "parent");
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }

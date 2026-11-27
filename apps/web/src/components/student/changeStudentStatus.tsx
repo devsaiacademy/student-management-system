@@ -116,10 +116,8 @@ export function ChangeStudentStatus({
       onSuccess: (_data, variables) => {
         const nextStatus = variables.changeStatusTo;
         notify.success(`Student marked as ${statusLabelByStatus[nextStatus]}`);
-        queryClient.invalidateQueries({
-          queryKey: trpc.students.getStudentInfo.queryOptions({ studentId: id })
-            .queryKey,
-        });
+        // Covers getStudentInfo plus the status filter list.
+        queryClient.invalidateQueries({ queryKey: trpc.students.pathKey() });
       },
       onError: (error) => {
         notify.error(error.message);
