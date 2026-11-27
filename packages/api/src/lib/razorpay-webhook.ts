@@ -1,14 +1,18 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { db } from "@student-management-system/db";
+import { enrollments } from "@student-management-system/db/schema/enrollment";
 import {
   payments,
   type PaymentMetaData,
 } from "@student-management-system/db/schema/payment";
 import { razorpayOrders } from "@student-management-system/db/schema/razorpay-order";
+import { students } from "@student-management-system/db/schema/students";
 import { env } from "@student-management-system/env/server";
 import { and, eq, sql } from "drizzle-orm";
 import Razorpay from "razorpay";
+
+import { sendPaymentReceivedWhatsApp } from "./whatsapp";
 
 type RazorpayEntity = {
   id?: string;
@@ -80,11 +84,12 @@ export async function syncOrderPaymentState(
   // is cumulative for THAT order; we want this specific chunk's amount.
   const remotePayment = (await razorpay.payments.fetch(razorpayPaymentId)) as {
     amount: number | string;
+    method?: string;
   };
   const chunkPaise = Number(remotePayment.amount);
   const chunkRupees = Math.floor(chunkPaise / 100);
 
-  await db.transaction(async (tx) => {
+  const credited = await db.transaction(async (tx) => {
     const [localOrder] = await tx
       .update(razorpayOrders)
       .set({ razorpayPaymentId })
@@ -92,7 +97,7 @@ export async function syncOrderPaymentState(
       .returning({ id: razorpayOrders.id });
 
     if (!localOrder) {
-      return;
+      return null;
     }
 
     // FOR UPDATE serializes concurrent chunks for the same row: a parallel
@@ -113,13 +118,13 @@ export async function syncOrderPaymentState(
       .limit(1);
 
     if (!current) {
-      return;
+      return null;
     }
 
     const existingLog = current.metaData?.partialPaymentLog ?? [];
     if (existingLog.some((e) => e.razorpayPaymentId === razorpayPaymentId)) {
       // Already credited (replayed webhook or duplicate verify).
-      return;
+      return null;
     }
 
     const nextLog = [
@@ -176,7 +181,81 @@ export async function syncOrderPaymentState(
         })
         .where(eq(payments.id, current.id));
     }
+
+    return {
+      paymentId: current.id,
+      amountPaid: chunkRupees,
+      balanceDue: Math.max(totalDue - newAmountPaid, 0),
+      razorpayPaymentId,
+      method: remotePayment.method ?? null,
+    };
   });
+
+  // Only the caller that actually credited this chunk sends the receipt, so
+  // the webhook + verifyPayment race can't produce two messages.
+  if (credited) {
+    try {
+      await sendPaymentReceipt(credited);
+    } catch (err) {
+      // Payment is already committed; a receipt failure must not surface as
+      // a failed payment to the student or a failed webhook to Razorpay.
+      console.error("Payment receipt WhatsApp failed", err);
+    }
+  }
+}
+
+type CreditedChunk = {
+  paymentId: number;
+  amountPaid: number;
+  balanceDue: number;
+  razorpayPaymentId: string;
+  method: string | null;
+};
+
+// Best-effort WhatsApp receipt after the payment tx commits. Meta failures
+// are recorded in payment metadata; DB errors propagate to the caller's
+// try/catch so they never fail the webhook or verifyPayment.
+async function sendPaymentReceipt(chunk: CreditedChunk): Promise<void> {
+  const [row] = await db
+    .select({
+      emiNumber: payments.emiNumber,
+      description: payments.description,
+      studentName: students.name,
+      phoneNumber: students.phoneNumber,
+      course: enrollments.course,
+    })
+    .from(payments)
+    .innerJoin(students, eq(payments.studentId, students.id))
+    .innerJoin(enrollments, eq(payments.enrollmentId, enrollments.id))
+    .where(eq(payments.id, chunk.paymentId))
+    .limit(1);
+
+  if (!row) {
+    return;
+  }
+
+  const result = await sendPaymentReceivedWhatsApp({
+    ...row,
+    amountPaid: chunk.amountPaid,
+    balanceDue: chunk.balanceDue,
+    razorpayPaymentId: chunk.razorpayPaymentId,
+    method: chunk.method,
+  });
+
+  const patch: PaymentMetaData = result.ok
+    ? { receiptWhatsappStatus: "sent" }
+    : {
+        receiptWhatsappStatus: "failed",
+        receiptWhatsappError: result.error.slice(0, 500),
+      };
+
+  // Merge into existing jsonb instead of overwriting sibling audit fields.
+  await db
+    .update(payments)
+    .set({
+      metaData: sql`(COALESCE(${payments.metaData}, '{}'::jsonb) - 'receiptWhatsappError') || ${JSON.stringify(patch)}::jsonb`,
+    })
+    .where(eq(payments.id, chunk.paymentId));
 }
 
 async function markOrderFailed(orderId: string) {

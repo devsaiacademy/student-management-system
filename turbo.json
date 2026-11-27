@@ -18,7 +18,8 @@
         "CRON_SECRET",
         "WHATSAPP_ACCESS_TOKEN",
         "WHATSAPP_PHONE_NUMBER_ID",
-        "WHATSAPP_OVERDUE_TEMPLATE"
+        "WHATSAPP_OVERDUE_TEMPLATE",
+        "WHATSAPP_PAYMENT_RECEIVED_TEMPLATE"
       ]
     },
     "lint": {
