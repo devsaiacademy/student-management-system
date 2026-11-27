@@ -1,5 +1,6 @@
 "use client";
 
+import { captureException } from "@sentry/nextjs";
 import { Button } from "@student-management-system/ui/components/button";
 import { useEffect } from "react";
 
@@ -12,6 +13,7 @@ export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
   useEffect(() => {
     // biome-ignore lint/suspicious/noConsole: surface runtime errors in dev
     console.error(error);
+    captureException(error);
   }, [error]);
 
   return (
