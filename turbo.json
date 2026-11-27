@@ -6,6 +6,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**"],
+      "passThroughEnv": ["SENTRY_AUTH_TOKEN", "CI"],
       "env": [
         "DATABASE_URL",
         "NODE_ENV",
