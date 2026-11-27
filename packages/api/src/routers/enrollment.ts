@@ -150,9 +150,13 @@ export const enrollmentRouter = router({
       const joiningAnchoredTuition = tuitionPayments.filter(
         (p) => p.description !== "Initial Payment"
       );
+      // A 0-amount "paid" installment (fully covered by the initial deposit)
+      // collected no money on its due date, so it must not lock either.
       const isJoiningDateLocked =
         joiningAnchoredTuition.some(
-          (p) => p.paymentStatus === "paid" || p.paymentStatus === "overdue"
+          (p) =>
+            (p.paymentStatus === "paid" && p.amount > 0) ||
+            p.paymentStatus === "overdue"
         ) ||
         (kitSummary !== null && kitSummary.paymentStatus !== "unpaid");
 
@@ -247,9 +251,13 @@ export const enrollmentRouter = router({
             )
           );
 
+        // A 0-amount paid tuition row is an installment fully covered by the
+        // initial deposit — no money collected on its due date, so no lock.
         const lockedRow = existingRows.find(
           (row) =>
-            row.paymentStatus === "paid" || row.paymentStatus === "overdue"
+            row.paymentStatus === "overdue" ||
+            (row.paymentStatus === "paid" &&
+              !(row.paymentType === "tuition_fee" && row.amount === 0))
         );
         if (lockedRow) {
           throw new TRPCError({

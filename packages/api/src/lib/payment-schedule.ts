@@ -50,6 +50,28 @@ type EnrollmentSnapshot = {
   kitCost: number | null;
 };
 
+// Splits `totalFees` evenly across the installments (remainder on the last),
+// then deducts the initial payment from the FIRST installment. If the deposit
+// is larger than the first installment, the excess carries over to the next
+// ones. Example: total 30000, initial 5000, 3 EMIs → 5000, 10000, 10000.
+const splitInstallmentAmounts = (
+  totalFees: number,
+  initialPayment: number,
+  installmentCount: number
+): number[] => {
+  const baseInstallment = Math.floor(totalFees / installmentCount);
+  const remainder = totalFees - baseInstallment * installmentCount;
+  let toDeduct = initialPayment;
+
+  return Array.from({ length: installmentCount }, (_, index) => {
+    const isLast = index === installmentCount - 1;
+    const fullAmount = baseInstallment + (isLast ? remainder : 0);
+    const deduction = Math.min(toDeduct, fullAmount);
+    toDeduct -= deduction;
+    return fullAmount - deduction;
+  });
+};
+
 // Builds the tuition installment rows (one per EMI month, or a single row for
 // a single-payment plan) plus the kit row when provided. Both anchor to
 // `joiningDate`. Initial-payment rows are NOT produced here — they anchor to
@@ -58,25 +80,30 @@ export const buildTuitionAndKitRows = (
   enrollment: EnrollmentSnapshot,
   joiningDate: Date
 ): (typeof payments.$inferInsert)[] => {
-  const remainingFees = enrollment.totalFees - enrollment.initialPayment;
   const installmentCount =
     enrollment.paymentPlan === "installment" && enrollment.emiMonths
       ? enrollment.emiMonths
       : 1;
-  const baseInstallment = Math.floor(remainingFees / installmentCount);
-  const remainder = remainingFees - baseInstallment * installmentCount;
+  const amounts = splitInstallmentAmounts(
+    enrollment.totalFees,
+    enrollment.initialPayment,
+    installmentCount
+  );
 
-  const tuitionRows: (typeof payments.$inferInsert)[] = Array.from(
-    { length: installmentCount },
-    (_, index) => {
-      const isLast = index === installmentCount - 1;
+  const tuitionRows: (typeof payments.$inferInsert)[] = amounts.map(
+    (amount, index) => {
+      const dueDate = formatDateForPg(addMonthsClamped(joiningDate, index));
+      // An installment fully covered by the deposit has nothing left to
+      // collect. Mark it paid (0-amount paid rows don't lock fee edits).
+      const isCovered = amount === 0;
       return {
         studentId: enrollment.studentId,
         enrollmentId: enrollment.enrollmentId,
-        amount: baseInstallment + (isLast ? remainder : 0),
+        amount,
         emiNumber: installmentCount === 1 ? null : index + 1,
-        paymentStatus: "unpaid" as const,
-        dueDate: formatDateForPg(addMonthsClamped(joiningDate, index)),
+        paymentStatus: isCovered ? ("paid" as const) : ("unpaid" as const),
+        dueDate,
+        paidDate: isCovered ? dueDate : null,
       };
     }
   );
