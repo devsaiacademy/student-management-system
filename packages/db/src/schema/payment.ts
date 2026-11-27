@@ -31,6 +31,9 @@ export type PaymentMetaData = {
   overdueWhatsappStatus?: "sent" | "failed" | "skipped";
   overdueWhatsappError?: string;
   overdueNotificationCount?: number;
+  // Outcome of the latest "payment received" WhatsApp receipt.
+  receiptWhatsappStatus?: "sent" | "failed";
+  receiptWhatsappError?: string;
   penalty?: number;
   penaltyLog?: Array<{ at: string; delta: number }>;
   // Append-only ledger of Razorpay partial-payment chunks received against
