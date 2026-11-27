@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 
+import { withSentryConfig } from "@sentry/nextjs/config";
 import { config } from "dotenv";
 import type { NextConfig } from "next";
 
@@ -15,4 +16,12 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: "saiacademy",
+  project: "student-management-system",
+  // Uploads source maps so production stack traces are readable. Only runs
+  // when SENTRY_AUTH_TOKEN is set (Vercel build), never commit the token.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  silent: !process.env.CI,
+});

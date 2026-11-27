@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@sentry/nextjs": "^11.20.0",
     "@student-management-system/api": "workspace:*",
     "@student-management-system/db": "workspace:*",
     "@student-management-system/env": "workspace:*",

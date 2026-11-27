@@ -1,3 +1,4 @@
+import { captureException } from "@sentry/nextjs";
 import type { Context } from "@student-management-system/api/context";
 import {
   getSessionUser,
@@ -49,6 +50,16 @@ function handler(req: NextRequest) {
     req,
     router: appRouter,
     createContext: () => createContext(req),
+    // tRPC turns thrown errors into responses, so Next's onRequestError never
+    // sees them. Report only unexpected failures; expected ones such as
+    // UNAUTHORIZED or BAD_REQUEST are normal app behaviour, not bugs.
+    onError: ({ error, path, type }) => {
+      if (error.code === "INTERNAL_SERVER_ERROR") {
+        captureException(error.cause ?? error, {
+          tags: { trpc_path: path ?? "unknown", trpc_type: type },
+        });
+      }
+    },
   });
 }
 
