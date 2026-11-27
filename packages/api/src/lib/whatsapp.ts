@@ -8,10 +8,12 @@ const WHATSAPP_API_VERSION = "v25.0";
 // to reject the call with error 132012 (parameter count mismatch).
 const HELLO_WORLD_TEMPLATE = "hello_world";
 const WHATSAPP_GRAPH_HOST = "https://graph.facebook.com";
-const COUNTRY_CODE = "+91";
-const TEMPLATE_LANGUAGE_CODE = "en_US";
-const LATE_FEE_WARNING = "extra charges";
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+// Meta's examples send `to` as digits only (country code + number, no "+").
+const COUNTRY_CODE = "91";
+// Must match the approved template's language exactly: "English" is "en"
+// ("English (US)" would be "en_US").
+const TEMPLATE_LANGUAGE_CODE = "en";
+const FALLBACK_INSTALLMENT_LABEL = "Payment";
 
 export type WhatsAppSendResult =
   | { ok: true; messageId: string }
@@ -19,43 +21,39 @@ export type WhatsAppSendResult =
 
 type SendOverdueArgs = {
   phoneNumber: string;
+  studentName: string;
   emiNumber: number | null;
   description: string | null;
   amount: number;
   course: string;
-  dueDate: string;
 };
 
-// Builds the 4 body params for the approved overdue template. Slot {{1}}
-// must read naturally inside "Your {{1}} payment of {{2}}..." — so we choose
-// the noun phrase by what the row actually represents:
-//   • EMI row             → "EMI N for {course} course"  (most common)
-//   • One-off (no EMI)    → the payment's description string ("Kit", etc.)
-//   • Neither (fallback)  → "{course} course"
-// {{2}} is the amount with ₹ prefix, {{3}} is days overdue (floored, ≥0),
-// {{4}} is a fixed warning string — Meta templates can't accept arbitrary
-// copy in approved slots.
+// Builds the 4 body params for the approved reminder template:
+//   "Reminder: {{1}}'s {{2}} fee, {{3}}, of {{4}} is due."
+// {{1}} student name, {{2}} course, {{3}} installment label, {{4}} amount
+// in Indian format ("₹7,500"). Meta rejects empty params, so every slot
+// always has a value.
 function buildOverdueTemplateParams(args: SendOverdueArgs) {
-  const daysOverdue = Math.max(
-    0,
-    Math.floor((Date.now() - new Date(args.dueDate).getTime()) / MS_PER_DAY)
-  );
   return [
-    { type: "text" as const, text: formatPaymentLabel(args) },
-    { type: "text" as const, text: `₹${args.amount}` },
-    { type: "text" as const, text: String(daysOverdue) },
-    { type: "text" as const, text: LATE_FEE_WARNING },
+    { type: "text" as const, text: args.studentName },
+    { type: "text" as const, text: args.course },
+    { type: "text" as const, text: formatInstallmentLabel(args) },
+    { type: "text" as const, text: formatRupees(args.amount) },
   ];
 }
 
-function formatPaymentLabel(args: SendOverdueArgs): string {
+//   • EMI row             → "Installment N"  (most common)
+//   • One-off (no EMI)    → the payment's description string ("Kit", etc.)
+//   • Neither (fallback)  → "Payment"
+function formatInstallmentLabel(args: SendOverdueArgs): string {
   if (args.emiNumber !== null) {
-    return `EMI ${args.emiNumber} for ${args.course} course`;
+    return `Installment ${args.emiNumber}`;
   }
-  if (args.description) {
-    return args.description;
-  }
-  return `${args.course} course`;
+  return args.description || FALLBACK_INSTALLMENT_LABEL;
+}
+
+function formatRupees(amount: number): string {
+  return `₹${amount.toLocaleString("en-IN")}`;
 }
 
 // Sends the approved `payment_overdue` template to a student's WhatsApp via
@@ -95,15 +93,16 @@ export async function sendOverdueWhatsApp(
       }),
     });
 
+    const body = await response.text();
+
     if (!response.ok) {
-      const body = await response.text();
       return {
         ok: false,
         error: `Meta API ${response.status}: ${body.slice(0, 500)}`,
       };
     }
 
-    const data = (await response.json()) as {
+    const data = JSON.parse(body) as {
       messages?: Array<{ id: string }>;
     };
     const messageId = data.messages?.[0]?.id;

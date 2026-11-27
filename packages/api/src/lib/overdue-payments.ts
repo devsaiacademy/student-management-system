@@ -199,11 +199,11 @@ export async function sendOverdueEmail(
 
   const whatsapp = await sendOverdueWhatsApp({
     phoneNumber: ctx.studentPhone,
+    studentName: ctx.studentName,
     emiNumber: ctx.emiNumber,
     description: ctx.paymentDescription,
     amount: ctx.amount + ctx.penalty,
     course: ctx.course,
-    dueDate: ctx.dueDate,
   });
 
   await writeNotificationMetadata(paymentId, {
