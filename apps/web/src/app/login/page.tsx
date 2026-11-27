@@ -1,15 +1,15 @@
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import Login from "@/components/login";
-import { WelcomeRedirector } from "@/components/welcome-redirector";
-import { createTRPCServerCaller } from "@/utils/trpc-server";
+import { getLandingPath } from "@/utils/landing-path";
 
 export default async function LoginPage() {
-  const trpc = await createTRPCServerCaller();
-  const session = await trpc.auth.getSession();
-
-  if (session) {
-    return <WelcomeRedirector />;
+  // Already signed in: send the user straight to their area. A session with
+  // no admin role and no student record falls through to the login form.
+  const landingPath = await getLandingPath();
+  if (landingPath) {
+    redirect(landingPath);
   }
 
   return (
