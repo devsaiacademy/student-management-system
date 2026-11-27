@@ -91,6 +91,8 @@ export function AddStudentForm({
     trpc.students.createStudent.mutationOptions({
       onSuccess: (data) => {
         notify.success("The student has been added successfully");
+        // Refresh the count, search and filter lists so the new student shows.
+        queryClient.invalidateQueries({ queryKey: trpc.students.pathKey() });
         router.push(`/admin/all-students/student/${data.id}`);
       },
       onError: (error) => {
@@ -106,8 +108,8 @@ export function AddStudentForm({
         // The detail page caches these per-student queries; invalidate so it
         // shows the edited values (and any rebuilt schedule) on return.
         for (const queryKey of [
-          trpc.students.getStudentInfo.queryOptions({ studentId: data.id })
-            .queryKey,
+          // Covers getStudentInfo plus the search/filter lists (name, status).
+          trpc.students.pathKey(),
           trpc.enrollments.getStudentEnrollment.queryOptions({
             studentId: data.id,
           }).queryKey,
