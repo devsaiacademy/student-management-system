@@ -9,6 +9,7 @@ import { env } from "@student-management-system/env/server";
 import { and, eq, lt, sql } from "drizzle-orm";
 
 import { PaymentOverdueEmail } from "../emails/payment-overdue-email";
+import { logger } from "./logger";
 import { resend } from "./resend";
 import { sendOverdueWhatsApp } from "./whatsapp";
 
@@ -206,13 +207,29 @@ export async function sendOverdueEmail(
     course: ctx.course,
   });
 
+  if (!whatsapp.ok) {
+    logger.warn("overdue notify: WhatsApp send failed", {
+      paymentId,
+      error: whatsapp.error.slice(0, 200),
+    });
+  }
+
   await writeNotificationMetadata(paymentId, {
     emailStatus,
     whatsappStatus: whatsapp.ok ? "sent" : "failed",
     whatsappError: whatsapp.ok ? undefined : whatsapp.error,
     notificationCount: ctx.notificationCount + 1,
-  }).catch(() => {
+  }).catch((error: unknown) => {
     // Metadata write is best-effort.
+    logger.warn("overdue notify: metadata write failed", { paymentId, error });
+  });
+
+  logger.info("overdue notify: sent", {
+    paymentId,
+    isOverdue,
+    emailStatus,
+    whatsappStatus: whatsapp.ok ? "sent" : "failed",
+    notificationCount: ctx.notificationCount + 1,
   });
 
   if (emailError) {
@@ -258,6 +275,12 @@ export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult>
       )
     );
 
+  logger.info("overdue run: rows selected", {
+    flipped: flipped.length,
+    penaltiesApplied,
+    dueForNotify: dueForNotify.length,
+  });
+
   const result: MarkOverdueResult = {
     flipped: flipped.length,
     penaltiesApplied,
@@ -276,6 +299,7 @@ export async function markOverduePaymentsAndNotify(): Promise<MarkOverdueResult>
     } catch (err) {
       // Email failed — WhatsApp may still have run; its status is in metadata.
       // Counter undercounts in this branch, which is acceptable for a metric.
+      logger.error("overdue notify: email failed", { paymentId, error: err });
       result.failures.push({
         paymentId,
         error: err instanceof Error ? err.message : String(err),

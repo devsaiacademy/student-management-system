@@ -1,3 +1,4 @@
+import { logger } from "@student-management-system/api/lib/logger";
 import {
   SidebarInset,
   SidebarProvider,
@@ -23,11 +24,16 @@ export default async function StudentLayout({
       const match = await trpc.auth.isStudentEmail({ email: user.email });
       isStudent = Array.isArray(match) ? match.length > 0 : Boolean(match);
     }
-  } catch {
+  } catch (error) {
     // tRPC UNAUTHORIZED or transient failure → treat as signed out
+    logger.warn("student layout: session lookup failed", { error });
   }
 
   if (!user || !isStudent) {
+    logger.info("student layout: redirecting to login", {
+      hasUser: Boolean(user),
+      isStudent,
+    });
     redirect("/login?role=parent");
   }
 

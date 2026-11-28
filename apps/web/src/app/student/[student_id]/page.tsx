@@ -1,3 +1,4 @@
+import { logger } from "@student-management-system/api/lib/logger";
 import { notFound } from "next/navigation";
 
 import { StudentDetail } from "@/components/student/student-detail";
@@ -19,8 +20,13 @@ export default async function StudentPage({ params }: StudentPageProps) {
   try {
     await trpc.students.getStudentInfo({ studentId: parsedId });
     exists = true;
-  } catch {
-    // NOT_FOUND / UNAUTHORIZED / transient — treat as "no such page"
+  } catch (error) {
+    // NOT_FOUND / FORBIDDEN / transient — treat as "no such page", but log
+    // why so a 404 seen by a signed-in parent can be traced.
+    logger.warn("student page: getStudentInfo failed, rendering 404", {
+      studentId: parsedId,
+      error,
+    });
   }
 
   if (!exists) {

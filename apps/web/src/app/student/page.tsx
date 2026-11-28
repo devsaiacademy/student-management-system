@@ -1,3 +1,4 @@
+import { logger } from "@student-management-system/api/lib/logger";
 import { notFound, redirect } from "next/navigation";
 
 import { createTRPCServerCaller } from "@/utils/trpc-server";
@@ -12,6 +13,9 @@ export default async function StudentBillingRedirect() {
   const matches = await trpc.auth.isStudentEmail({ email: user.email });
   const studentId = Array.isArray(matches) ? matches[0]?.id : undefined;
   if (!studentId) {
+    logger.warn("student billing: no student matches session email", {
+      userId: user.id,
+    });
     notFound();
   }
   redirect(`/student/${studentId}`);

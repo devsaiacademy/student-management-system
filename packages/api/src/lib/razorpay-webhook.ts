@@ -12,6 +12,7 @@ import { env } from "@student-management-system/env/server";
 import { and, eq, sql } from "drizzle-orm";
 import Razorpay from "razorpay";
 
+import { logger } from "./logger";
 import { sendPaymentReceivedWhatsApp } from "./whatsapp";
 
 type RazorpayEntity = {
@@ -77,6 +78,10 @@ export async function syncOrderPaymentState(
       .update(razorpayOrders)
       .set({ status: remoteOrder.status })
       .where(eq(razorpayOrders.razorpayOrderId, razorpayOrderIdStr));
+    logger.info("razorpay sync: order status refreshed", {
+      razorpayOrderId: razorpayOrderIdStr,
+      status: remoteOrder.status,
+    });
     return;
   }
 
@@ -97,6 +102,10 @@ export async function syncOrderPaymentState(
       .returning({ id: razorpayOrders.id });
 
     if (!localOrder) {
+      logger.warn("razorpay sync: no local order for razorpay order id", {
+        razorpayOrderId: razorpayOrderIdStr,
+        razorpayPaymentId,
+      });
       return null;
     }
 
@@ -118,12 +127,21 @@ export async function syncOrderPaymentState(
       .limit(1);
 
     if (!current) {
+      logger.warn("razorpay sync: no payment row linked to local order", {
+        razorpayOrderId: razorpayOrderIdStr,
+        localOrderId: localOrder.id,
+        razorpayPaymentId,
+      });
       return null;
     }
 
     const existingLog = current.metaData?.partialPaymentLog ?? [];
     if (existingLog.some((e) => e.razorpayPaymentId === razorpayPaymentId)) {
       // Already credited (replayed webhook or duplicate verify).
+      logger.info("razorpay sync: chunk already credited, skipping", {
+        paymentId: current.id,
+        razorpayPaymentId,
+      });
       return null;
     }
 
@@ -194,12 +212,22 @@ export async function syncOrderPaymentState(
   // Only the caller that actually credited this chunk sends the receipt, so
   // the webhook + verifyPayment race can't produce two messages.
   if (credited) {
+    logger.info("razorpay sync: chunk credited", {
+      paymentId: credited.paymentId,
+      razorpayOrderId: razorpayOrderIdStr,
+      razorpayPaymentId,
+      amountPaid: credited.amountPaid,
+      balanceDue: credited.balanceDue,
+    });
     try {
       await sendPaymentReceipt(credited);
     } catch (err) {
       // Payment is already committed; a receipt failure must not surface as
       // a failed payment to the student or a failed webhook to Razorpay.
-      console.error("Payment receipt WhatsApp failed", err);
+      logger.error("razorpay sync: payment receipt failed", {
+        paymentId: credited.paymentId,
+        error: err,
+      });
     }
   }
 }
@@ -231,6 +259,9 @@ async function sendPaymentReceipt(chunk: CreditedChunk): Promise<void> {
     .limit(1);
 
   if (!row) {
+    logger.warn("payment receipt: payment row not found", {
+      paymentId: chunk.paymentId,
+    });
     return;
   }
 
@@ -241,6 +272,13 @@ async function sendPaymentReceipt(chunk: CreditedChunk): Promise<void> {
     razorpayPaymentId: chunk.razorpayPaymentId,
     method: chunk.method,
   });
+
+  if (!result.ok) {
+    logger.warn("payment receipt: WhatsApp send failed", {
+      paymentId: chunk.paymentId,
+      error: result.error.slice(0, 200),
+    });
+  }
 
   const patch: PaymentMetaData = result.ok
     ? { receiptWhatsappStatus: "sent" }
@@ -277,27 +315,52 @@ export async function handleRazorpayWebhook(
 ): Promise<WebhookResult> {
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
   if (!constantTimeEquals(expected, signature)) {
+    logger.warn("razorpay webhook: invalid signature", {
+      hasSignature: signature.length > 0,
+    });
     return { kind: "invalid_signature" };
   }
 
   let body: RazorpayWebhookBody;
   try {
     body = JSON.parse(rawBody) as RazorpayWebhookBody;
-  } catch {
+  } catch (error) {
+    logger.warn("razorpay webhook: body is not valid JSON", { error });
     return { kind: "invalid_body" };
   }
 
+  const { event } = body;
   const orderId = extractOrderId(body);
+  const paymentId = extractPaymentId(body);
   if (!orderId) {
+    logger.info("razorpay webhook: no order id, ignoring", { event });
     return { kind: "ok", processed: false };
   }
 
-  if (body.event === "payment.captured" || body.event === "order.paid") {
-    await syncOrderPaymentState(orderId, extractPaymentId(body));
-  } else if (body.event === "payment.failed") {
-    await markOrderFailed(orderId);
-  } else {
-    return { kind: "ok", processed: false };
+  logger.info("razorpay webhook: received", {
+    event,
+    razorpayOrderId: orderId,
+    razorpayPaymentId: paymentId,
+  });
+
+  try {
+    if (event === "payment.captured" || event === "order.paid") {
+      await syncOrderPaymentState(orderId, paymentId);
+    } else if (event === "payment.failed") {
+      await markOrderFailed(orderId);
+    } else {
+      logger.info("razorpay webhook: unhandled event, ignoring", { event });
+      return { kind: "ok", processed: false };
+    }
+  } catch (error) {
+    // Rethrown so Razorpay sees a 5xx and retries the delivery.
+    logger.error("razorpay webhook: processing failed", {
+      event,
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      error,
+    });
+    throw error;
   }
 
   return { kind: "ok", processed: true };

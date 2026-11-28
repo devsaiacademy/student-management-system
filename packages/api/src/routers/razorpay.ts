@@ -17,6 +17,7 @@ import {
   router,
   studentProcedure,
 } from "../index";
+import { logger } from "../lib/logger";
 import { syncOrderPaymentState } from "../lib/razorpay-webhook";
 
 const razorpay = new Razorpay({
@@ -133,6 +134,11 @@ export const razorpayRouter = router({
           existing.amount === amountInPaise;
 
         if (canReuse) {
+          logger.info("razorpay createOrder: reusing recent order", {
+            paymentId,
+            razorpayOrderId: existing.razorpayOrderId,
+            amountInPaise,
+          });
           return {
             razorpayOrderId: existing.razorpayOrderId,
             amount: existing.amount,
@@ -199,6 +205,13 @@ export const razorpayRouter = router({
           .where(eq(payments.id, paymentId));
       });
 
+      logger.info("razorpay createOrder: order created", {
+        paymentId,
+        razorpayOrderId: order.id,
+        amountInPaise,
+        partialEnabled,
+      });
+
       return {
         razorpayOrderId: order.id,
         amount: Number(order.amount),
@@ -251,6 +264,11 @@ export const razorpayRouter = router({
         .where(eq(razorpayOrders.razorpayOrderId, razorpay_order_id));
 
       await syncOrderPaymentState(razorpay_order_id, razorpay_payment_id);
+
+      logger.info("razorpay verifyPayment: verified", {
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+      });
 
       return { success: true };
     }),
