@@ -137,8 +137,10 @@ function Sidebar({ className, children, ...props }: SidebarProps) {
         <DialogPrimitive.Portal>
           <DialogPrimitive.Backdrop
             className={cn(
-              "fixed inset-0 z-50 bg-black/40 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden",
-              "data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
+              "fixed inset-0 z-50 bg-black/40 md:hidden",
+              // Transitions (not keyframes) so closing mid-open reverses
+              // smoothly from wherever the drawer is.
+              "transition-opacity duration-300 ease-out data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 data-[ending-style]:duration-200"
             )}
           />
           <DialogPrimitive.Popup
@@ -146,7 +148,8 @@ function Sidebar({ className, children, ...props }: SidebarProps) {
             data-state="expanded"
             className={cn(
               "fixed inset-y-0 left-0 z-50 flex h-svh w-[var(--sidebar-width)] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg outline-none md:hidden",
-              "data-open:animate-in data-open:slide-in-from-left data-closed:animate-out data-closed:slide-out-to-left duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              "transform-gpu will-change-transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+              "data-[starting-style]:-translate-x-full data-[ending-style]:-translate-x-full data-[ending-style]:duration-200 data-[ending-style]:ease-[cubic-bezier(0.4,0,1,1)]"
             )}
           >
             {isMobile ? (
