@@ -146,7 +146,7 @@ export function AdminSidebar({ role, user }: AdminSidebarProps) {
           type="button"
         >
           <Avatar className="size-9 group-data-[state=collapsed]/sidebar:size-8">
-            <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+            <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
               {user?.name?.[0] ?? user?.email?.[0]?.toUpperCase() ?? "A"}
             </AvatarFallback>
           </Avatar>

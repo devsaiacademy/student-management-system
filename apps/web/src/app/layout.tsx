@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 
 import { Providers } from "@/components/providers";
@@ -7,14 +7,10 @@ import { Providers } from "@/components/providers";
 import "../index.css";
 import "goey-toast/styles.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -28,10 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html className={inter.variable} lang="en" suppressHydrationWarning>
+      <body className="antialiased">
         <Providers>{children}</Providers>
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"

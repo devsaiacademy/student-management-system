@@ -71,7 +71,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
       }}
     >
       <Avatar className="size-10 shrink-0 transition-transform duration-200 group-hover:scale-105">
-        <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+        <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
           {getInitials(student.name)}
         </AvatarFallback>
       </Avatar>
@@ -79,7 +79,7 @@ export function StudentCard({ student, index }: StudentCardProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-            <span className="text-sm font-semibold leading-tight text-foreground">
+            <span className="text-sm font-medium leading-tight text-foreground">
               {student.name}
             </span>
             <span className="min-w-0 truncate text-sm leading-tight text-muted-foreground">

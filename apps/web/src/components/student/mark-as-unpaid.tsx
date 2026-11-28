@@ -126,13 +126,13 @@ export function MarkAsUnpaid({
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-3 gap-3 text-sm">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Installment
                 </p>
                 <p className="mt-0.5 font-medium">{payment.label}</p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Amount
                 </p>
                 <p className="mt-0.5 font-medium">
@@ -140,7 +140,7 @@ export function MarkAsUnpaid({
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium text-muted-foreground">
                   Due Date
                 </p>
                 <p className="mt-0.5 font-medium">

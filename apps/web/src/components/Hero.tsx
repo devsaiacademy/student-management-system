@@ -41,7 +41,7 @@ export default function Hero() {
           <div className="flex flex-col space-y-3 text-center sm:space-y-5 lg:space-y-8 lg:text-left">
             {/* Main Heading */}
             <div className="space-y-3 sm:space-y-4">
-              <h1 className="mx-auto max-w-xl text-balance text-2xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl lg:mx-0 lg:max-w-md lg:text-6xl">
+              <h1 className="mx-auto max-w-xl text-balance text-2xl font-medium leading-tight text-foreground sm:text-4xl md:text-5xl lg:mx-0 lg:max-w-md lg:text-6xl">
                 Shape Your Child's Future
               </h1>
               <div className="mx-auto h-1 w-16 rounded-full bg-primary sm:h-1.5 sm:w-24 lg:mx-0" />
@@ -56,7 +56,7 @@ export default function Hero() {
 
             {/* Role Selection - visible on lg+ inline with content */}
             <div className="hidden space-y-3 pt-1 lg:block lg:pt-2">
-              <p className="text-sm font-semibold text-foreground">
+              <p className="text-sm font-medium text-foreground">
                 Select Your Role to Continue
               </p>
               <div className="flex items-start justify-start gap-4">
@@ -95,7 +95,7 @@ export default function Hero() {
 
         {/* Bottom Role Selection - visible on small screens only */}
         <div className="shrink-0 space-y-3 pb-2 text-center sm:pb-4 lg:hidden">
-          <p className="text-sm font-semibold text-foreground">
+          <p className="text-sm font-medium text-foreground">
             Select Your Role to Continue
           </p>
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">

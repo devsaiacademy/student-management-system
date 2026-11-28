@@ -251,12 +251,12 @@ export default function Login() {
         <div className="flex w-full flex-col justify-center">
           {stage.kind === "verify" ? (
             <div className="text-center">
-              <h1 className="text-3xl font-extrabold text-foreground">
+              <h1 className="text-3xl font-medium text-foreground">
                 Enter your code
               </h1>
               <p className="mt-3 text-sm text-muted-foreground">
                 We sent a 6-digit code to{" "}
-                <span className="font-semibold text-foreground">
+                <span className="font-medium text-foreground">
                   {stage.email}
                 </span>
                 . You can also click the link in the email.
@@ -322,7 +322,7 @@ export default function Login() {
             </div>
           ) : (
             <>
-              <h1 className="text-3xl font-extrabold text-foreground">
+              <h1 className="text-3xl font-medium text-foreground">
                 Log in as {role}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -343,7 +343,7 @@ export default function Login() {
                 />
 
                 <Button
-                  className="w-full py-3 text-base font-semibold"
+                  className="w-full py-3 text-base font-medium"
                   disabled={sendSignInEmail.isPending}
                   size="lg"
                   type="submit"
