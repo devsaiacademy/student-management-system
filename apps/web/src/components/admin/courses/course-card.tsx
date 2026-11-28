@@ -21,7 +21,7 @@ export function CourseCard({
   return (
     <article
       className={cn(
-        "group flex h-full flex-col gap-3 rounded-[12px] bg-background p-5 shadow-sm",
+        "group flex h-full flex-col gap-3 rounded-[12px] bg-background p-5 shadow-sm ring-1 ring-foreground/10",
         "transition-all duration-200 hover:shadow-md",
         "animate-in fade-in slide-in-from-bottom-2"
       )}
@@ -31,7 +31,7 @@ export function CourseCard({
       }}
     >
       <header className="flex items-start justify-between gap-3">
-        <h3 className="min-w-0 truncate text-sm font-semibold text-foreground">
+        <h3 className="min-w-0 truncate text-sm font-medium text-foreground">
           {course.name}
         </h3>
         {canManage ? (

@@ -16,12 +16,10 @@ export default async function PaymentsPage() {
   const data = await trpc.payments.getPaymentOverview();
 
   return (
-    <div className="flex flex-1 flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
-     <center>
-       <h1 className="text-center text-base font-semibold text-foreground md:text-lg">
+    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-6">
+      <h1 className="text-center text-lg font-medium text-foreground">
         Payments
       </h1>
-     </center>
       <PaymentCharts data={data} />
     </div>
   );

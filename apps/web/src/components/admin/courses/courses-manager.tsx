@@ -51,37 +51,18 @@ export function CoursesManager({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex flex-col items-center gap-3 px-6 py-5 max-[480px]:items-center min-[481px]:grid min-[481px]:grid-cols-[1fr_auto_1fr] min-[481px]:items-start min-[481px]:gap-4">
-        <div className="hidden min-[481px]:block" />
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-lg font-semibold text-foreground">Courses</h1>
-          <p className="text-sm text-muted-foreground">
-            {canManage
-              ? "Manage the courses students can enroll in"
-              : "Courses students can enroll in"}
-          </p>
-        </div>
-        <div className="flex justify-center min-[481px]:justify-end">
-          {canManage ? (
-            <Button
-              className="h-10 rounded-[8px] px-4 text-sm"
-              onClick={() => setAdding(true)}
-              type="button"
-            >
-              <Plus aria-hidden className="size-4" />
-              Add Course
-            </Button>
-          ) : null}
-        </div>
+      <header className="flex justify-center px-6 py-5 md:px-12">
+        <h1 className="text-lg font-medium text-foreground">Courses</h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
+      <div className="flex-1 overflow-y-auto px-6 pt-1 pb-6 md:px-12">
         {courses.length === 0 ? (
           <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
             {canManage ? (
               <>
                 No courses yet. Click{" "}
-                <strong className="mx-1">+ Add Course</strong> to add one.
+                <strong className="mx-1 font-medium">+ Add Course</strong> to
+                add one.
               </>
             ) : (
               "No courses available yet."
@@ -102,6 +83,19 @@ export function CoursesManager({
           </div>
         )}
       </div>
+
+      {canManage ? (
+        <footer className="flex justify-end px-6 py-4 md:px-12">
+          <Button
+            className="h-10 rounded-[8px] px-4 text-sm"
+            onClick={() => setAdding(true)}
+            type="button"
+          >
+            <Plus aria-hidden className="size-4" />
+            Add Course
+          </Button>
+        </footer>
+      ) : null}
 
       <CourseFormDialog
         mode="create"

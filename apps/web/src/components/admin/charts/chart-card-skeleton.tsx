@@ -13,7 +13,7 @@ export function ChartCardSkeleton({
   withToggle = true,
 }: ChartCardSkeletonProps = {}) {
   return (
-    <Card>
+    <Card className="rounded-[12px] shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="flex flex-col gap-2">
           <Skeleton className="h-5 w-36 rounded" />

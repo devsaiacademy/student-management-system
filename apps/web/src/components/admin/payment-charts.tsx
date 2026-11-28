@@ -1,5 +1,6 @@
 "use client";
 
+import { useIsMobile } from "@student-management-system/ui/hooks/use-mobile";
 import {
   Bar,
   BarChart,
@@ -12,8 +13,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-import { useIsMobile } from "@student-management-system/ui/hooks/use-mobile";
 
 import { ChartCard } from "./charts/chart-card";
 import { STATUS_COLORS } from "./charts/colors";
@@ -54,15 +53,15 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
   const statusPieData = statusData.filter((entry) => entry.count > 0);
 
   const revenueData = [
-    { name: "TOTAL BV", value: data.revenue.totalBv },
-    { name: "TOTAL CR", value: data.revenue.totalCr },
-    { name: "PENDING", value: data.revenue.totalPending },
-    { name: "DISCONTINUED", value: data.revenue.totalDiscontinued },
+    { name: "Total BV", value: data.revenue.totalBv },
+    { name: "Total CR", value: data.revenue.totalCr },
+    { name: "Pending", value: data.revenue.totalPending },
+    { name: "Discontinued", value: data.revenue.totalDiscontinued },
   ];
   const revenuePieData = revenueData.filter((entry) => entry.value > 0);
 
   return (
-    <div className="flex flex-col gap-4 md:gap-6">
+    <div className="flex flex-col gap-6">
       <ChartCard
         bar={
           <BarChart data={statusData}>
@@ -111,7 +110,7 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
           </PieChart>
         }
         subtitle={`Total students: ${totalCount}`}
-        title="STUDENT PAYMENT STATUS"
+        title="Student payment status"
       />
       <ChartCard
         bar={
@@ -175,7 +174,7 @@ export function PaymentCharts({ data }: { data: PaymentOverview }) {
           </PieChart>
         }
         subtitle={`Total billed: ${formatInr(data.revenue.totalBv)}`}
-        title="REVENUE BREAKDOWN"
+        title="Revenue breakdown"
       />
     </div>
   );

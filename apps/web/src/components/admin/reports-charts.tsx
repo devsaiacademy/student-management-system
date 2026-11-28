@@ -39,7 +39,7 @@ export function ReportsCharts({ levels, sources }: ReportsChartsProps) {
   const sortedSources = [...sources].sort((a, b) => b.count - a.count);
 
   return (
-    <div className="flex flex-col gap-4 md:gap-6">
+    <div className="flex flex-col gap-6">
       <LevelsChartCard levels={sortedLevels} />
       <SourcesChartCard sources={sortedSources} />
     </div>
@@ -109,7 +109,7 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
         </PieChart>
       }
       subtitle={`Total students: ${totalCount}`}
-      title="LEVELS COUNT"
+      title="Levels count"
     />
   );
 }
@@ -179,7 +179,7 @@ function SourcesChartCard({ sources }: { sources: SourceCount[] }) {
         </PieChart>
       }
       subtitle={`Total students: ${totalCount}`}
-      title="STUDENT SOURCES"
+      title="Student sources"
     />
   );
 }

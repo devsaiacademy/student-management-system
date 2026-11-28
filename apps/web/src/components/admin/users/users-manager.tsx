@@ -141,11 +141,8 @@ export function UsersManager({
 
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-6 px-6 py-8">
-      <header className="flex flex-col items-center gap-1 text-center">
-        <h1 className="text-lg font-semibold text-foreground">Teachers</h1>
-        <p className="text-sm text-muted-foreground">
-          Admins and staff who can sign in to manage the platform.
-        </p>
+      <header className="flex justify-center">
+        <h1 className="text-lg font-medium text-foreground">Teachers</h1>
       </header>
 
       <form
@@ -202,11 +199,12 @@ export function UsersManager({
         </Button>
       </form>
 
-      <ul className="divide-y divide-border">
+      <ul className="divide-y divide-border overflow-hidden rounded-[12px] bg-card shadow-sm ring-1 ring-foreground/10 transition-shadow duration-200 hover:shadow-md">
         {users.length === 0 ? (
           <li className="py-12 text-center text-sm text-muted-foreground">
-            No users yet. Fill the form above and click <strong>Add</strong> to
-            invite the first one.
+            No users yet. Fill the form above and click{" "}
+            <strong className="font-medium">Add</strong> to invite the first
+            one.
           </li>
         ) : (
           users.map((user) => {
@@ -222,17 +220,17 @@ export function UsersManager({
               >
                 <div className="col-span-2 flex min-w-0 items-center gap-3 sm:col-span-1">
                   <Avatar className="size-10 shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+                    <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
                       {initialFor(user.name, user.email)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex min-w-0 flex-col">
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className="truncate text-sm font-semibold text-foreground">
+                      <span className="truncate text-sm font-medium text-foreground">
                         {user.name}
                       </span>
                       {isSelf ? (
-                        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-normal text-primary">
                           You
                         </span>
                       ) : null}

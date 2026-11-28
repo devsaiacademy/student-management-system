@@ -4,9 +4,9 @@ import { ChartCardSkeleton } from "@/components/admin/charts/chart-card-skeleton
 
 export default function Loading() {
   return (
-    <div className="flex flex-1 flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6">
-      <Skeleton className="h-5 w-28 rounded md:h-6" />
-      <div className="flex flex-col gap-4 md:gap-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-6">
+      <Skeleton className="mx-auto h-6 w-28 rounded" />
+      <div className="flex flex-col gap-6">
         <ChartCardSkeleton />
         <ChartCardSkeleton withToggle={false} />
       </div>
