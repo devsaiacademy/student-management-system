@@ -42,8 +42,13 @@ export type ManualPaymentMethod = (typeof MANUAL_PAYMENT_METHODS)[number];
 
 // What a payment row is for. Replaces the old description-string sniffing
 // ("Kit" vs everything else). Defaults to "tuition_fee"; the kit row is the
-// only one tagged "kit_fee".
-export const PAYMENT_TYPES = ["tuition_fee", "kit_fee"] as const;
+// only one tagged "kit_fee". "component_fee" rows are added by staff from the
+// Add Payment dialog and roll up into the Component Details card.
+export const PAYMENT_TYPES = [
+  "tuition_fee",
+  "kit_fee",
+  "component_fee",
+] as const;
 export type PaymentType = (typeof PAYMENT_TYPES)[number];
 
 export const STUDENT_PROGRESS_STATUSES = ["in_progress", "completed"] as const;

@@ -37,6 +37,7 @@ const DESCRIPTION_MAX_LENGTH = 255;
 const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
   tuition_fee: "Tuition Fee",
   kit_fee: "Kit Fee",
+  component_fee: "Component Fee",
 };
 
 export function AddPayment({ studentId }: AddPaymentProps) {

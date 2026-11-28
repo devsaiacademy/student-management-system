@@ -22,26 +22,27 @@ const studentIdInput = z.object({ studentId: z.number().int().positive() });
 
 type PaymentStatus = "paid" | "unpaid" | "overdue" | "partially_paid";
 
-type KitRow = {
+type FeeRow = {
   amount: number;
   amountPaid: number;
   paymentStatus: PaymentStatus;
   dueDate: string;
 };
 
-type KitSummary = {
+type FeeSummary = {
   amount: number;
   amountPaid: number;
   paymentStatus: PaymentStatus;
   dueDate: string;
 };
 
-// Rolls every kit_fee row into one summary for the Kit Details card. Returns
-// null when the student has no kit fees. Status precedence: all paid → paid;
+// Rolls fee rows of one type (kit_fee or component_fee) into one summary for
+// the Kit / Component Details card. Returns
+// null when the student has no such fees. Status precedence: all paid → paid;
 // otherwise any overdue → overdue; otherwise any money collected →
 // partially_paid; otherwise unpaid. dueDate is the earliest still-owing date
 // (falling back to the earliest of all when everything is paid).
-function summarizeKit(rows: KitRow[]): KitSummary | null {
+function summarizeFeeRows(rows: FeeRow[]): FeeSummary | null {
   if (rows.length === 0) {
     return null;
   }
@@ -117,7 +118,12 @@ export const enrollmentRouter = router({
       const kitPayments = enrollmentPayments.filter(
         (p) => p.paymentType === "kit_fee"
       );
-      const kitSummary = summarizeKit(kitPayments);
+      const kitSummary = summarizeFeeRows(kitPayments);
+      // Every component_fee row rolls up the same way, for the Component
+      // Details card.
+      const componentSummary = summarizeFeeRows(
+        enrollmentPayments.filter((p) => p.paymentType === "component_fee")
+      );
 
       const paidCount = tuitionPayments.filter(
         (p) => p.paymentStatus === "paid"
@@ -188,6 +194,7 @@ export const enrollmentRouter = router({
           oldestOverdueDate: oldestOverdue?.dueDate ?? null,
         },
         kit: kitSummary,
+        components: componentSummary,
       };
     }),
 
@@ -238,18 +245,24 @@ export const enrollmentRouter = router({
         // are tagged). `description != 'Initial Payment'` alone would
         // silently drop the NULL rows because of SQL's three-valued logic,
         // so we explicitly include them via `isNull`.
-        const existingRows = await tx
-          .select()
-          .from(payments)
-          .where(
-            and(
-              eq(payments.enrollmentId, input.enrollmentId),
-              or(
-                isNull(payments.description),
-                ne(payments.description, "Initial Payment")
+        // Component fees are excluded: their due date is whatever staff
+        // entered, not derived from the joining day, so they neither lock
+        // the joining date nor move with it (and their presence must not
+        // stop the first-time schedule from being generated).
+        const existingRows = (
+          await tx
+            .select()
+            .from(payments)
+            .where(
+              and(
+                eq(payments.enrollmentId, input.enrollmentId),
+                or(
+                  isNull(payments.description),
+                  ne(payments.description, "Initial Payment")
+                )
               )
             )
-          );
+        ).filter((row) => row.paymentType !== "component_fee");
 
         // A 0-amount paid tuition row is an installment fully covered by the
         // initial deposit — no money collected on its due date, so no lock.
