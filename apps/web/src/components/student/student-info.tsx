@@ -57,14 +57,14 @@ function getStatusBadge(status: string) {
   }
 }
 
-export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
+export function StudentHeader({ isAdmin, studentId }: StudentInfoProps) {
   const { data, isPending, isError } = useQuery(
     trpc.students.getStudentInfo.queryOptions({ studentId })
   );
 
   if (isPending) {
     return (
-      <div className="w-full rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+      <div className="w-full rounded-2xl bg-white p-5 shadow-sm md:rounded-none md:bg-transparent md:p-0 md:shadow-none">
         <div className="flex min-w-0 flex-col gap-4 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-5 sm:gap-y-2.5">
           <div className="flex min-w-0 items-start gap-4 sm:contents">
             <Skeleton className="size-16 shrink-0 rounded-full sm:col-start-1 sm:row-span-3 sm:row-start-1 sm:self-start" />
@@ -103,7 +103,7 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
   const initials = getInitials(data.name);
 
   return (
-    <div className="w-full rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+    <div className="w-full rounded-2xl bg-white p-5 shadow-sm md:rounded-none md:bg-transparent md:p-0 md:shadow-none">
       <div className="flex min-w-0 flex-col gap-4 sm:grid sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-5 sm:gap-y-2.5">
         <div className="flex min-w-0 items-start gap-4 pr-12 sm:contents sm:pr-0">
           <Avatar
@@ -113,12 +113,12 @@ export function StudentInfo({ isAdmin, studentId }: StudentInfoProps) {
             )}
             size="lg"
           >
-            <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
+            <AvatarFallback className="bg-primary/10 text-lg font-medium text-primary">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:contents">
-            <h2 className="text-xl font-semibold leading-tight text-foreground sm:col-start-2 sm:col-span-2 sm:row-start-1">
+            <h2 className="text-xl font-medium leading-tight text-foreground sm:col-start-2 sm:col-span-2 sm:row-start-1">
               {data.name}
             </h2>
             {isAdmin && (

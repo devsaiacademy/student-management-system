@@ -135,23 +135,23 @@ function DetailsToggle({
 }) {
   return (
     <button
-      aria-label="Show all details"
-      aria-pressed={on}
-      className="ml-2 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+      aria-checked={on}
+      className="ml-2 inline-flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md border-0 bg-transparent p-0 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       onClick={() => onChange(!on)}
+      role="switch"
       type="button"
     >
       Show all info
       <span
         className={cn(
-          "relative inline-block h-3.5 w-7 rounded-full transition-colors",
-          on ? "bg-primary" : "bg-muted"
+          "relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors duration-200",
+          on ? "bg-primary" : "bg-input"
         )}
       >
         <span
           className={cn(
-            "absolute top-0.5 block size-2.5 rounded-full bg-white shadow-sm transition-transform",
-            on ? "translate-x-[14px]" : "translate-x-0.5"
+            "block size-3 rounded-full bg-white shadow-sm transition-transform duration-200",
+            on ? "translate-x-3.5" : "translate-x-0.5"
           )}
         />
       </span>
@@ -162,6 +162,9 @@ function DetailsToggle({
 export function getInstallmentLabel(payment: Payment, total: number) {
   if (payment.paymentType === "kit_fee") {
     return "Kit";
+  }
+  if (payment.paymentType === "component_fee") {
+    return "Component";
   }
   return payment.emiNumber
     ? `Payment ${payment.emiNumber} of ${total}`
@@ -329,10 +332,6 @@ function MobileRow(props: PaymentActionsProps & { showDetails: boolean }) {
             )}
           >
             <div className="flex justify-between gap-3">
-              <span className="text-muted-foreground">Course</span>
-              <span className="text-foreground">{payment.course}</span>
-            </div>
-            <div className="flex justify-between gap-3">
               <span className="text-muted-foreground">Due Date</span>
               <span className="text-foreground">
                 {formatDate(payment.dueDate)}
@@ -374,6 +373,10 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
     trpc.payments.getStudentPayments.queryOptions({ studentId })
   );
   const [showDetails, setShowDetails] = useState(false);
+  const paymentCount = data?.length ?? 0;
+  const paymentsHeading = data
+    ? `${paymentCount} ${paymentCount === 1 ? "Payment" : "Payments"}`
+    : "Payments";
 
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
@@ -383,8 +386,8 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
           "hidden border-b border-border bg-muted/40 py-3 md:grid"
         )}
       >
-        <span className="text-xs font-medium text-muted-foreground">
-          Course
+        <span className="truncate text-xs font-medium text-muted-foreground">
+          {paymentsHeading}
         </span>
         <span className="text-xs font-medium text-muted-foreground">
           Due Date
@@ -400,7 +403,10 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
         </span>
       </div>
 
-      <div className="flex justify-end border-b border-border bg-muted/40 px-4 py-2 md:hidden">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-2 md:hidden">
+        <span className="truncate text-xs font-medium text-muted-foreground">
+          {paymentsHeading}
+        </span>
         <DetailsToggle on={showDetails} onChange={setShowDetails} />
       </div>
 
@@ -455,7 +461,8 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
         data &&
         (() => {
           const installmentTotal = data.filter(
-            (p) => p.paymentType !== "kit_fee"
+            (p) =>
+              p.paymentType !== "kit_fee" && p.paymentType !== "component_fee"
           ).length;
           return data.map((payment) => {
             const isPaid = payment.paymentStatus === "paid";
@@ -466,12 +473,9 @@ export function StudentPayment({ isAdmin, studentId }: StudentPaymentProps) {
             return (
               <div key={payment.id}>
                 <div className="hidden border-b border-border bg-white last:border-b-0 hover:bg-muted/30 md:block">
-                  <p className="px-4 pt-4 text-sm font-semibold text-foreground">
-                    {label}
-                  </p>
-                  <div className={cn(ROW_GRID, "py-3")}>
-                    <span className="text-sm text-foreground">
-                      {payment.course}
+                  <div className={cn(ROW_GRID, "py-4")}>
+                    <span className="text-sm font-medium text-foreground">
+                      {label}
                     </span>
                     <span className="text-sm text-foreground">
                       {formatDate(payment.dueDate)}
