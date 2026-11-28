@@ -1,5 +1,6 @@
 "use client";
 
+import { useIsMobile } from "@student-management-system/ui/hooks/use-mobile";
 import {
   Bar,
   BarChart,
@@ -13,10 +14,8 @@ import {
   YAxis,
 } from "recharts";
 
-import { useIsMobile } from "@student-management-system/ui/hooks/use-mobile";
-
 import { ChartCard } from "./charts/chart-card";
-import { BAR_COLOR, PIE_PALETTE_6, PIE_PALETTE_7 } from "./charts/colors";
+import { BAR_COLOR, PIE_PALETTE_7, getLevelColor } from "./charts/colors";
 import { renderPieLabel } from "./charts/pie-label";
 
 const naturalCompare = new Intl.Collator(undefined, {
@@ -54,9 +53,18 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
   return (
     <ChartCard
       bar={
-        <BarChart data={levels}>
+        // 13 level labels don't fit horizontally; slant them so every label
+        // stays visible (interval 0 stops recharts from hiding some).
+        <BarChart data={levels} margin={{ bottom: 24 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="level" />
+          <XAxis
+            angle={-35}
+            dataKey="level"
+            height={70}
+            interval={0}
+            textAnchor="end"
+            tick={{ fontSize: 12 }}
+          />
           <YAxis
             allowDecimals={false}
             domain={[0, totalCount]}
@@ -87,11 +95,8 @@ function LevelsChartCard({ levels }: { levels: LevelCount[] }) {
             nameKey="level"
             outerRadius="70%"
           >
-            {pieData.map((entry, index) => (
-              <Cell
-                fill={PIE_PALETTE_6[index % PIE_PALETTE_6.length]}
-                key={entry.level}
-              />
+            {pieData.map((entry) => (
+              <Cell fill={getLevelColor(entry.level)} key={entry.level} />
             ))}
           </Pie>
           <Tooltip formatter={(value) => [`${value} students`, "Count"]} />

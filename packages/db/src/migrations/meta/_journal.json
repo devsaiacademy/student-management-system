@@ -169,6 +169,13 @@
       "when": 1781456482224,
       "tag": "0023_add_student_dob_phone2_address",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795821523726,
+      "tag": "0024_add_more_levels",
+      "breakpoints": true
     }
   ]
 }

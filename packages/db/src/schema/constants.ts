@@ -71,6 +71,13 @@ export const LEVELS = [
   "Level 1 - 4",
   "Level 1 - 5",
   "Level 1 - 6",
+  "Level 2",
+  "Level 2 - 3",
+  "Level 3",
+  "Level 4",
+  "Level 4 - 6",
+  "Level 5",
+  "Level 6",
 ] as const;
 export type Level = (typeof LEVELS)[number];
 
