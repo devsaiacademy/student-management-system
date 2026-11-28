@@ -447,9 +447,17 @@ function CourseRing({
       caption={caption}
       center={center}
       mobileCaption={
-        progress.totalCount > 0 && status !== "paid"
-          ? `${progress.paidCount} of ${progress.totalCount} paid · ${caption}`
-          : caption
+        progress.totalCount > 0 && status !== "paid" ? (
+          <>
+            <span className="block">
+              {formatCompactINR(progress.totalPaid)} paid · {progress.paidCount}{" "}
+              of {progress.totalCount} paid
+            </span>
+            <span className="block">{caption}</span>
+          </>
+        ) : (
+          caption
+        )
       }
       title="Course fee"
       tone={toneFor(status)}
